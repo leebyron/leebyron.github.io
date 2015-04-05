@@ -32,9 +32,14 @@ var Header = React.createClass({
   render: function() {
     var s = this.state.scroll;
     var r = prng(1234567890);
+
+    var photoStyle = t(0, Math.max(0, s * 0.7));
+
     return (
       <div className="cover">
-        <div className="photo" style={t(0, Math.max(0, s * 0.7))}></div>
+
+        <div className="photo" style={photoStyle}></div>
+
         <div className="synopsis">
 
           <div className="logo">
@@ -44,24 +49,21 @@ var Header = React.createClass({
 
             <g transform="translate(562, 71)">
 
-            <g opacity="0.70">
 
               <g fill="#6DA9B6">
-                <polygon style={aa(s, r)} points="561.6,69 522.3,69 436.7,-69 475.9,-69"/>
-                <polygon style={aa(s, r)} points="241.6,69 203.3,69 172.7,18.4 211,18.4"/>
-                <polygon style={sz(1 + s * r(0.001, 0.01))} points="71,-69 28,11 28,69 64,69 64,11 107,-69"/>
-                <polygon style={sz(1 + s * r(0.001, 0.01))} points="-412,37 -412,-69 -446,-69 -446,69 -352,69 -352,37"/>
+                <polygon style={aa(s, r)} opacity="0.70" points="561.6,69 522.3,69 436.7,-69 475.9,-69"/>
+                <polygon style={aa(s, r)} opacity="0.70" points="241.6,69 203.3,69 172.7,18.4 211,18.4"/>
+                <polygon style={sz(1 + s * r(0.001, 0.01))} opacity="0.70" points="71,-69 28,11 28,69 64,69 64,11 107,-69"/>
+                <polygon style={sz(1 + s * r(0.001, 0.01))} opacity="0.70" points="-412,37 -412,-69 -446,-69 -446,69 -352,69 -352,37"/>
               </g>
 
               <g fill="#FF744C">
-                <rect style={sz(1 + s * r(0.001, 0.01))} x="-562" y="37" width="94" height="32"/>
-                <polygon style={sz(1 + s * r(0.001, 0.01))} points="-221,-69 -311.4,-69 -311.2,-68.4 -312,-68.4 -312,69 -278,69 -278,-37 -221,-37"/>
-                <circle style={sz(1 + s * r(0.001, 0.01))} cx="339.7" cy="0" r="71"/>
-                <path style={sz(1 + s * r(0.001, 0.01))} d="M202.1,12c22.2,0,40.3-18.3,40.3-40.5c0-22.2-18-40.5-40.3-40.5H137v81H202.1z"/>
-                <path style={sz(1 + s * r(0.001, 0.01))} d="M-74.6,-14h-28.7V-69H-135l0,138h60.4c22.8,0,41.3-18.8,41.3-41.7C-33.3,4.5,-51.8,-14,-74.6,-14z"/>
+                <rect style={h(s, r)} opacity="0.70" x="-562" y="37" width="94" height="32"/>
+                <polygon style={sz(1 + s * r(0.001, 0.01))} opacity="0.70" points="-221,-69 -311.4,-69 -311.2,-68.4 -312,-68.4 -312,69 -278,69 -278,-37 -221,-37"/>
+                <circle style={sz(1 + s * r(0.001, 0.01))} opacity="0.70" cx="339.7" cy="0" r="71"/>
+                <path style={spinY(s, r)} opacity="0.70" d="M202.1,12c22.2,0,40.3-18.3,40.3-40.5c0-22.2-18-40.5-40.3-40.5H137v81H202.1z"/>
+                <path style={spin(s, r)} opacity="0.70" d="M-74.6,-14h-28.7V-69H-135l0,138h60.4c22.8,0,41.3-18.8,41.3-41.7C-33.3,4.5,-51.8,-14,-74.6,-14z"/>
               </g>
-
-            </g>
 
             <g opacity="0.55" fill="#262628">
 
@@ -179,15 +181,15 @@ var Header = React.createClass({
 });
 
 function h(s, r) {
-  var dx = s * r(-4, 4);
-  var sx = Math.max(0, 1 + s * r(-0.01, -0.001));
-  return { transform: 'scale('+sx+',1) translate('+dx+'px,0)' };
+  var dx = s * r(-8, 8);
+  var sx = Math.max(0, 1 + s * r(-0.01, -0.003));
+  return { transform: 'translateX('+dx+'px) scaleX('+sx+')' };
 }
 
 function v(s, r) {
   var dy = s * r(-6, 6);
-  var sy = Math.max(0, 1 + s * r(-0.01, -0.001));
-  return { transform: 'scale(1,'+sy+') translate(0,'+dy+'px)' };
+  var sy = Math.max(0, 1 + s * r(-0.01, -0.003));
+  return { transform: 'translateY('+dy+'px) scaleY('+sy+')' };
 }
 
 // var D2R = Math.PI / 180;
@@ -196,9 +198,9 @@ function v(s, r) {
 
 function a(s, r) {
   var dy = s * r(-5, 5);
-  var sy = Math.max(0, 1 + s * r(-0.01, -0.001));
+  var sy = Math.max(0, 1 + s * r(-0.01, -0.003));
   return { transform:
-    'rotate(-30deg) scale(1,'+sy+') translate(0,'+dy+'px) rotate(30deg)'
+    'rotate(-30deg) translateY('+dy+'px) scaleY('+sy+') rotate(30deg)'
   };
 }
 
@@ -209,6 +211,26 @@ var yd = Math.cos(D2R * 30);
 function aa(s, r) {
   var d = r(-5, 5);
   return t(s * d * xd, s * d * yd);
+}
+
+function spin(s, r) {
+  var dx = r(-1000,1000);
+  var dy = r(-1000,1000);
+  var az = s * r(-1,1);
+
+  return { transform:
+    'translate('+dx+'px,'+dy+'px) rotate('+az+'deg) translate('+(-dx)+'px,'+(-dy)+'px)'
+  };
+}
+
+function spinY(s, r) {
+  var dx = r(-1000,1000);
+  var dy = r(-1000,1000);
+  var ay = s * r(-1,1);
+
+  return { transform:
+    'translate('+dx+'px,'+dy+'px) rotateY('+ay+'deg) translate('+(-dx)+'px,'+(-dy)+'px)'
+  };
 }
 
 // function ar(s, d, r) {

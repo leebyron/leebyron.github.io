@@ -184,10 +184,12 @@ function preRender() {
             '<div id="' + id + '">'+
             vm.runInNewContext(
               require('fs').readFileSync('./build/bundle.js') + // ugly
-              '\nrequire("react").renderComponentToString(require(component)());',
+              '\nvar react = require("react");' +
+              '\nreact.renderToString(react.createElement(require(component)));',
               {
                 global: { React: React },
-                component: component
+                component: component,
+                console: console
               }
             ) +
             '</div>'
@@ -200,8 +202,9 @@ function preRender() {
     if (components.length) {
       src += '<script>' + components.map(function (component, index) {
         return (
-          'require("react").renderComponent('+
-            'require("'+component+'")(),'+
+          'var react = require("react");react.render('+
+            'react.createElement(require("'+component+'")),'+
+            // 'require("'+component+'")(),'+
             'document.getElementById("r' + (index) + '")'+
           ');'
         );
