@@ -7,7 +7,7 @@ var React = require('react');
 var Header = React.createClass({
 
   getInitialState: function() {
-    return { scroll: 0, height: window.scrollY };
+    return { scroll: 0, height: typeof window === 'object' && window.scrollY || 0 };
   },
 
   componentDidMount: function () {
@@ -185,9 +185,11 @@ var Header = React.createClass({
         <div className="cardBack" style={cardMoveBack(s, hei, r)}>
           <em>Design Technologist</em><br /><br />
 
-          lee@leebyron.com<br />
-          @leeb<br />
-          github.com/leebyron<br />
+          <a href='mailto&#58;&#108;&#37;65e&#64;leebyron&#46;c&#111;&#109;'>
+            l&#101;e&#64;&#108;e&#101;&#98;&#121;&#114;on&#46;&#99;om
+          </a><br />
+          <a href="https://twitter.com/leeb" target="_blank">@leeb</a><br />
+          <a href="https://github.com/leebyron" target="_blank">github.com/leebyron</a><br />
         </div>
 
       </div>
