@@ -7,17 +7,15 @@ var React = require('react');
 var Header = React.createClass({
 
   getInitialState: function() {
-    return { scroll: 0 };
+    return { scroll: 0, height: window.scrollY };
   },
 
   componentDidMount: function () {
-    console.log('mounted');
     document.addEventListener('scroll', this.handleScroll);
     window.addEventListener('resize', this.handleScroll);
   },
 
   componentWillUnmount: function () {
-    console.log('unmount...');
     document.removeEventListener('scroll', this.handleScroll);
     window.removeEventListener('resize', this.handleScroll);
   },
