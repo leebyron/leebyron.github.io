@@ -76,7 +76,7 @@ gulp.task('js', function() {
     .add('./src/index.js')
     .require('./src/index.js')
     .require('react')
-    // .require('../resources/react-global.js', { expose: 'react' })
+    .require('../resources/react-global.js', { expose: 'react' })
     .transform(reactTransformify)
     .bundle()
     .on('error', handleError)
