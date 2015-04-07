@@ -6,6 +6,10 @@
     <link rel="stylesheet" href="bundle.css">
   </head>
   <body>
+    <script>
+      window.isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPod|iPad/i);
+      document.body.className = window.isMobile ? 'mobile' : 'desktop';
+    </script>
     <!-- React(./src/index.js) -->
     <script src="//cdn.jsdelivr.net/react/0.13.1/react.js"></script>
     <script src="bundle.js"></script>

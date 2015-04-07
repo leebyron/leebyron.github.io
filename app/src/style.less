@@ -5,12 +5,18 @@ html, body {
 body {
   font: 17px/24px "courier-prime", courier, monospace;
   color: #505050;
+}
 
+body.desktop {
   background: #f7f8f9;
   background-image: url('static/walnut.jpg');
   background-size: cover;
   background-position: center center;
   background-attachment: fixed;
+}
+
+body.mobile {
+  background: #fff;
 }
 
 * {
@@ -30,7 +36,7 @@ hr {
   margin: 0.5em 0;
 }
 
-.card {
+.desktop .card {
   pointer-events: none;
   position: fixed;
   top: 0;
@@ -66,7 +72,7 @@ hr {
   text-decoration: underline;
 }
 
-.cardFront {
+.desktop .cardFront {
   height: 100%;
   background: white;
   box-shadow: 0 1px 8px 1px rgba(0,0,0,0.2);
@@ -88,9 +94,7 @@ hr {
   margin: -50vh -50vw;
 }
 
-
-
-.cardBack {
+.desktop .cardBack {
   position: absolute;
   top: -40.909090%;
   left: 22.5%;
@@ -108,7 +112,7 @@ hr {
   transform: translate3d(0,0,0) rotateX(180deg) rotateZ(90deg);
 }
 
-.cardBottomEdge {
+.desktop .cardBottomEdge {
   position: absolute;
   bottom: 0;
   top: 0;
@@ -128,16 +132,52 @@ hr {
   background: #FFD034;
 }
 
-.spacer {
+.desktop .spacer {
   height: 200vh;
   min-height: 1150px;
 }
 
-.body {
+.desktop .body {
   width: 90vw;
   max-width: 900px;
   background: white;
   box-shadow: 0 1px 8px 2px rgba(0,0,0,0.2);
   padding: 1em;
   margin: 20vh auto 30vh;
+}
+
+
+/* MOBILE */
+
+.mobile .card {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile .cardFront {
+  position: relative;
+  margin: 0 auto;
+  width: 80vmin;
+  max-width: 500px;
+  margin-top: 50vh;
+}
+
+.mobile .cardBack {
+  width: 80vmin;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.mobile .cardBottomEdge {
+  display: none;
+}
+
+.mobile .spacer {
+  display: none;
+}
+
+.mobile .body {
+  padding: 1em;
+  margin: 30vh auto;
 }

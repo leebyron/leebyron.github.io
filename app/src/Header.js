@@ -215,6 +215,9 @@ function t(s) {
 }
 
 function cardMove(s, hh, r) {
+  if (window.isMobile) {
+    return {};
+  }
   if (s < 0) {
     return t('translate3d(0,'+(-s)+'px,0)');
   }
@@ -242,6 +245,9 @@ function cardMove(s, hh, r) {
 }
 
 function cardMoveBack(s, hh, r) {
+  if (window.isMobile) {
+    return {};
+  }
   var notimes = Math.min(1, s / hh);
   // var times = 1-notimes;//Math.max(0, (hh - s)/hh);
 
@@ -263,6 +269,9 @@ function cardMoveBack(s, hh, r) {
 
 
 function cardMoveEdge(s, hh, r) {
+  if (window.isMobile) {
+    return {};
+  }
   // return {};
   var notimes = Math.min(1, s / hh);
   // var times = 1-notimes;//Math.max(0, (hh - s)/hh);
