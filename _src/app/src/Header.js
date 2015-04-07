@@ -43,14 +43,15 @@ var Header = React.createClass({
   },
 
   render: function() {
-    var s = this.state.scroll;
+    var ms = this.state.scroll;
+    var s = ms - (isMobile() ? 10 : 50);
     var hei = this.state.height;
     var r = prng(1234567890);
 
     return (
       <div className="card">
 
-        <div className="cardFront" style={cardMove(s, hei, r)}>
+        <div className="cardFront" style={cardMove(ms, hei, r)}>
           <svg className="logo" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124 142">
 
             <g transform="translate(562, 71)">
@@ -185,11 +186,11 @@ var Header = React.createClass({
           </svg>
         </div>
 
-        <div className="cardBottomEdge" style={cardMoveEdge(s, hei, r)}>
+        <div className="cardBottomEdge" style={cardMoveEdge(ms, hei, r)}>
           <div className="edge" />
         </div>
 
-        <div className="cardBack" style={cardMoveBack(s, hei, r)}>
+        <div className="cardBack" style={cardMoveBack(ms, hei, r)}>
           <hr />
           <em>Design Technologist</em><br /><br />
 
@@ -215,7 +216,7 @@ function t(s) {
 }
 
 function isMobile() {
-  return typeof window === 'object' && !!window.isMobile;
+  return !(typeof window === 'object' && !window.isMobile);
 }
 
 function cardMove(s, hh, r) {

@@ -80,7 +80,7 @@ gulp.task('js', function() {
     .pipe(sourcemaps.init({
       loadMaps: true,
     }))
-    // .pipe(uglify())
+    .pipe(uglify())
     .pipe(sourcemaps.write('./maps'))
     .pipe(gulp.dest(DEST))
     .pipe(filter('**/*.js'))
@@ -131,7 +131,7 @@ gulp.task('dev', ['default'], function() {
   browserSync({
     port: 8040,
     server: {
-      baseDir: DEST//'./build'
+      baseDir: DEST
     }
   });
 
