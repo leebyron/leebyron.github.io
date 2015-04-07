@@ -64,13 +64,31 @@ hr {
   min-height: 253px;
 }
 
-.card a {
+.cardBack a {
   color: #505050;
   text-decoration: none;
 }
 
-.card a:hover {
+.cardBack a:hover {
   text-decoration: underline;
+}
+
+.card404 a {
+  color: #505050;
+  text-decoration: underline;
+}
+
+.card404 a:hover {
+  text-decoration: none;
+}
+
+.desktop .card404 {
+  height: 100%;
+  background: white;
+  box-shadow: 0 1px 8px 1px rgba(0,0,0,0.2);
+
+  box-sizing: border-box;
+  padding: 1em;
 }
 
 .desktop .cardFront {
@@ -96,6 +114,7 @@ hr {
 }
 
 .desktop .cardBack {
+  box-sizing: border-box;
   position: absolute;
   top: -40.909090%;
   left: 22.5%;
@@ -151,6 +170,14 @@ hr {
   width: 100%;
   position: relative;
   overflow: hidden;
+}
+
+.mobile .card404 {
+  position: relative;
+  margin: 0 auto;
+  width: 80vmin;
+  max-width: 500px;
+  margin-top: 20vh;
 }
 
 .mobile .cardFront {

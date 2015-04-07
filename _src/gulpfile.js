@@ -89,7 +89,7 @@ gulp.task('js', function() {
 });
 
 gulp.task('pre-render', ['js'], function () {
-  return gulp.src('./app/index.html')
+  return gulp.src('./app/*.html')
     .pipe(preRender())
     .pipe(size({ showFiles: true }))
     .pipe(gulp.dest(DEST))
@@ -99,9 +99,7 @@ gulp.task('pre-render', ['js'], function () {
 gulp.task('less', function () {
   return gulp.src('./app/src/*.less')
     .pipe(sourcemaps.init())
-    .pipe(less({
-      compress: true
-    }))
+    .pipe(less({ compress: true }))
     .pipe(concat('bundle.css'))
     .pipe(sourcemaps.write('./maps'))
     .pipe(gulp.dest(DEST))
