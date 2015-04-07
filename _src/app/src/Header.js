@@ -245,7 +245,7 @@ function cardMove(s, hh, r) {
     'translate3d(0,'+dy+'px,'+dz+'px)' +
     'rotateZ('+(-0.25 + 0.25 * cosmo2)+'turn)' +
     'rotateX('+(0.5 - 0.5 * cosmo2)+'turn)' +
-    'translateZ(2px)'
+    'translateZ(3px)'
   );
 }
 
