@@ -13,6 +13,7 @@ body.desktop {
   background-size: cover;
   background-position: center center;
   background-attachment: fixed;
+  padding-top: 200vh;
 }
 
 body.mobile {
@@ -124,17 +125,14 @@ hr {
   transform: translateY(-50%) rotateX(0.25turn);
 }
 
-.edge {
+.desktop .cardBottomEdge::after {
+  display: block;
+  content: '';
   position: absolute;
   bottom: 50%;
   width: 100%;
   height: 3px;
   background: #FF744C;
-}
-
-.desktop .spacer {
-  height: 200vh;
-  min-height: 1150px;
 }
 
 .desktop .body {

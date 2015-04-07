@@ -10,7 +10,6 @@ var Index = React.createClass({
     return (
       <div>
         <Header />
-        <div className="spacer" />
         {/*<div className="body">
           {Array(200).join().split(',').map((_, i) =>
             <div key={i}>Lorem Ipsum</div>

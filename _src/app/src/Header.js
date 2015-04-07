@@ -186,9 +186,7 @@ var Header = React.createClass({
           </svg>
         </div>
 
-        <div className="cardBottomEdge" style={cardMoveEdge(ms, hei, r)}>
-          <div className="edge" />
-        </div>
+        <div className="cardBottomEdge" style={cardMoveEdge(ms, hei, r)} />
 
         <div className="cardBack" style={cardMoveBack(ms, hei, r)}>
           <hr />
