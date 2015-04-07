@@ -242,8 +242,12 @@ function t(s) {
   };
 }
 
+function isMobile() {
+  return typeof window === 'object' && !!window.isMobile;
+}
+
 function cardMove(s, hh, r) {
-  if (window.isMobile) {
+  if (isMobile()) {
     return {};
   }
   if (s < 0) {
@@ -273,7 +277,7 @@ function cardMove(s, hh, r) {
 }
 
 function cardMoveBack(s, hh, r) {
-  if (window.isMobile) {
+  if (isMobile()) {
     return {};
   }
   var notimes = Math.min(1, s / hh);
@@ -297,7 +301,7 @@ function cardMoveBack(s, hh, r) {
 
 
 function cardMoveEdge(s, hh, r) {
-  if (window.isMobile) {
+  if (isMobile()) {
     return {};
   }
   // return {};
