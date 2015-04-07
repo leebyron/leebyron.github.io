@@ -182,9 +182,14 @@ var Header = React.createClass({
           </svg>
         </div>
 
+        <div className="cardBottomEdge" style={cardMoveEdge(s, hei, r)}>
+          <div className="edge" />
+        </div>
+
         <div className="cardBack" style={cardMoveBack(s, hei, r)}>
           <em>Design Technologist</em><br /><br />
 
+          <a href="http://leebyron.com/">leebyron.com</a><br />
           <a href='mailto&#58;&#108;&#37;65e&#64;leebyron&#46;c&#111;&#109;'>
             l&#101;e&#64;&#108;e&#101;&#98;&#121;&#114;on&#46;&#99;om
           </a><br />
@@ -227,7 +232,8 @@ function cardMove(s, hh, r) {
   return t(
     'translate3d(0,'+dy+'px,'+dz+'px)' +
     'rotateZ('+(-0.25 + 0.25 * cosmo2)+'turn)' +
-    'rotateX('+(0.5 - 0.5 * cosmo2)+'turn)'
+    'rotateX('+(0.5 - 0.5 * cosmo2)+'turn)' +
+    'translateZ(2px)'
   );
 }
 
@@ -250,6 +256,31 @@ function cardMoveBack(s, hh, r) {
     'rotateZ(90deg)'
   );
 }
+
+
+function cardMoveEdge(s, hh, r) {
+  // return {};
+  var notimes = Math.min(1, s / hh);
+  // var times = 1-notimes;//Math.max(0, (hh - s)/hh);
+
+  // var cosmo = (1 + Math.cos(Math.PI * notimes)) / 2;
+
+  var notimes2 = Math.max(0, Math.min(1, 1.4 * s / hh - 0.2 ));
+  var cosmo2 = (1 + Math.cos(Math.PI * notimes2)) / 2;
+
+  var dz = 100*((1 - Math.cos(2 * Math.PI * notimes2)) / 2);
+
+  var dy = Math.min(hh, s) - (1-notimes) * s * Math.sin(2 * Math.PI * notimes) - s;
+  return t(
+    'translate3d(0,'+dy+'px,0)' +
+    'translate3d(0,0,'+dz+'px)' +
+    'rotateZ('+(-0.25 + 0.25 * cosmo2)+'turn)' +
+    'rotateX('+(1 - 0.5 * cosmo2)+'turn)' +
+    'translateY(-50%)' +
+    'rotateX(0.25turn)'
+  );
+}
+
 
 
 function prng(seed) {

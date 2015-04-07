@@ -13,7 +13,19 @@ body {
   background-attachment: fixed;
 }
 
+* {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+a {
+  pointer-events: auto;
+}
+
 .card {
+  pointer-events: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -26,6 +38,9 @@ body {
   -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
 
+  -webkit-transform: translate3d(0,0,0);
+  transform: translate3d(0,0,0);
+
   width: 80vm;
   width: 80vmin;
   height: 44vm;
@@ -34,8 +49,6 @@ body {
   max-height: 330px;
   min-width: 460px;
   min-height: 253px;
-
-  user-select: none;
 }
 
 .card a {
@@ -88,13 +101,28 @@ body {
   transform: translate3d(0,0,0) rotateX(180deg) rotateZ(90deg);
 }
 
+.cardBottomEdge {
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translateY(-50%) rotateX(0.25turn);
+  transform: translateY(-50%) rotateX(0.25turn);
+}
 
-
-
+.edge {
+  position: absolute;
+  bottom: 50%;
+  width: 100%;
+  height: 2px;
+  background: #FFD054;
+}
 
 .spacer {
-  height: 200vm;
-  height: 200vmin;
+  height: 200vh;
   min-height: 1150px;
 }
 
