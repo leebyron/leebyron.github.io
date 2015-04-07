@@ -9,7 +9,6 @@ var jest = require('gulp-jest');
 var jshint = require('gulp-jshint');
 var less = require('gulp-less');
 var path = require('path');
-var clean = require('gulp-rimraf');
 var size = require('gulp-size');
 var sourcemaps = require('gulp-sourcemaps');
 var uglify = require('gulp-uglify');
@@ -23,11 +22,7 @@ var buffer = require('vinyl-buffer');
 var source = require('vinyl-source-stream');
 var vm = require('vm');
 
-
-gulp.task('clean', function () {
-  return gulp.src('./build', { read: false })
-    .pipe(clean());
-});
+var DEST = '../';
 
 gulp.task('lint', function() {
   return gulp.src('./app/**/*.js')
@@ -87,7 +82,7 @@ gulp.task('js', function() {
     }))
     // .pipe(uglify())
     .pipe(sourcemaps.write('./maps'))
-    .pipe(gulp.dest('./build/'))
+    .pipe(gulp.dest(DEST))
     .pipe(filter('**/*.js'))
     .pipe(size({ showFiles: true }))
     .on('error', handleError);
@@ -97,7 +92,7 @@ gulp.task('pre-render', ['js'], function () {
   return gulp.src('./app/index.html')
     .pipe(preRender())
     .pipe(size({ showFiles: true }))
-    .pipe(gulp.dest('./build/'))
+    .pipe(gulp.dest(DEST))
     .on('error', handleError);
 });
 
@@ -109,7 +104,7 @@ gulp.task('less', function () {
     }))
     .pipe(concat('bundle.css'))
     .pipe(sourcemaps.write('./maps'))
-    .pipe(gulp.dest('./build/'))
+    .pipe(gulp.dest(DEST))
     .pipe(filter('**/*.css'))
     .pipe(size({ showFiles: true }))
     .pipe(browserSync.reload({ stream:true }))
@@ -118,7 +113,7 @@ gulp.task('less', function () {
 
 gulp.task('statics', function () {
   return gulp.src('./app/static/**/*')
-    .pipe(gulp.dest('./build/static'))
+    .pipe(gulp.dest(DEST+'/static'))
     .pipe(browserSync.reload({ stream:true }))
     .on('error', handleError);
 });
@@ -128,7 +123,7 @@ gulp.task('build', function (done) {
 });
 
 gulp.task('default', function (done) {
-  sequence('clean', 'lint', /*'test',*/ 'build', done);
+  sequence('lint', /*'test',*/ 'build', done);
 });
 
 // watch files for changes and reload
@@ -136,7 +131,7 @@ gulp.task('dev', ['default'], function() {
   browserSync({
     port: 8040,
     server: {
-      baseDir: './build'
+      baseDir: DEST//'./build'
     }
   });
 
@@ -151,19 +146,6 @@ gulp.task('rebuild-js', function (done) {
     browserSync.reload();
     done();
   });
-});
-
-gulp.task('release', ['default'], function () {
-  child_process.exec(
-    'git checkout gh-pages && cp -R ./build/ . && git add -A && git commit -m "gh-pages" && git push && git checkout master',
-    function(error, stdout, stderr) {
-      if (error !== null) {
-        return console.error('exec error: ' + error);
-      }
-      console.log('stdout: ' + stdout);
-      console.log('stderr: ' + stderr);
-    }
-  );
 });
 
 function handleError(error) {
@@ -183,7 +165,7 @@ function preRender() {
           return (
             '<div id="' + id + '">'+
             vm.runInNewContext(
-              require('fs').readFileSync('./build/bundle.js') + // ugly
+              require('fs').readFileSync(DEST+'bundle.js') + // ugly
               '\nvar react = require("react");' +
               '\nreact.renderToString(react.createElement(require(component)));',
               {
