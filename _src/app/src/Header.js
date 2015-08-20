@@ -189,7 +189,6 @@ var Header = React.createClass({
         <div className="cardBottomEdge" style={cardMoveEdge(ms, hei, r)} />
 
         <div className="cardBack" style={cardMoveBack(ms, hei, r)}>
-          <hr />
           <em>Design Technologist</em><br /><br />
 
           <a href="https://twitter.com/leeb" target="_blank">@leeb</a><br />
