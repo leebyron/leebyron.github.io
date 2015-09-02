@@ -8,7 +8,7 @@ var Index = React.createClass({
 
   render: function () {
     return (
-      <div>
+      <div className="content">
         <Header />
         {/*<div className="body">
           {Array(200).join().split(',').map((_, i) =>

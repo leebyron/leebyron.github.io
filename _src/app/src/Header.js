@@ -7,31 +7,34 @@ var React = require('react');
 var Header = React.createClass({
 
   getInitialState: function() {
+    this.scroller = typeof document === 'object' &&
+      document.getElementsByClassName('content')[0];
     return {
-      scroll: typeof window === 'object' && window.scrollY || 0,
+      scroll: typeof this.scroller === 'object' && this.scroller.scrollTop || 0,
       height: typeof document === 'object' && document.documentElement.clientHeight || 800
     };
   },
 
   componentDidMount: function () {
-    document.addEventListener('scroll', this.handleScroll);
+    this.scroller.addEventListener('scroll', this.handleScroll);
     window.addEventListener('resize', this.handleScroll);
   },
 
   componentWillUnmount: function () {
-    document.removeEventListener('scroll', this.handleScroll);
+    this.scroller.removeEventListener('scroll', this.handleScroll);
+    this.scroller = null;
     window.removeEventListener('resize', this.handleScroll);
   },
 
   handleScroll: function (event) {
     if (!this._running) {
-      var scrollPos = window.scrollY;
+      var scrollPos = this.scroller.scrollTop;
       var height = document.documentElement.clientHeight * 2;
       if (scrollPos < height) {
         this._running = true;
         window.requestAnimationFrame(() => {
           this._running = false;
-          var scrollPos = window.scrollY;
+          var scrollPos = this.scroller.scrollTop;
           var height = document.documentElement.clientHeight;
           this.setState({
             scroll: scrollPos,
@@ -49,6 +52,7 @@ var Header = React.createClass({
     var r = prng(1234567890);
 
     return (
+      <div className="cardSurface">
       <div className="card">
 
         <div className="cardFront" style={cardMove(ms, hei, r)}>
@@ -199,6 +203,7 @@ var Header = React.createClass({
           <a href="https://github.com/leebyron" target="_blank">github.com/leebyron</a><br />
         </div>
 
+      </div>
       </div>
     );
   }

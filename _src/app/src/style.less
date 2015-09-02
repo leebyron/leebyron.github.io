@@ -13,7 +13,7 @@ body.desktop {
   background-size: cover;
   background-position: center center;
   background-attachment: fixed;
-  padding-top: 200vh;
+  overflow: hidden;
 }
 
 body.mobile {
@@ -36,6 +36,19 @@ hr {
   border: none;
   border-top: solid 1px #505050;
   margin: 0.5em 0;
+}
+
+.desktop .content {
+  overflow: scroll;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.desktop .cardSurface {
+  padding-top: 200vh;
 }
 
 .desktop .card {
