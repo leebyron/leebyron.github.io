@@ -240,7 +240,7 @@ function cardMove(s, hh, r) {
   var dy = Math.min(hh, s) - (1-notimes) * s * Math.sin(2 * Math.PI * notimes) - s;
   return t(
     'translate3d(0,'+dy+'px,'+dz+'px)' +
-    'rotateZ('+(-0.25 + 0.25 * cosmo2)+'turn)' +
+    'rotateZ('+(0.25 - 0.25 * cosmo2)+'turn)' +
     'rotateX('+(0.5 - 0.5 * cosmo2)+'turn)' +
     'translateZ(3px)'
   );
@@ -263,8 +263,8 @@ function cardMoveBack(s, hh, r) {
   var dy = Math.min(hh, s) - (1-notimes) * s * Math.sin(2 * Math.PI * notimes) - s;
   return t(
     'translate3d(0,'+dy+'px,'+dz+'px)' +
-    'rotateZ('+(-0.25 + 0.25 * cosmo2)+'turn)' +
-    'rotateX('+(1 - 0.5 * cosmo2)+'turn)' +
+    'rotateZ('+(-0.25 - 0.25 * cosmo2)+'turn)' +
+    'rotateX('+(1 + 0.5 * cosmo2)+'turn)' +
     'rotateZ(90deg)'
   );
 }
@@ -289,7 +289,7 @@ function cardMoveEdge(s, hh, r) {
   return t(
     'translate3d(0,'+dy+'px,0)' +
     'translate3d(0,0,'+dz+'px)' +
-    'rotateZ('+(-0.25 + 0.25 * cosmo2)+'turn)' +
+    'rotateZ('+(0.25 - 0.25 * cosmo2)+'turn)' +
     'rotateX('+(1 - 0.5 * cosmo2)+'turn)' +
     'translateY(-50%)' +
     'rotateX(0.25turn)'
