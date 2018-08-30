@@ -1,8 +1,5 @@
 {
-  "author": {
-    "name": "Lee Byron",
-    "url": "http://github.com/leebyron"
-  },
+  "author": "lee@leebyron.com",
   "scripts": {
     "test": "npm run build",
     "build": "gulp",
