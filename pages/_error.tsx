@@ -87,7 +87,7 @@ export default () => (
         This site has recently moved, and some links may have been broken. If
         you&apos;re looking for something here, please{' '}
         <a
-          href="https://github.com/leebyron/leebyron.github.io/issues/new"
+          href="https://github.com/leebyron/leebyron.com/issues/new"
           target="_blank"
         >
           let me know
