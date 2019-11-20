@@ -1,60 +1,238 @@
-/** @jsx React.DOM */
-/* global document, window */
+import Body from '../components/Body'
+import Head from '../components/Head'
+import { useState, useEffect } from 'react'
 
-var React = require('react');
+export default () =>
+  <Body>
+    <Head>
+      <title>Lee Byron</title>
+      <meta property="og:title" content="Lee Byron" />
+      <meta property="og:url" content="https://leebyron.com/" />
+      <meta property="og:image" content={require("../assets/me.jpg")} />
+      <meta property="og:image:width" content="745" />
+      <meta property="og:image:height" content="765" />
+      <meta property="og:type" content="profile" />
+      <meta property="og:profile:first_name" content="Lee" />
+      <meta property="og:profile:last_name" content="Byron" />
+      <meta property="og:profile:username" content="leebyron" />
+      <meta property="og:profile:gender" content="male" />
+    </Head>
+    <Header />
+    <script dangerouslySetInnerHTML={{ __html: `
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-61714711-1', 'auto');
+      ga('send', 'pageview');
+    `}} />
+  </Body>
 
-
-var Header = React.createClass({
-
-  getInitialState: function() {
-    this.scroller = typeof document === 'object' &&
-      document.getElementsByClassName('content')[0];
-    return {
-      scroll: typeof this.scroller === 'object' && this.scroller.scrollTop || 0,
-      height: typeof document === 'object' && document.documentElement.clientHeight || 800
-    };
-  },
-
-  componentDidMount: function () {
-    this.scroller.addEventListener('scroll', this.handleScroll);
-    window.addEventListener('resize', this.handleScroll);
-  },
-
-  componentWillUnmount: function () {
-    this.scroller.removeEventListener('scroll', this.handleScroll);
-    this.scroller = null;
-    window.removeEventListener('resize', this.handleScroll);
-  },
-
-  handleScroll: function (event) {
-    if (!this._running) {
-      var scrollPos = this.scroller.scrollTop;
-      var height = document.documentElement.clientHeight * 2;
-      if (scrollPos < height) {
-        this._running = true;
-        window.requestAnimationFrame(() => {
-          this._running = false;
-          var scrollPos = this.scroller.scrollTop;
-          var height = document.documentElement.clientHeight;
-          this.setState({
-            scroll: scrollPos,
-            height: height
-          });
-        });
+function useScrollAndHeight(): { scroll: number, height: number } {
+  const [ state, setState ] = useState({ scroll: 0, height: 800 })
+  useEffect(() => {
+    let isPending = false;
+    function handleScroll() {
+      if (!isPending) {
+        if (window.scrollY < window.innerHeight * 2) {
+          isPending = true
+          window.requestAnimationFrame(() => {
+            isPending = false
+            setState({
+              scroll: window.scrollY,
+              height: window.innerHeight
+            })
+          })
+        }
       }
     }
-  },
+    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('resize', handleScroll)
+    setState({
+      scroll: window.scrollY,
+      height: window.innerHeight,
+    })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+    }
+  }, [])
+  return state
+}
 
-  render: function() {
-    var ms = this.state.scroll;
-    var s = ms - (isMobile() ? 10 : 50);
-    var hei = this.state.height;
-    var r = prng(1234567890);
+function Header() {
+  const { scroll, height } = useScrollAndHeight()
+  var ms = scroll
+  var s = ms - (isMobile() ? 10 : 50)
+  var hei = height
+  var r = prng(1234567890)
 
-    return (
-      <div className="cardSurface">
+  return (
+    <div className="cardSurface">
+      <style jsx>{`
+.cardBack em {
+  display: block;
+  margin: 1em 0;
+}
+
+.cardBack a {
+  color: #505050;
+  text-decoration: none;
+  display: block;
+}
+
+.cardBack a:hover {
+  text-decoration: underline;
+}
+
+.logo {
+  overflow: visible;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 50vh 50vw;
+  margin: -50vh -50vw;
+}
+
+@media (min-width: 641px) {
+  .cardSurface {
+    padding-top: 200vh;
+  }
+
+  .card {
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    margin: auto;
+
+    -webkit-perspective: 1600px;
+    perspective: 1600px;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+
+    -webkit-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
+
+    width: 80vm;
+    width: 80vmin;
+    height: 44vm;
+    height: 44vmin;
+    max-width: 600px;
+    max-height: 330px;
+    min-width: 460px;
+    min-height: 253px;
+  }
+
+  .cardFront {
+    height: 100%;
+    background: white;
+    box-shadow: 0 1px 8px 1px rgba(0,0,0,0.2);
+
+    box-sizing: border-box;
+    padding: 13%;
+
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translate3d(0,0,3px);
+    transform: translate3d(0,0,3px);
+  }
+
+  .cardBack {
+    box-sizing: border-box;
+    position: absolute;
+    top: -40.909090%;
+    left: 22.5%;
+    right: 22.5%;
+    bottom: -40.909090%;
+
+    padding: 1.5em;
+
+    background: white;
+    box-shadow: 0 1px 8px 1px rgba(0,0,0,0.2);
+
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translate3d(0,0,0) rotateX(180deg) rotateZ(90deg);
+    transform: translate3d(0,0,0) rotateX(180deg) rotateZ(90deg);
+  }
+
+  .cardBottomEdge {
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateY(-50%) rotateX(0.25turn);
+    transform: translateY(-50%) rotateX(0.25turn);
+  }
+
+  .cardBottomEdge::after {
+    display: block;
+    content: '';
+    position: absolute;
+    bottom: 50%;
+    width: 100%;
+    height: 3px;
+    background: #FF744C;
+  }
+
+  .body {
+    width: 90vw;
+    max-width: 900px;
+    background: white;
+    box-shadow: 0 1px 8px 2px rgba(0,0,0,0.2);
+    padding: 1em;
+    margin: 20vh auto 30vh;
+  }
+}
+
+
+@media (max-width: 640px) {
+
+  /* MOBILE */
+
+  .card {
+    pointer-events: none;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cardFront {
+    position: relative;
+    margin: 0 auto;
+    width: 80vmin;
+    max-width: 500px;
+    margin-top: 50vh;
+  }
+
+  .cardBack {
+    width: 80vmin;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .cardBottomEdge {
+    display: none;
+  }
+
+  .spacer {
+    display: none;
+  }
+
+  .body {
+    padding: 1em;
+    margin: 30vh auto;
+  }
+}
+    `}</style>
+
       <div className="card">
-
         <div className="cardFront" style={cardMove(ms, hei, r)}>
           <svg className="logo" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124 142">
 
@@ -193,35 +371,43 @@ var Header = React.createClass({
         <div className="cardBottomEdge" style={cardMoveEdge(ms, hei, r)} />
 
         <div className="cardBack" style={cardMoveBack(ms, hei, r)}>
-          <em>Design Technologist</em><br /><br />
-
-          <a href="https://twitter.com/leeb" target="_blank">@leeb</a><br />
-          <a href="https://leebyron.com/">leebyron.com</a><br />
+          <em>Design Technologist</em>
+          <a href="https://twitter.com/leeb" target="_blank">@leeb</a>
+          <a href="https://leebyron.com/">leebyron.com</a>
           <a href='mailto&#58;&#108;&#37;65e&#64;leebyron&#46;c&#111;&#109;'>
             l&#101;e&#64;&#108;e&#101;&#98;&#121;&#114;on&#46;&#99;om
-          </a><br />
-          <a href="https://github.com/leebyron" target="_blank">github.com/leebyron</a><br />
+          </a>
+          <a href="https://github.com/leebyron" target="_blank">github.com/leebyron</a>
         </div>
 
       </div>
-      </div>
-    );
-  }
+    </div>
+  );
+}
 
-});
-
-function t(s) {
+function t(s: string) {
   return {
     transform: s,
     WebkitTransform: s
   };
 }
 
+let _isMobile: boolean | undefined;
 function isMobile() {
-  return !(typeof window === 'object' && !window.isMobile);
+  if (typeof window !== 'object') {
+    return false;
+  }
+  if (_isMobile === undefined) {
+    const query = window.matchMedia('(max-width: 640px)')
+    _isMobile = query.matches
+    query.addEventListener('change', event => {
+      _isMobile = event.matches
+    })
+  }
+  return _isMobile
 }
 
-function cardMove(s, hh, r) {
+function cardMove(s: number, hh: number, r: PRNG) {
   if (s === 0 || isMobile()) {
     return {};
   }
@@ -238,7 +424,6 @@ function cardMove(s, hh, r) {
   var notimes2 = Math.max(0, Math.min(1, 1.4 * s / hh - 0.2 ));
   var cosmo2 = (1 + Math.cos(Math.PI * notimes2)) / 2;
 
-  // console.log(notimes, times, notimes + times, cosmo);
 
   var dz = 100*((1 - Math.cos(2 * Math.PI * notimes2)) / 2);
 
@@ -251,7 +436,7 @@ function cardMove(s, hh, r) {
   );
 }
 
-function cardMoveBack(s, hh, r) {
+function cardMoveBack(s: number, hh: number, r: PRNG) {
   if (s === 0 || isMobile()) {
     return {};
   }
@@ -275,7 +460,7 @@ function cardMoveBack(s, hh, r) {
 }
 
 
-function cardMoveEdge(s, hh, r) {
+function cardMoveEdge(s: number, hh: number, r: PRNG) {
   if (s === 0 || isMobile()) {
     return {};
   }
@@ -301,9 +486,9 @@ function cardMoveEdge(s, hh, r) {
   );
 }
 
+type PRNG = (min: number, max: number) => number
 
-
-function prng(seed) {
+function prng(seed: number): PRNG {
   var x = seed || 1;
   return function(max, min) {
     x = (x * 279470273) % 4294967291;
@@ -311,7 +496,7 @@ function prng(seed) {
   }
 }
 
-function h(s, r) {
+function h(s: number, r: PRNG) {
   if (s < 0) {
     s = 0;
   }
@@ -320,7 +505,7 @@ function h(s, r) {
   return t('translateX('+(dx-535)+'px) scaleX('+sx+') translateX(535px)');
 }
 
-function v(s, r) {
+function v(s: number, r: PRNG) {
   if (s < 0) {
     s = 0;
   }
@@ -329,7 +514,7 @@ function v(s, r) {
   return t('translateY('+dy+'px) scaleY('+sy+')');
 }
 
-function a(s, r) {
+function a(s: number, r: PRNG) {
   if (s < 0) {
     s = 0;
   }
@@ -339,7 +524,7 @@ function a(s, r) {
 }
 
 
-function _l(s, r) {
+function _l(s: number/*, r*/) {
   if (s < 0) {
     s = 0;
   }
@@ -347,7 +532,7 @@ function _l(s, r) {
   return t('translateX('+dx+'px)');
 }
 
-function _r(s) {
+function _r(s: number) {
   if (s < 0) {
     s = 0;
   }
@@ -360,7 +545,7 @@ var D2R = Math.PI / 180;
 var xd = Math.sin(D2R * 30);
 var yd = Math.cos(D2R * 30);
 
-function _n(s) {
+function _n(s: number) {
   if (s < 0) {
     s = 0;
   }
@@ -371,7 +556,7 @@ function _n(s) {
   return t('translate('+x+'px,'+y+'px)');
 }
 
-function _r2(s) {
+function _r2(s: number) {
   if (s < 0) {
     s = 0;
   }
@@ -382,7 +567,7 @@ function _r2(s) {
   return t('translate('+x+'px,'+y+'px)');
 }
 
-function _o(s) {
+function _o(s: number) {
   if (s < 0) {
     s = 0;
   }
@@ -393,7 +578,7 @@ function _o(s) {
 }
 
 
-function sz(s, d) {
+function sz(s: number, d: number) {
   if (s < 0) {
     s = 0;
   }
@@ -404,7 +589,7 @@ function sz(s, d) {
 }
 
 
-function spin(s, d) {
+function spin(s: number, d: number) {
   if (s < 0) {
     s = 0;
   }
@@ -413,8 +598,3 @@ function spin(s, d) {
   var az = s * 0.15;
   return t('scale('+(1+s*0.003)+') translateX('+(-2*s*d)+'px) translateY('+(-dy)+'px) rotate('+az+'deg) translateY('+dy+'px)');
 }
-
-
-
-
-module.exports = Header;
