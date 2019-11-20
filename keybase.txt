@@ -1,0 +1,54 @@
+==================================================================
+https://keybase.io/leeb
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of http://leebyron.com
+  * I am leeb (https://keybase.io/leeb) on keybase.
+  * I have a public key ASBnVuESLbEjmR4Ac79vgbgOLVoPtA6GAZSV-MxsHpJ1_Ao
+
+To do so, I am signing this object:
+
+{
+    "body": {
+        "key": {
+            "eldest_kid": "01017732fcd90d2e01bd3abad6bd84e98b31c8f896bf8db261d2a2fcc2dea55957b10a",
+            "host": "keybase.io",
+            "kid": "01206756e1122db123991e0073bf6f81b80e2d5a0fb40e86019495f8cc6c1e9275fc0a",
+            "uid": "c8ab86dc013e9e182f3d858828159719",
+            "username": "leeb"
+        },
+        "service": {
+            "hostname": "leebyron.com",
+            "protocol": "http:"
+        },
+        "type": "web_service_binding",
+        "version": 1
+    },
+    "client": {
+        "name": "keybase.io go client",
+        "version": "1.0.18"
+    },
+    "ctime": 1486417811,
+    "expire_in": 504576000,
+    "merkle_root": {
+        "ctime": 1486417779,
+        "hash": "1ec880afa5028ac38c45c93d5897f1c375f7d614a800ab9c2a319456a6284d7ebcfa761d3992ca4f8a700ab2bad0773191fbacdb9bf7f9c481c58ba8d7e8514e",
+        "seqno": 838956
+    },
+    "prev": "5e426e8d0971415272fca644e7cacd6e6a5c56f46ddae5fb36f331a8c5a0731d",
+    "seqno": 11,
+    "tag": "signature"
+}
+
+which yields the signature:
+
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgZ1bhEi2xI5keAHO/b4G4Di1aD7QOhgGUlfjMbB6SdfwKp3BheWxvYWTFAvB7ImJvZHkiOnsia2V5Ijp7ImVsZGVzdF9raWQiOiIwMTAxNzczMmZjZDkwZDJlMDFiZDNhYmFkNmJkODRlOThiMzFjOGY4OTZiZjhkYjI2MWQyYTJmY2MyZGVhNTU5NTdiMTBhIiwiaG9zdCI6ImtleWJhc2UuaW8iLCJraWQiOiIwMTIwNjc1NmUxMTIyZGIxMjM5OTFlMDA3M2JmNmY4MWI4MGUyZDVhMGZiNDBlODYwMTk0OTVmOGNjNmMxZTkyNzVmYzBhIiwidWlkIjoiYzhhYjg2ZGMwMTNlOWUxODJmM2Q4NTg4MjgxNTk3MTkiLCJ1c2VybmFtZSI6ImxlZWIifSwic2VydmljZSI6eyJob3N0bmFtZSI6ImxlZWJ5cm9uLmNvbSIsInByb3RvY29sIjoiaHR0cDoifSwidHlwZSI6IndlYl9zZXJ2aWNlX2JpbmRpbmciLCJ2ZXJzaW9uIjoxfSwiY2xpZW50Ijp7Im5hbWUiOiJrZXliYXNlLmlvIGdvIGNsaWVudCIsInZlcnNpb24iOiIxLjAuMTgifSwiY3RpbWUiOjE0ODY0MTc4MTEsImV4cGlyZV9pbiI6NTA0NTc2MDAwLCJtZXJrbGVfcm9vdCI6eyJjdGltZSI6MTQ4NjQxNzc3OSwiaGFzaCI6IjFlYzg4MGFmYTUwMjhhYzM4YzQ1YzkzZDU4OTdmMWMzNzVmN2Q2MTRhODAwYWI5YzJhMzE5NDU2YTYyODRkN2ViY2ZhNzYxZDM5OTJjYTRmOGE3MDBhYjJiYWQwNzczMTkxZmJhY2RiOWJmN2Y5YzQ4MWM1OGJhOGQ3ZTg1MTRlIiwic2Vxbm8iOjgzODk1Nn0sInByZXYiOiI1ZTQyNmU4ZDA5NzE0MTUyNzJmY2E2NDRlN2NhY2Q2ZTZhNWM1NmY0NmRkYWU1ZmIzNmYzMzFhOGM1YTA3MzFkIiwic2Vxbm8iOjExLCJ0YWciOiJzaWduYXR1cmUifaNzaWfEQCU6STFbfwzJCf5W1NwbEESh0wub/acf8bABBPzbsC0AB9bRqvlyisLaJ79iJ6Z4QwbmgLbxhbw2Knqbfd8LigSoc2lnX3R5cGUgpGhhc2iCpHR5cGUIpXZhbHVlxCDLwANieWuu4KcKmbiYyaioDxJ7qaFCAMMo6x48u4I6cqN0YWfNAgKndmVyc2lvbgE=
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/leeb
+
+==================================================================
