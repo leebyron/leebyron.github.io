@@ -1,7 +1,7 @@
 name: Build and Deploy
 on:
-  push:	
-    branches:	
+  push:
+    branches:
       - master
 jobs:
   build-and-deploy:
@@ -20,5 +20,6 @@ jobs:
       uses: peaceiris/actions-gh-pages@v2.5.0
       env:
         ACTIONS_DEPLOY_KEY: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-        PUBLISH_BRANCH: gh-pages
+        EXTERNAL_REPOSITORY: leebyron/leebyron.github.io
+        PUBLISH_BRANCH: master
         PUBLISH_DIR: ./out
