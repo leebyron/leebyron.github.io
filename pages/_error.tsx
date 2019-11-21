@@ -86,10 +86,7 @@ export default () => (
         <h1>Looking for something?</h1>
         This site has recently moved, and some links may have been broken. If
         you&apos;re looking for something here, please{' '}
-        <a
-          href="https://github.com/leebyron/leebyron.com/issues/new"
-          target="_blank"
-        >
+        <a href={ghIssueURL()} target="_blank">
           let me know
         </a>
         , and I&apos;ll do my best to fix it.
@@ -109,3 +106,11 @@ export default () => (
     </div>
   </Body>
 )
+
+function ghIssueURL() {
+  return `https://github.com/leebyron/leebyron.com/issues/new${
+    typeof document === 'object'
+      ? `?title=Broken+link:+${encodeURIComponent(document.location.pathname)}`
+      : ''
+  }`
+}
