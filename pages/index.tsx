@@ -372,12 +372,18 @@ function Header() {
 
         <div className="cardBack" style={cardMoveBack(ms, hei, r)}>
           <em>Design Technologist</em>
-          <a href="https://twitter.com/leeb" target="_blank">@leeb</a>
-          <a href="https://leebyron.com/">leebyron.com</a>
+          <a href="https://twitter.com/leeb" target="_blank">
+            @leeb
+          </a>
           <a href='mailto&#58;&#108;&#37;65e&#64;leebyron&#46;c&#111;&#109;'>
             l&#101;e&#64;&#108;e&#101;&#98;&#121;&#114;on&#46;&#99;om
           </a>
-          <a href="https://github.com/leebyron" target="_blank">github.com/leebyron</a>
+          <a href="https://github.com/leebyron" target="_blank">
+            github.com/leebyron
+          </a>
+          <a href="https://keybase.io/leeb" target="_blank">
+            keybase.io/leeb
+          </a>
         </div>
 
       </div>
