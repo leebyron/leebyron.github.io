@@ -400,7 +400,8 @@ function isMobile() {
   if (_isMobile === undefined) {
     const query = window.matchMedia('(max-width: 640px)')
     _isMobile = query.matches
-    query.addEventListener('change', event => {
+    // https://developer.mozilla.org/en-US/docs/Web/API/MediaQueryList
+    ;(query.addListener as any)((event: any) => {
       _isMobile = event.matches
     })
   }
