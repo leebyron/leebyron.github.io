@@ -1,5 +1,6 @@
 import Body from '../components/Body'
 import Head from '../components/Head'
+import { useState, useEffect, ReactNode } from 'react'
 
 export default () => (
   <Body>
@@ -15,12 +16,12 @@ export default () => (
         font-style: italic;
       }
 
-      .card404 a {
+      .card404 :global(a) {
         color: #505050;
         text-decoration: underline;
       }
 
-      .card404 a:hover {
+      .card404 :global(a):hover {
         text-decoration: none;
       }
 
@@ -86,10 +87,8 @@ export default () => (
         <h1>Looking for something?</h1>
         This site has recently moved, and some links may have been broken. If
         you&apos;re looking for something here, please{' '}
-        <a href={ghIssueURL()} target="_blank">
-          let me know
-        </a>
-        , and I&apos;ll do my best to fix it.
+        <GHIssueLink>let me know</GHIssueLink>, and I&apos;ll do my best to fix
+        it.
       </div>
       <script
         dangerouslySetInnerHTML={{
@@ -107,10 +106,16 @@ export default () => (
   </Body>
 )
 
-function ghIssueURL() {
-  return `https://github.com/leebyron/leebyron.com/issues/new${
-    typeof document === 'object'
-      ? `?title=Broken+link:+${encodeURIComponent(document.location.pathname)}`
-      : ''
-  }`
+function GHIssueLink({ children }: { children: ReactNode }) {
+  const [path, setPath] = useState()
+  useEffect(() => setPath(document.location.pathname), [])
+  const query = path ? `?title=Broken+link:+${encodeURIComponent(path)}` : ''
+  return (
+    <a
+      href={`https://github.com/leebyron/leebyron.com/issues/new${query}`}
+      target="_blank"
+    >
+      {children}
+    </a>
+  )
 }
