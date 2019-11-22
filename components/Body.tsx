@@ -34,15 +34,16 @@ export default ({ children }: { children: ReactNode }) => {
         }
 
         :global(*) {
-          -moz-user-select: none;
-          -webkit-user-select: none;
-          -ms-user-select: none;
           user-select: none;
         }
 
         :global(a) {
           -webkit-tap-highlight-color: rgba(109, 169, 182, 0.2);
           pointer-events: auto !important;
+        }
+
+        :global(h2), :global(p) {
+          user-select: text;
         }
       `}</style>
       {children}

@@ -1,6 +1,6 @@
 import Body from '../components/Body'
 import Head from '../components/Head'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, ReactNode } from 'react'
 
 export default () =>
   <Body>
@@ -18,6 +18,91 @@ export default () =>
       <meta property="og:profile:gender" content="male" />
     </Head>
     <Header />
+    <Page>
+      <style jsx>{`
+        .talk {
+          display: block;
+          margin-bottom: 2em;
+        }
+
+        .talk img {
+          width: 100%;
+          display: block;
+          margin-bottom: 0.5em;
+        }
+
+        @media (min-width: 641px) {
+          p {
+            width: 55ch;
+          }
+
+          .talk {
+            min-width: 24px;
+            width: calc(33.3% - 2ch);
+            margin-left: 2ch;
+          }
+
+          .talks {
+            display: flex;
+            flex-wrap: wrap;
+            margin-left: -2ch;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .logo {
+            display: none;
+          }
+        }
+
+        h2 {
+          font-size: inherit;
+          font-weight: normal;
+          font-style: italic;
+          margin: 4em 0 1em;
+        }
+
+        a {
+          color: #505050;
+          text-decoration: underline;
+        }
+
+        a:hover {
+          text-decoration: none;
+        }
+      `}</style>
+      <img className="logo" src={require('../assets/logo.svg')} width="200" />
+      <p>
+        Lee is the co-creator of GraphQL and Executive Director of the GraphQL
+        Foundation. He works at Robinhood as an Engineering Manager and
+        previously worked at Facebook. Lee has had a hand in open source
+        libraries used by millions of developers worldwide including GraphQL,
+        React, Immutable.js, Flow, Relay, Dataloader, and more.
+      </p>
+      <h2>Speaking</h2>
+      <div className="talks">
+        <a className="talk" href="https://youtu.be/vG8WpLr6y_U" target="_blank">
+          <img src={require('../assets/talks/1999.jpg')} />
+          Program like it's 1999
+        </a>
+        <a className="talk" href="https://youtu.be/VjHWkBr3tjI" target="_blank">
+          <img src={require('../assets/talks/graphql-history.jpg')} />
+          Brief history of GraphQL
+        </a>
+        <a className="talk" href="https://youtu.be/oTcDmnAXZ4E" target="_blank">
+          <img src={require('../assets/talks/idea-architecture.jpg')} />
+          The IDEA Architecture
+        </a>
+        <a className="talk" href="https://youtu.be/Oh5oC98ztvI" target="_blank">
+          <img src={require('../assets/talks/data-language.jpg')} />
+          Designing a data language
+        </a>
+        <a className="talk" href="https://youtu.be/I7IdS-PbEgI" target="_blank">
+          <img src={require('../assets/talks/immutable-data.jpg')} />
+          Immutable data in React
+        </a>
+      </div>
+    </Page>
     <script dangerouslySetInnerHTML={{ __html: `
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -27,6 +112,34 @@ export default () =>
       ga('send', 'pageview');
     `}} />
   </Body>
+
+function Page({ children }: { children: ReactNode }) {
+  return (
+    <div className="page">
+      <style jsx>{`
+        @media (min-width: 641px) {
+          .page {
+            background: white;
+            box-shadow: 0 1px 8px 1px rgba(0,0,0,0.2);
+            padding: 6em 4em;
+            margin: 0 auto 12em;
+            width: 70vw;
+            max-width: 850px;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .page {
+            padding: 0 3ch;
+            max-width: 500px;
+            margin: 6em auto;
+          }
+        }
+      `}</style>
+      {children}
+    </div>
+  )
+}
 
 function useScrollAndHeight(): { scroll: number, height: number } {
   const [ state, setState ] = useState({ scroll: 0, height: 800 })
@@ -206,13 +319,13 @@ function Header() {
   .cardFront {
     position: relative;
     margin: 0 auto;
-    width: 80vmin;
+    padding: 0 3ch;
     max-width: 500px;
     margin-top: 50vh;
   }
 
   .cardBack {
-    width: 80vmin;
+    padding: 0 3ch;
     max-width: 500px;
     margin: 0 auto;
   }
@@ -571,7 +684,8 @@ function _r2(s: number) {
   var d = 6;
   var x = s * d * xd;
   var y = s * d * yd;
-  return t('translate('+x+'px,'+y+'px)');
+  var sy = Math.max(0, 1 - (Math.max(0, s - 30) / 90));
+  return t('translate('+x+'px,'+y+'px) skewX(30deg) scaleY('+sy+') skewX(-30deg)');
 }
 
 function _o(s: number) {
