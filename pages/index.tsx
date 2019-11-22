@@ -321,7 +321,7 @@ function Header() {
     margin: 0 auto;
     padding: 0 3ch;
     max-width: 500px;
-    margin-top: 50vh;
+    margin-top: 35vh;
   }
 
   .cardBack {
