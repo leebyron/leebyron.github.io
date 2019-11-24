@@ -3,7 +3,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "next",
+    "dev": "env $(cat .env | xargs) next",
     "build": "next build",
     "start": "next start",
     "export": "next export"
@@ -12,15 +12,32 @@
     "semi": false,
     "singleQuote": true
   },
+  "babel": {
+    "presets": [
+      "next/babel"
+    ],
+    "plugins": [
+      "babel-plugin-import-glob-array"
+    ]
+  },
   "dependencies": {
+    "@mdx-js/loader": "1.5.1",
+    "chrome-aws-lambda": "2.0.1",
+    "faunadb": "2.10.0",
     "next": "9.1.5",
+    "next-mdx-enhanced": "2.2.1",
+    "node-fetch": "2.6.0",
+    "puppeteer": "2.0.0",
     "react": "16.12.0",
     "react-dom": "16.12.0",
     "url-loader": "3.0.0"
   },
   "devDependencies": {
     "@types/node": "12.12.16",
+    "@types/node-fetch": "2.5.4",
+    "@types/puppeteer": "2.0.0",
     "@types/react": "16.9.16",
+    "babel-plugin-import-glob-array": "0.2.0",
     "prettier": "1.19.1",
     "typescript": "3.7.3"
   }

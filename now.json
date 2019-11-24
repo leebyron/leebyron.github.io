@@ -1,0 +1,5 @@
+{
+  "env": {
+    "FAUNA_SECRET": "@faunasecret"
+  }
+}
