@@ -49,7 +49,7 @@ export default () =>
           }
         }
 
-        @media not (min-width: 640px) {
+        @media (max-width: 639px) {
           .logo {
             display: none;
           }
@@ -128,7 +128,7 @@ function Page({ children }: { children: ReactNode }) {
           }
         }
 
-        @media not (min-width: 640px) {
+        @media (max-width: 639px) {
           .page {
             padding: 0 3ch;
             max-width: 500px;
@@ -305,7 +305,7 @@ function Header() {
 }
 
 
-@media not (min-width: 640px) {
+@media (max-width: 639px) {
 
   /* MOBILE */
 

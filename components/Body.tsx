@@ -10,7 +10,8 @@ export default ({ children }: { children: ReactNode }) => {
           margin: 0;
         }
 
-        body {
+        body, h1, h2, p, a {
+          -webkit-text-size-adjust: 100%;
           font: 17px/22px 'courier-prime', courier, monospace;
           color: #505050;
         }
@@ -27,7 +28,7 @@ export default ({ children }: { children: ReactNode }) => {
           }
         }
 
-        @media not (min-width: 640px) {
+        @media (max-width: 639px) {
           body {
             background: #fff;
           }

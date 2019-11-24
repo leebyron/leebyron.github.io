@@ -63,7 +63,7 @@ export default () => (
         }
       }
 
-      @media not (min-width: 640px) {
+      @media (max-width: 639px) {
         /* MOBILE */
 
         .card {
