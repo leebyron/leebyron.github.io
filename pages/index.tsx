@@ -31,7 +31,7 @@ export default () =>
           margin-bottom: 0.5em;
         }
 
-        @media (min-width: 641px) {
+        @media (min-width: 640px) {
           p {
             width: 55ch;
           }
@@ -49,7 +49,7 @@ export default () =>
           }
         }
 
-        @media (max-width: 640px) {
+        @media not (min-width: 640px) {
           .logo {
             display: none;
           }
@@ -117,7 +117,7 @@ function Page({ children }: { children: ReactNode }) {
   return (
     <div className="page">
       <style jsx>{`
-        @media (min-width: 641px) {
+        @media (min-width: 640px) {
           .page {
             background: white;
             box-shadow: 0 1px 8px 1px rgba(0,0,0,0.2);
@@ -128,7 +128,7 @@ function Page({ children }: { children: ReactNode }) {
           }
         }
 
-        @media (max-width: 640px) {
+        @media not (min-width: 640px) {
           .page {
             padding: 0 3ch;
             max-width: 500px;
@@ -207,7 +207,7 @@ function Header() {
   margin: -50vh -50vw;
 }
 
-@media (min-width: 641px) {
+@media (min-width: 640px) {
   .cardSurface {
     padding-top: 200vh;
   }
@@ -305,7 +305,7 @@ function Header() {
 }
 
 
-@media (max-width: 640px) {
+@media not (min-width: 640px) {
 
   /* MOBILE */
 
@@ -321,7 +321,7 @@ function Header() {
     margin: 0 auto;
     padding: 0 3ch;
     max-width: 500px;
-    margin-top: 35vh;
+    margin-top: 40vh;
   }
 
   .cardBack {

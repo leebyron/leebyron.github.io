@@ -3,20 +3,20 @@ import { ReactNode } from 'react'
 export default ({ children }: { children: ReactNode }) => {
   return (
     <>
-      <style jsx>{`
+      <style global jsx>{`
         @import url('https://use.typekit.net/xpu4mdb.css');
 
-        :global(html, body) {
+        html, body {
           margin: 0;
         }
 
-        :global(body) {
+        body {
           font: 17px/22px 'courier-prime', courier, monospace;
           color: #505050;
         }
 
-        @media (min-width: 641px) {
-          :global(body) {
+        @media (min-width: 640px) {
+          body {
             background: #794c35;
             background-image:
               url(${require('../assets/walnut.jpg')}),
@@ -27,22 +27,22 @@ export default ({ children }: { children: ReactNode }) => {
           }
         }
 
-        @media (max-width: 640px) {
-          :global(body) {
+        @media not (min-width: 640px) {
+          body {
             background: #fff;
           }
         }
 
-        :global(*) {
+        * {
           user-select: none;
         }
 
-        :global(a) {
+        a {
           -webkit-tap-highlight-color: rgba(109, 169, 182, 0.2);
           pointer-events: auto !important;
         }
 
-        :global(h2), :global(p) {
+        h1, h2, p, p > * {
           user-select: text;
         }
       `}</style>
