@@ -25,7 +25,7 @@ export default () => (
         text-decoration: none;
       }
 
-      @media (min-width: 640px) {
+      @media screen and (min-width: 768px) and (min-height: 500px) {
         .card {
           pointer-events: none;
           position: fixed;
@@ -63,7 +63,7 @@ export default () => (
         }
       }
 
-      @media (max-width: 639px) {
+      @media not screen and (min-width: 768px) and (min-height: 500px) {
         /* MOBILE */
 
         .card {
