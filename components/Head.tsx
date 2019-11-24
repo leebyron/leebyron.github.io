@@ -5,7 +5,7 @@ export default ({ children }: { children: ReactNode }) => (
   <Head>
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     {[192, 96, 32, 16].map(size => (
       <link
