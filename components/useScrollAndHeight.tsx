@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useLayoutEffect } from 'react'
 
 type Callback = (props: { scroll: number; height: number }) => void
 
@@ -48,10 +48,14 @@ function updateCallbacks() {
 
 export function useScrollAndHeight(): { scroll: number; height: number } {
   const [state, setState] = useState({ scroll: 0, height: 800 })
-  useEffect(() => {
-    addListener(setState)
-    setState({ scroll: window.scrollY, height: window.innerHeight })
-    return () => removeListener(setState)
+  useLayoutEffect(() => {
+    const update = (next: { scroll: number; height: number }) =>
+      setState(prev =>
+        prev.scroll === next.scroll && prev.height === next.height ? prev : next
+      )
+    update({ scroll: window.scrollY, height: window.innerHeight })
+    addListener(update)
+    return () => removeListener(update)
   }, [])
   return state
 }
