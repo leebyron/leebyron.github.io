@@ -11,7 +11,6 @@ export default () => (
       .card404 h1 {
         display: block;
         margin: 1em 0;
-        font-size: 17px;
         font-weight: normal;
         font-style: italic;
       }
@@ -25,60 +24,61 @@ export default () => (
         text-decoration: none;
       }
 
-      @media screen and (min-width: 768px) and (min-height: 500px) {
+      .card {
+        pointer-events: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        margin: auto;
+
+        -webkit-perspective: 1600px;
+        perspective: 1600px;
+        -webkit-transform-style: preserve-3d;
+        transform-style: preserve-3d;
+
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+
+        width: 80vm;
+        width: 80vmin;
+        height: 44vm;
+        height: 44vmin;
+        max-width: 600px;
+        max-height: 330px;
+        min-width: 460px;
+        min-height: 253px;
+      }
+
+      .card404 {
+        height: 100%;
+        background: white;
+        box-shadow: 0 1px 8px 1px rgba(0, 0, 0, 0.2);
+
+        box-sizing: border-box;
+        padding: 1.5em;
+      }
+
+      @media screen and (max-width: 500px) {
         .card {
-          pointer-events: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          bottom: 0;
-          right: 0;
-          margin: auto;
-
-          -webkit-perspective: 1600px;
-          perspective: 1600px;
-          -webkit-transform-style: preserve-3d;
-          transform-style: preserve-3d;
-
-          -webkit-transform: translate3d(0, 0, 0);
-          transform: translate3d(0, 0, 0);
-
-          width: 80vm;
-          width: 80vmin;
-          height: 44vm;
-          height: 44vmin;
-          max-width: 600px;
-          max-height: 330px;
-          min-width: 460px;
-          min-height: 253px;
-        }
-
-        .card404 {
-          height: 100%;
-          background: white;
-          box-shadow: 0 1px 8px 1px rgba(0, 0, 0, 0.2);
-
-          box-sizing: border-box;
-          padding: 1.5em;
+          width: calc(
+            100vw - 4vmin - env(safe-area-inset-left) -
+              env(safe-area-inset-right)
+          );
+          max-width: auto;
+          min-width: auto;
         }
       }
 
-      @media not screen and (min-width: 768px) and (min-height: 500px) {
-        /* MOBILE */
-
+      @media screen and (max-height: 300px) {
         .card {
-          pointer-events: none;
-          width: 100%;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .card404 {
-          position: relative;
-          margin: 0 auto;
-          width: 80vmin;
-          max-width: 500px;
-          margin-top: 20vh;
+          height: calc(
+            100vh - 8vmin - env(safe-area-inset-top) -
+              env(safe-area-inset-bottom)
+          );
+          max-height: auto;
+          min-height: auto;
         }
       }
     `}</style>

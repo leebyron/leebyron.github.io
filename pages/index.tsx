@@ -57,22 +57,6 @@ export default () => (
             display: none;
           }
         }
-
-        h2 {
-          font-size: inherit;
-          font-weight: normal;
-          font-style: italic;
-          margin: 4em 0 1em;
-        }
-
-        a {
-          color: #505050;
-          text-decoration: underline;
-        }
-
-        a:hover {
-          text-decoration: none;
-        }
       `}</style>
       <img className="logo" src={require('../assets/logo.svg')} width="200" />
       <p>
@@ -125,12 +109,15 @@ function Page({ children }: { children: ReactNode }) {
   return (
     <div className="page">
       <style jsx>{`
+        .page {
+          background: white;
+        }
+
         @media screen and (min-width: 768px) and (min-height: 500px) {
           .page {
-            background: white;
             box-shadow: 0 1px 8px 1px rgba(0, 0, 0, 0.2);
-            padding: 6em 4em;
-            margin: 0 auto 12em;
+            padding: 8em 10ch 10em;
+            margin: 6em auto 12em;
             width: 70vw;
             max-width: 850px;
           }
@@ -138,9 +125,12 @@ function Page({ children }: { children: ReactNode }) {
 
         @media not screen and (min-width: 768px) and (min-height: 500px) {
           .page {
-            padding: 0 3ch;
-            max-width: 500px;
-            margin: 6em auto;
+            padding: 6em 5vw 3em;
+            margin: 0 auto calc(12vmax + env(safe-area-inset-bottom));
+            width: calc(
+              86vw - env(safe-area-inset-left) - env(safe-area-inset-right)
+            );
+            max-width: 69ch;
           }
         }
       `}</style>
@@ -175,11 +165,14 @@ function Header() {
           position: relative;
           width: 100%;
           height: 100%;
-          padding: 50vh 50vw;
-          margin: -50vh -50vw;
         }
 
         @media screen and (min-width: 768px) and (min-height: 500px) {
+          :global(.explodinglogo) {
+            padding: 50vh 50vw;
+            margin: -50vh -50vw;
+          }
+
           .cardSurface {
             padding-top: 200vh;
           }
@@ -266,52 +259,29 @@ function Header() {
             height: 3px;
             background: #ff744c;
           }
-
-          .body {
-            width: 90vw;
-            max-width: 900px;
-            background: white;
-            box-shadow: 0 1px 8px 2px rgba(0, 0, 0, 0.2);
-            padding: 1em;
-            margin: 20vh auto 30vh;
-          }
         }
 
         @media not screen and (min-width: 768px) and (min-height: 500px) {
           /* MOBILE */
 
           .card {
+            background: white;
             pointer-events: none;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
+            padding: 34vh 5vw 0;
+            margin: calc(6vh + env(safe-area-inset-top)) auto 0;
+            width: calc(
+              86vw - env(safe-area-inset-left) - env(safe-area-inset-right)
+            );
+            max-width: 69ch;
           }
 
           .cardFront {
             position: relative;
-            margin: 0 auto;
-            padding: 0 3ch;
-            max-width: 500px;
-            margin-top: 40vh;
-          }
-
-          .cardBack {
-            padding: 0 3ch;
-            max-width: 500px;
-            margin: 0 auto;
+            max-width: 280px;
           }
 
           .cardBottomEdge {
             display: none;
-          }
-
-          .spacer {
-            display: none;
-          }
-
-          .body {
-            padding: 1em;
-            margin: 30vh auto;
           }
         }
       `}</style>
@@ -321,7 +291,8 @@ function Header() {
           <ExplodingLogo
             offset={isMobile() ? 10 : 50}
             distance={800}
-            className="explodinglogo" />
+            className="explodinglogo"
+          />
         </div>
 
         <div className="cardBottomEdge" style={cardMoveEdge(ms, hei)} />
