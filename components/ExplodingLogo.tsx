@@ -1,16 +1,18 @@
 import { useScrollAndHeight } from './useScrollAndHeight'
+import { useEffect, useRef, useState } from 'react'
 
-export function ExplodingLogo({ offset, distance, className }: {
+export function ExplodingLogo({ offset, position, className }: {
   offset: number,
-  distance: number,
+  position?: number,
   className?: string
 }) {
   const { scroll, height } = useScrollAndHeight()
-  var s = scroll * (distance / height) - offset
-  var r = prng(1234567890)
+  const [ ref, center ] = useClientCenter(height)
+  const s = scroll * ( 300  / ((position || center) - offset)) - offset
+  const r = prng(1234567890)
 
   return (
-    <svg className={className} style={{overflow: 'visible'}} viewBox="0 0 1124 142">
+    <svg ref={ref} className={className} style={{overflow: 'visible'}} viewBox="0 0 1124 142">
       <g transform="translate(562, 71)">
 
         <g fill="#FF744C">
@@ -141,8 +143,19 @@ export function ExplodingLogo({ offset, distance, className }: {
         </g>
       </g>
     </svg>
+  )
+}
 
-  );
+function useClientCenter(pageHeight: number): [ React.Ref<SVGSVGElement>, number ] {
+  const ref = useRef<SVGSVGElement>(null)
+  const [ center, setCenter ] = useState(pageHeight / 4)
+  useEffect(() => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect()
+      setCenter(window.scrollY + rect.top + rect.height)
+    }
+  }, [pageHeight])
+  return [ ref, center ]
 }
 
 function t(s: string) {

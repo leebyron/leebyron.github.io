@@ -279,7 +279,7 @@ function Header() {
         <div className="cardFront" style={cardMove(ms, hei)}>
           <ExplodingLogo
             offset={isMobile() ? 10 : 50}
-            distance={800}
+            position={hei * 0.45}
             className="explodinglogo"
           />
         </div>
