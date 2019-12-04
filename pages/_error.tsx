@@ -1,6 +1,7 @@
-import Body from '../components/Body'
-import Head from '../components/Head'
+import Head from 'next/head'
 import { useState, useEffect, ReactNode } from 'react'
+
+import Body from '../components/Body'
 
 export default () => (
   <Body>
@@ -10,9 +11,10 @@ export default () => (
     <style jsx>{`
       .card404 h1 {
         display: block;
-        margin: 1em 0;
-        font-weight: normal;
         font-style: italic;
+        font-weight: normal;
+        margin: 1em 0;
+        user-select: none;
       }
 
       .card404 :global(a) {
@@ -33,12 +35,8 @@ export default () => (
         right: 0;
         margin: auto;
 
-        -webkit-perspective: 1600px;
         perspective: 1600px;
-        -webkit-transform-style: preserve-3d;
         transform-style: preserve-3d;
-
-        -webkit-transform: translate3d(0, 0, 0);
         transform: translate3d(0, 0, 0);
 
         width: 80vm;
@@ -55,7 +53,6 @@ export default () => (
         height: 100%;
         background: white;
         box-shadow: 0 1px 8px 1px rgba(0, 0, 0, 0.2);
-
         box-sizing: border-box;
         padding: 1.5em;
       }
@@ -90,18 +87,6 @@ export default () => (
         <GHIssueLink>let me know</GHIssueLink>, and I&apos;ll do my best to fix
         it.
       </div>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-      ga('create', 'UA-61714711-1', 'auto');
-      ga('send', 'pageview');
-    `
-        }}
-      />
     </div>
   </Body>
 )
