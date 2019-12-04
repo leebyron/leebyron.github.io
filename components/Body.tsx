@@ -1,21 +1,8 @@
 import { ReactNode } from 'react'
 
-const SHARE_HOST = 'lwb.io'
-const PUBLIC_HOST = 'leebyron.com'
-
 export default ({ children }: { children: ReactNode }) => {
   return (
     <>
-      <script
-        type="application/json"
-        dangerouslySetInnerHTML={{
-          __html:
-            `if (window.location.host === '${SHARE_HOST}') {` +
-            'window.location.href = ' +
-            `window.location.href.replace('${SHARE_HOST}', '${PUBLIC_HOST}')` +
-            '}'
-        }}
-      />
       <style global jsx>{`
         @font-face {
           font-family: 'courier-prime';
