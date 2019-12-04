@@ -12,7 +12,11 @@ export function ExplodingLogo({ offset, position, className }: {
   const r = prng(1234567890)
 
   return (
-    <svg ref={ref} className={className} style={{overflow: 'visible'}} viewBox="0 0 1124 142">
+    <svg
+      ref={ref}
+      className={className}
+      style={{ overflow: 'visible', position: 'relative', zIndex: 1 }}
+      viewBox="0 0 1124 142">
       <g transform="translate(562, 71)">
 
         <g fill="#FF744C">
@@ -203,12 +207,13 @@ function a(s: number, r: PRNG) {
 }
 
 
-function _l(s: number/*, r*/) {
+function _l(s: number) {
   if (s < 0) {
     s = 0;
   }
   var dx = s * -12;
-  return t('translateX('+dx+'px)');
+  var sx = Math.max(0, 1 - (Math.max(0, s - 30) / 90));
+  return t('translateX('+dx+'px) scaleX('+sx+')');
 }
 
 function _r(s: number) {
@@ -265,7 +270,9 @@ function sz(s: number, d: number) {
 
   var dx = s * -3;
   var sc = 1 + s * 0.01;
-  return t('rotate('+(0.1*d*s)+'deg) scale('+sc+') translateX('+dx+'px)');
+  var az = 0.1 * d * s;
+  var ay = -Math.min(90, Math.max(0, s - 30) * 0.6);
+  return t('rotate('+az+'deg) scale('+sc+') translateX('+dx+'px) rotateY('+ay+'deg)');
 }
 
 
