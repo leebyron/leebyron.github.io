@@ -79,14 +79,14 @@ export default ({ children }: { children: ReactNode }) => {
           background-image: url(${require('../assets/walnut.jpg')}),
             url(${require('../assets/walnut-lofi.jpg')});
           background-size: cover;
-          background-position: center center;
+          background-position: center top;
           background-attachment: fixed;
         }
 
         @media not screen and (min-width: 768px) and (min-height: 500px) {
           body {
             background-size: auto 100vh;
-            background-position: top center;
+            background-position: center top;
             background-repeat: repeat-y;
           }
         }
@@ -94,7 +94,7 @@ export default ({ children }: { children: ReactNode }) => {
         @media not screen and (min-width: 768px) and (min-height: 500px) and (min-aspect-ratio: 4/3) {
           body {
             background-size: 100vw auto;
-            background-position: center center;
+            background-position: center top;
           }
         }
 
