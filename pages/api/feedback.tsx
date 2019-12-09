@@ -18,26 +18,18 @@ const ALLOWED_HEADERS = [
   'Accept'
 ]
 
-const ALLOWED_ORIGINS = {
-  'localhost:3000': true,
-  'lwb.io': true,
-  'leebyron.com': true,
-  'leebyron.netlify.com': true,
-  'leebyron.now.sh': true
-}
-
 export default async (
   req: NextApiRequest,
   res: NextApiResponse<FeedbackResponse>
 ) => {
   try {
-    console.log(req.headers.origin)
     if (
       typeof req.headers.origin === 'string' &&
-      req.headers.origin in ALLOWED_ORIGINS
+      req.headers.origin === 'https://leebyron.com'
     ) {
-      res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
+      res.setHeader('Access-Control-Allow-Origin', 'https://leebyron.com')
     }
+    res.setHeader('Vary', 'Origin')
 
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Methods', 'GET,POST')

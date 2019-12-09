@@ -774,7 +774,11 @@ async function fetchFeedback(
     `${getAPIHost()}/api/feedback?article=${encodeURIComponent(
       article
     )}&client=${encodeURIComponent(getClientUUID())}`,
-    { mode: 'cors', signal }
+    {
+      mode: 'cors',
+      headers: { Accept: 'application/json' },
+      signal
+    }
   )
   if (response.ok) {
     return await response.json()
@@ -809,7 +813,10 @@ async function postFeedback(
     {
       method: 'POST',
       mode: 'cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ count }),
       signal
     }
