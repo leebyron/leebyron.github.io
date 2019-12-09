@@ -19,6 +19,7 @@ module.exports = withMDX({
           FAUNA_SECRET: process.env.FAUNA_SECRET
         }
       }),
+  exportTrailingSlash: true,
   webpack(config, options) {
     config.module.rules.push({
       test: /\.(jpe?g|png|svg|gif|ico|webp|woff2?)$/,

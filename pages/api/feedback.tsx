@@ -31,6 +31,7 @@ export default async (
   res: NextApiResponse<FeedbackResponse>
 ) => {
   try {
+    console.log(req.headers.origin)
     if (
       typeof req.headers.origin === 'string' &&
       req.headers.origin in ALLOWED_ORIGINS
