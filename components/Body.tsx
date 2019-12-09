@@ -5,6 +5,16 @@ export default ({ children }: { children: ReactNode }) => {
     <>
       <style global jsx>{`
         @font-face {
+          font-family: 'Inter';
+          font-style: italic;
+          font-weight: 100;
+          font-display: swap;
+          src: url(${require('../assets/Inter-ThinItalic.woff2')})
+              format('woff2'),
+            url(${require('../assets/Inter-ThinItalic.woff')}) format('woff');
+        }
+
+        @font-face {
           font-family: 'courier-prime';
           src: url('https://use.typekit.net/af/78b949/0000000000000000000134f9/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3')
               format('woff2'),
@@ -65,6 +75,7 @@ export default ({ children }: { children: ReactNode }) => {
         h1,
         h2,
         p,
+        blockquote,
         a {
           -webkit-text-size-adjust: 100%;
           font-family: 'courier-prime', courier, monospace;
@@ -110,7 +121,9 @@ export default ({ children }: { children: ReactNode }) => {
         h1,
         h2,
         p,
-        p > * {
+        p > *,
+        blockquote,
+        blockquote > * {
           user-select: text;
         }
 
@@ -124,6 +137,17 @@ export default ({ children }: { children: ReactNode }) => {
           font-weight: normal;
           font-style: italic;
           margin: 3em 0 1em;
+        }
+
+        blockquote {
+          margin: 2em 3ch;
+          font-style: italic;
+        }
+
+        @media screen and (max-width: 480px) {
+          blockquote {
+            margin: 2em 1ch;
+          }
         }
 
         a {

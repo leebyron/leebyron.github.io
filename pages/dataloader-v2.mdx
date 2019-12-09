@@ -1,0 +1,48 @@
+---
+layout: Article
+title: DataLoader v2.0
+date: Nov 19, 2019
+medium: https://medium.com/@leeb/dataloader-v2-0-925b4dccf8d6
+---
+
+Today I released DataLoader v2.0.0, almost two years since the last release, more than four years since its initial release, and nearly ten years since the original internal implementation at Facebook.
+
+With it come much improved TypeScript and Flow type definitions, some significant improvements to the scheduling behavior that result in better whole-program performance (as well as the ability to customize this behavior), and a clearer legal framing with the MIT license and neutral non-profit copyright ownership.
+
+I’d love to tell you more about this release, but first a bit of the story of where this library came from.
+
+In the fall of 2015, shortly after open sourcing GraphQL, [Dan](https://twitter.com/dlschafer), [Nick](https://twitter.com/schrockn) and I would occasionally meet with teams at other companies to answer questions and advise about GraphQL and how it worked at Facebook and swap ideas about product infrastructure. These discussions were exciting and inspiring and, frequently, surprising. At Facebook GraphQL was a thin layer atop a stack of abstractions which had been in place far longer, most of which designed by Nick and the Product Infrastructure team.
+
+On the GraphQL team we took these abstractions for granted and assumed that nearly every serious engineering team must have something similar in place. *This assumption was wrong.* In these external meetings we often found ourselves backing way up and explaining Facebook’s whole product stack. While the pretense was to discuss GraphQL, discussion was often dominated by getting into the details of just how exactly we managed to build fast data-rich pages without ending up with code spaghetti.
+
+On a Friday afternoon in September of 2015, Dan and I met with the engineering team at Pinterest. We heard they were starting to build a sophisticated GraphQL query planner and we were excited to help. While our discussion of GraphQL was excellent and well-informed, we were surprised to find that the most helpful discussion was about *Ent*, Facebook’s immutable data objects (Nick calls this a “No-RM”), and *Loader*, the library for building Ents from a data source with optimized queries.
+
+As we were walking home together we realized how concerning this was for our fledgling open source GraphQL effort. Our story of “just layer this on top of your existing code” was not going to be as resonant as we thought.
+
+Of course this software stack that culminated in GraphQL was no accident. The capability to efficiently load data had existed at Facebook for years (Nick even [gave a talk about it](https://www.infoq.com/presentations/Evolution-of-Code-Design-at-Facebook/) in 2011, a year before GraphQL), and the goal of GraphQL was simply to expose our existing tools over a web API. That’s when we realized that it was actually *Loader* that was so critical.
+
+> Loader was essentially GraphQL’s dynamic query planner and it was the secret sauce to Facebook’s performant GraphQL service.
+
+In that very moment we veered into the next coffee shop we passed, opened a laptop and started to draft a JavaScript version of Loader. In a couple hours we had a complete working first version of DataLoader. We were quite pleased that it was about 100 lines of easy to follow code, 250 lines as we added copious comments, types, and inline documentation. The fact that this *“library”* was one terse file gave us confidence that we really were describing a general concept, and not some sophisticated software or algorithm. In fact, I was able to explain [the story, rationale, and all of the source code](https://youtu.be/OQTnXNCDywA) in about a half hour. The very next week we released DataLoader to the open source community.
+
+In the years since a lot has happened, but DataLoader has mostly stayed the same. It hasn’t needed to change much as the core concept remains just as relevant and clear today as it did in 2010 and 2015. Today DataLoader has been ported into nearly a dozen languages, helps more than 14 thousand open source projects, and is downloaded over a million times a month. Earlier this year we formed the non-profit GraphQL Foundation and DataLoader came along for the ride.
+
+Today’s release of DataLoader v2.0.0 is first since becoming part of the GraphQL Foundation and the most significant since the initial release over four years ago. There are three important improvements in this release: *legal, types, and scheduling.*
+
+When originally released, DataLoader was licensed under Facebook’s infamous BSD+Patents license. This license had caused problems for the legal teams at some companies both for the use of the library and contributions back to it. Since moving to the GraphQL Foundation, DataLoader was re-licensed as MIT and all copyright transferred to the neutral non-profit. This release includes these legal changes which should hopefully make DataLoader even easier to adopt and use for all companies.
+
+JavaScript is a rapidly evolving language and ecosystem. DataLoader still works great on old versions of Node and in ancient Browsers. Development environments, however, have evolved beyond our original code. This version includes considerable improvements to TypeScript and Flow type definitions which should make using DataLoader easy and safe in modern, typed JavaScript code-bases. As always, changes to type definitions can yield reports of new issues and this is one of the reasons this is a major release.
+
+Scheduling batched loading was the original inspiration for DataLoader and this major version makes subtle but significant improvements to batch scheduling for even better optimization. Of course, changes to scheduling can expose race conditions or timing effects and is another reason this is a major release which you should test carefully while upgrading.
+
+DataLoader *batches* and *caches* data. Previously these were two independent behaviors: a request either hit cache and returned early or was batched along with similar requests. Today’s release makes these aware of one another for even better optimization. When a request can result in another dependent request (for example first loading each of your friends and then each friend’s favorite band) cached results returning earlier then batched results can result in two separate requests for bands. Now cached results are returned at the same time as batched results so subsequent requests are always predictable, regardless of what is cached. This is actually not a new innovation but a correction to match Loader’s original behavior.
+
+DataLoader’s dirty secret is that most of it is quite boring. The interesting bit is how batches are scheduled. By taking advantage of the peculiarities of Node’s run loop, batches can be collected automatically without any additional latency. However since being ported to other languages, this bit has been difficult or impossible to replicate and is often replaced with either something conceptually simpler like manual dispatch, or with deep integration into a custom GraphQL execution engine. These are interesting innovations which deserve ground for experimentation in this library as well. You can now provide a custom batch scheduler to provide these or any other behaviors to how batches are scheduled. I hope this leads to interesting experiments and innovation with GraphQL services.
+
+However the vast majority of DataLoader will feel similar or the same as it has for years. The API remains almost exactly the same and nearly every existing use of DataLoader shouldn’t need much help upgrading to this latest version. In fact so much of DataLoader has stayed consistent that it gives even more confidence that this is an evergreen concept and a robust abstraction.
+
+For a more detailed analysis of DataLoader v2.0.0, read the [release notes](https://github.com/graphql/dataloader/releases/tag/v2.0.0).
+
+The future for DataLoader is bright. Despite a slow pace of subtle changes, it remains critically useful for tens of thousands of projects. The GraphQL Foundation provides better project, legal, and technical oversight. And new optimizations and flexibility should lead to interesting experimentation and more robust GraphQL services.
+
+Thank you to everyone who has used DataLoader over the years, to the community of contributors who have helped improve DataLoader, and port it to many other languages. You’ve all helped spread this idea far and wide.
