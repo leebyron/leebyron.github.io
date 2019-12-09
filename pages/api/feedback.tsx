@@ -31,6 +31,10 @@ export default async (
     }
     res.setHeader('Vary', 'Origin')
 
+    if (req.method === 'GET' || req.method === 'OPTIONS') {
+      res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate')
+    }
+
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Methods', 'GET,POST')
       res.setHeader('Access-Control-Allow-Headers', ALLOWED_HEADERS.join(','))
@@ -40,80 +44,70 @@ export default async (
       return
     }
 
-    const { article, client } = req.query
+    const { article } = req.query
     const frontMatter =
       typeof article === 'string' ? getBySlug(article) : undefined
 
-    if (typeof article !== 'string' || !frontMatter || Array.isArray(client)) {
+    if (typeof article !== 'string' || !frontMatter) {
       res.statusCode = 404
-      res.end()
+      res.json({ message: 'Unknown article', article } as any)
       return
     }
 
-    if (req.method === 'POST') {
-      const { count } = req.body
+    if (req.method === 'GET') {
+      const [nativeFeedback, mediumFeedback] = await Promise.all<
+        NativeFeedback,
+        MediumPostFeedback | undefined
+      >([getNativeFeedback(article), getMediumPostFeedback(frontMatter)])
+
+      res.json({ nativeFeedback, mediumFeedback })
+    } else if (req.method === 'POST') {
+      const { nonce, count, client } = req.body
       if (typeof count !== 'number' || count > MAX_FEEDBACK_COUNT) {
         throw new Error('Bad feedback count')
       }
-      await updateNativeFeedback(article, client, count)
+      if (typeof client !== 'string') {
+        throw new Error('Missing client')
+      }
+      const nativeFeedback = await updateNativeFeedback(article, client, count)
+      res.json({ nonce, nativeFeedback })
+    } else {
+      res.statusCode = 500
+      res.json(`Unsupported method ${req.method}` as any)
     }
-
-    const [nativeFeedback, mediumFeedback] = await Promise.all<
-      NativeFeedback,
-      MediumPostFeedback | undefined
-    >([getNativeFeedback(article, client), getMediumPostFeedback(frontMatter)])
-
-    res.statusCode = 200
-    if (req.method === 'GET') {
-      res.setHeader(
-        'Cache-Control',
-        'max-age=0, s-maxage=300, stale-while-revalidate'
-      )
-    }
-    res.json({ nativeFeedback, mediumFeedback })
   } catch (error) {
     res.statusCode = 500
-    res.end(JSON.stringify((error && error.message) || error))
+    res.json((error && error.message) || error)
   }
 }
 
-async function getNativeFeedback(
-  article: string,
-  client: string
-): Promise<NativeFeedback> {
+function getNativeFeedbackQuery(article: string) {
+  return q.Let(
+    {
+      allFeedback: q.Paginate(q.Match(q.Index('feedback_by_article'), article))
+    },
+    {
+      now: q.Now(),
+      totalClients: q.Select(['data', 0], q.Count(q.Var('allFeedback'))),
+      totalFeedbackCount: q.Select(
+        ['data', 0],
+        q.Sum(
+          q.Map(q.Var('allFeedback'), x =>
+            q.Select(['data', 'count'], q.Get(x))
+          )
+        )
+      )
+    }
+  )
+}
+
+async function getNativeFeedback(article: string): Promise<NativeFeedback> {
   const secret = process.env.FAUNA_SECRET
   if (!secret) {
     throw new Error('Missing Fauna Secret')
   }
   return await new FaunaClient({ secret }).query(
-    q.Let(
-      {
-        clientFeedback: q.Match(q.Index('feedback_by_article_and_client'), [
-          article,
-          client
-        ]),
-        allFeedback: q.Paginate(
-          q.Match(q.Index('feedback_by_article'), article)
-        )
-      },
-      {
-        now: q.Now(),
-        totalClients: q.Select(['data', 0], q.Count(q.Var('allFeedback'))),
-        totalFeedbackCount: q.Select(
-          ['data', 0],
-          q.Sum(
-            q.Map(q.Var('allFeedback'), x =>
-              q.Select(['data', 'count'], q.Get(x))
-            )
-          )
-        ),
-        clientFeedbackCount: q.If(
-          q.Exists(q.Var('clientFeedback')),
-          q.Select(['data', 'count'], q.Get(q.Var('clientFeedback'))),
-          null as any
-        )
-      }
-    )
+    getNativeFeedbackQuery(article)
   )
 }
 
@@ -134,38 +128,42 @@ async function getMediumPostFeedback(
       }
     }
   }
+  return { clapCount: 0, voterCount: 0 }
 }
 
 async function updateNativeFeedback(
   article: string,
   client: string,
   count: number
-): Promise<void> {
+): Promise<NativeFeedback> {
   const secret = process.env.FAUNA_SECRET
   if (!secret) {
     throw new Error('Missing Fauna Secret')
   }
-  await new FaunaClient({ secret }).query(
-    q.Let(
-      {
-        clientFeedback: q.Match(q.Index('feedback_by_article_and_client'), [
-          article,
-          client
-        ])
-      },
-      q.If(
-        q.Exists(q.Var('clientFeedback')),
-        count === 0
-          ? q.Delete(q.Select('ref', q.Get(q.Var('clientFeedback'))))
-          : q.Update(q.Select('ref', q.Get(q.Var('clientFeedback'))), {
-              data: { count }
-            }),
-        count === 0
-          ? (null as any)
-          : q.Create(q.Collection('feedback'), {
-              data: { article, client, count }
-            })
-      )
+  return await new FaunaClient({ secret }).query(
+    q.Do(
+      q.Let(
+        {
+          clientFeedback: q.Match(q.Index('feedback_by_article_and_client'), [
+            article,
+            client
+          ])
+        },
+        q.If(
+          q.Exists(q.Var('clientFeedback')),
+          count === 0
+            ? q.Delete(q.Select('ref', q.Get(q.Var('clientFeedback'))))
+            : q.Update(q.Select('ref', q.Get(q.Var('clientFeedback'))), {
+                data: { count }
+              }),
+          count === 0
+            ? (null as any)
+            : q.Create(q.Collection('feedback'), {
+                data: { article, client, count }
+              })
+        )
+      ),
+      getNativeFeedbackQuery(article)
     )
   )
 }

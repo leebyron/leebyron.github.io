@@ -520,7 +520,7 @@ function useTouchActions(
 
 function clientFeedbackCount(feedback: AsyncFeedback): number {
   return (
-    ((feedback.state === 'optimistic' || feedback.state === 'loaded') &&
+    ('value' in feedback &&
       feedback.value.nativeFeedback.clientFeedbackCount) ||
     0
   )
@@ -601,6 +601,7 @@ function getEmoji(count: number): string {
 type AsyncFeedback =
   | {
       state: 'loading'
+      nonce?: string
     }
   | {
       state: 'optimistic'
@@ -617,6 +618,7 @@ type AsyncFeedback =
     }
 
 export type FeedbackResponse = {
+  nonce?: string
   nativeFeedback: NativeFeedback
   mediumFeedback?: MediumPostFeedback
 }
@@ -625,7 +627,7 @@ export type NativeFeedback = {
   now: { '@ts': string }
   totalClients: number
   totalFeedbackCount: number
-  clientFeedbackCount: number | null
+  clientFeedbackCount?: number
 }
 
 export type MediumPostFeedback = {
@@ -640,10 +642,8 @@ function getAPIHost() {
 function useFeedback(
   article: string
 ): [AsyncFeedback, (updater: (prevCount: number) => number) => void] {
-  const [getResponse, setGetResponse] = useState<AsyncFeedback | null>(null)
-  const [postResponse, setPostResponse] = useState<AsyncFeedback | null>(null)
-  const [cacheResponse, setCacheResponse] = useState<AsyncFeedback | null>(null)
-
+  const cacheKey = `feedback:${article}`
+  const [response, setResponse] = useState<AsyncFeedback>({ state: 'loading' })
   const signalRef = useRef<AbortSignal | undefined>()
   useEffect(() => {
     const controller = new AbortController()
@@ -654,83 +654,80 @@ function useFeedback(
   }, [article])
 
   useEffect(() => {
-    const cacheKey = `feedback:${article}`
-    const cacheItem = localStorage.getItem(cacheKey)
-    const cacheValue = cacheItem && JSON.parse(cacheItem)
+    const cacheValue = localStorageGet(cacheKey)
     if (cacheValue) {
-      setCacheResponse({ state: 'optimistic', value: cacheValue })
+      setResponse({ state: 'optimistic', value: cacheValue })
     }
-    setGetResponse({ state: 'loading' })
     fetchFeedback(article, signalRef.current).then(
       value => {
-        if (
-          cacheValue &&
-          new Date(value.nativeFeedback.now['@ts']) >
-            new Date(cacheValue.nativeFeedback.now['@ts'])
-        ) {
-          localStorage.removeItem(cacheKey)
-          setCacheResponse(null)
-        }
-        setGetResponse({ state: 'loaded', value })
+        setResponse({
+          state: 'loaded',
+          value:
+            // If get response is newer, merge it into the cached response,
+            // otherwise just used the cached response directly.
+            cacheValue
+              ? new Date(value.nativeFeedback.now['@ts']) >
+                new Date(cacheValue.nativeFeedback.now['@ts'])
+                ? mergeDeep(cacheValue, value)
+                : cacheValue
+              : value
+        })
       },
       error => {
         if (error.name !== 'AbortError') {
-          setGetResponse({ state: 'error', error })
+          setResponse({ state: 'error', error })
         }
       }
     )
   }, [article])
 
-  const latestResponse = postResponse ||
-    cacheResponse ||
-    getResponse || { state: 'loading' }
-
   const updateCount = (updater: (prevCount: number) => number) => {
     const nonce = makeUUID()
-    const count = updater(clientFeedbackCount(latestResponse))
-    if (
-      latestResponse.state === 'loading' ||
-      latestResponse.state === 'error'
-    ) {
-      setPostResponse({ state: 'loading' })
-    } else {
-      const latestNative = latestResponse.value.nativeFeedback
-      setPostResponse({
-        state: 'optimistic',
-        nonce,
-        value: {
-          ...latestResponse.value,
-          nativeFeedback: {
-            now: { '@ts': new Date().toISOString() },
-            totalClients:
-              latestNative.totalClients -
-              (count === 0 ? 1 : 0) +
-              (latestNative.clientFeedbackCount ? 0 : 1),
-            totalFeedbackCount:
-              latestNative.totalFeedbackCount +
-              count -
-              (latestNative.clientFeedbackCount || 0),
-            clientFeedbackCount: count
-          }
+    const count = updater(clientFeedbackCount(response))
+    let optimisticValue: FeedbackResponse | undefined
+    if ('value' in response) {
+      // Compute an optimistic value based on merging in the new count
+      const {
+        totalClients,
+        totalFeedbackCount,
+        clientFeedbackCount
+      } = response.value.nativeFeedback
+      optimisticValue = mergeDeep(response.value, {
+        nativeFeedback: {
+          now: { '@ts': new Date().toISOString() },
+          totalClients:
+            totalClients -
+            (count === 0 ? 1 : 0) +
+            (clientFeedbackCount ? 0 : 1),
+          totalFeedbackCount:
+            totalFeedbackCount + count - (clientFeedbackCount || 0),
+          clientFeedbackCount: count
         }
       })
+      setResponse({ state: 'optimistic', nonce, value: optimisticValue })
+    } else {
+      setResponse({ state: 'loading', nonce })
     }
 
-    debouncedPostFeedback(article, count, signalRef.current).then(
+    debouncedPostFeedback(article, count, nonce, signalRef.current).then(
       value => {
-        try {
-          localStorage.setItem(`feedback:${article}`, JSON.stringify(value))
-        } catch {}
-        setPostResponse(prev =>
-          prev && prev.state === 'optimistic' && prev.nonce !== nonce
+        // Merge post feedback into the optimistic value
+        const mergedValue = optimisticValue
+          ? mergeDeep(optimisticValue, value)
+          : value
+        localStorageSet(cacheKey, mergedValue)
+        setResponse(prev =>
+          // Check nonce before setting state in case this request is old
+          prev && 'nonce' in prev && prev.nonce !== nonce
             ? prev
-            : { state: 'loaded', value }
+            : { state: 'loaded', value: mergedValue }
         )
       },
       error => {
         if (error.name !== 'AbortError') {
-          setPostResponse(prev =>
-            prev && prev.state === 'optimistic' && prev.nonce !== nonce
+          setResponse(prev =>
+            // Check nonce before setting state in case this request is old
+            prev && 'nonce' in prev && prev.nonce !== nonce
               ? prev
               : { state: 'error', error }
           )
@@ -739,22 +736,62 @@ function useFeedback(
     )
   }
 
-  return [latestResponse, updateCount]
+  return [response, updateCount]
+}
+
+function localStorageSet(key: string, value: any) {
+  if (typeof localStorage === 'object') {
+    try {
+      localStorage.setItem(key, JSON.stringify(value))
+    } catch (error) {
+      console.error(error)
+    }
+  }
+}
+
+function localStorageGet(key: string) {
+  if (typeof localStorage === 'object') {
+    try {
+      const raw = localStorage.getItem(key)
+      if (raw !== null) {
+        try {
+          return JSON.parse(raw)
+        } catch {
+          return raw
+        }
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  return null
+}
+
+function mergeDeep<T>(...objs: T[]): T {
+  const into: T = {} as any
+  for (let i = 0; i < objs.length; i++) {
+    const obj = objs[i]
+    for (const key in obj) {
+      into[key] =
+        typeof into[key] === 'object' && typeof obj[key] === 'object'
+          ? mergeDeep(into[key], obj[key])
+          : obj[key]
+    }
+  }
+  return into
 }
 
 // Create a sticky UUID to represent this client
 function getClientUUID(): string {
-  const local = localStorage.getItem('uuid')
+  const local = localStorageGet('uuid')
   const cookieMatch = /uuid=(.+?);/.exec(document.cookie)
   const cookie = cookieMatch && decodeURIComponent(cookieMatch[1])
   const uuid = local || cookie || makeUUID()
   if (local !== uuid) {
-    try {
-      localStorage.setItem('uuid', uuid)
-    } catch {}
+    localStorageSet('uuid', uuid)
   }
   if (cookie !== uuid) {
-    document.cookie = `uuid=${uuid}; expires=Fri, 31 Dec 9999 23:59:59 GMT`
+    document.cookie = `uuid=${uuid}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`
   }
   return uuid
 }
@@ -771,9 +808,7 @@ async function fetchFeedback(
   signal: AbortSignal | undefined
 ): Promise<FeedbackResponse> {
   const response = await fetch(
-    `${getAPIHost()}/api/feedback?article=${encodeURIComponent(
-      article
-    )}&client=${encodeURIComponent(getClientUUID())}`,
+    `${getAPIHost()}/api/feedback?article=${encodeURIComponent(article)}`,
     {
       mode: 'cors',
       headers: { Accept: 'application/json' },
@@ -791,12 +826,13 @@ let lastCall: NodeJS.Timeout
 function debouncedPostFeedback(
   article: string,
   count: number | null,
+  nonce: string,
   signal: AbortSignal | undefined
 ): Promise<FeedbackResponse> {
   return new Promise(resolve => {
     clearTimeout(lastCall)
     lastCall = setTimeout(() => {
-      resolve(postFeedback(article, count, signal))
+      resolve(postFeedback(article, count, nonce, signal))
     }, DEBOUNCE_TIME)
   })
 }
@@ -804,12 +840,11 @@ function debouncedPostFeedback(
 async function postFeedback(
   article: string,
   count: number | null,
+  nonce: string,
   signal: AbortSignal | undefined
 ): Promise<FeedbackResponse> {
   const response = await fetch(
-    `${getAPIHost()}/api/feedback?article=${encodeURIComponent(
-      article
-    )}&client=${encodeURIComponent(getClientUUID())}`,
+    `${getAPIHost()}/api/feedback?article=${encodeURIComponent(article)}`,
     {
       method: 'POST',
       mode: 'cors',
@@ -817,7 +852,7 @@ async function postFeedback(
         Accept: 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ count }),
+      body: JSON.stringify({ nonce, count, client: getClientUUID() }),
       signal
     }
   )
