@@ -8,7 +8,7 @@ export function SelectionAnchor({
   children
 }: {
   showActions: boolean
-  initialSelection: any
+  initialSelection: string | undefined
   createShareLink: (encoded: string) => string
   children: ReactNode
 }) {
@@ -18,7 +18,7 @@ export function SelectionAnchor({
 
   useEffect(() => {
     // Given an encoded initial selection decode it, apply it, and scroll to it.
-    if (typeof initialSelection === 'string' && rootNode.current) {
+    if (initialSelection && rootNode.current) {
       const decoded = decodeRange(rootNode.current, initialSelection)
       if (decoded) {
         // Apply selection
