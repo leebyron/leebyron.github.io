@@ -392,9 +392,10 @@ function FeedbackPhrase({ response }: { response: AsyncFeedback }) {
       {' '}
       <style jsx>{`
         .phrase {
-          margin-left: 1ch;
           flex: 1;
+          margin-left: 1ch;
           overflow: hidden;
+          padding-top: 0.2em;
         }
         @media screen and (max-width: 600px) {
           .phrase > .long {

@@ -124,30 +124,10 @@ export default (frontMatter: FrontMatter) => ({
             margin: 2rem 0;
           }
 
-          .share {
-            display: flex;
-          }
-
-          .share > * {
-            display: block;
-          }
-
-          .share :global(svg) {
-            fill: #222;
-            height: 2em;
-            margin: 0.2em;
-            width: 2em;
-          }
-
           @media screen and (max-width: 600px) {
             h1 {
               font-size: 2em;
               margin-top: 2rem;
-            }
-
-            .share :global(svg) {
-              height: 1.8em;
-              width: 1.8em;
             }
           }
         `}</style>

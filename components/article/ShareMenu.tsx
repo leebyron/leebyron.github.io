@@ -42,6 +42,7 @@ export function ShareMenu({ frontMatter }: { frontMatter: FrontMatter }) {
       <style jsx>{`
         .share {
           position: relative;
+          margin: 0 -0.4em;
         }
 
         .actions {
@@ -55,22 +56,15 @@ export function ShareMenu({ frontMatter }: { frontMatter: FrontMatter }) {
         }
 
         .actions :global(svg) {
-          fill: #222;
+          display: block;
+          fill: #444;
           height: 2em;
-          margin: 0.2em;
+          margin: 0 0.3em;
           width: 2em;
         }
 
-        @media screen and (max-width: 600px) {
-          h1 {
-            font-size: 2em;
-            margin-top: 2rem;
-          }
-
-          .actions :global(svg) {
-            height: 1.8em;
-            width: 1.8em;
-          }
+        .actions :global(svg):hover {
+          fill: black;
         }
       `}</style>
       <Toaster ref={toaster} />
