@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, RefObject, memo } from 'react'
+import { API_HOST } from './shareUtil'
 
 export const MAX_FEEDBACK_COUNT = 50
 
@@ -636,10 +637,6 @@ export type MediumPostFeedback = {
   voterCount: number
 }
 
-function getAPIHost() {
-  return window.location.host === 'leebyron.com' ? 'https://lwb.io' : ''
-}
-
 function useFeedback(
   article: string
 ): [AsyncFeedback, (updater: (prevCount: number) => number) => void] {
@@ -809,7 +806,7 @@ async function fetchFeedback(
   signal: AbortSignal | undefined
 ): Promise<FeedbackResponse> {
   const response = await fetch(
-    `${getAPIHost()}/api/article/${encodeURIComponent(article)}/feedback`,
+    `${API_HOST}/api/article/${encodeURIComponent(article)}/feedback`,
     {
       mode: 'cors',
       headers: { Accept: 'application/json' },
@@ -845,7 +842,7 @@ async function postFeedback(
   signal: AbortSignal | undefined
 ): Promise<FeedbackResponse> {
   const response = await fetch(
-    `${getAPIHost()}/api/article/${encodeURIComponent(article)}/feedback`,
+    `${API_HOST}/api/article/${encodeURIComponent(article)}/feedback`,
     {
       method: 'POST',
       mode: 'cors',

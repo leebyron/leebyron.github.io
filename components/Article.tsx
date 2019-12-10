@@ -7,15 +7,9 @@ import { isMobile } from './isMobile'
 import { ExplodingLogo } from './ExplodingLogo'
 import { Feedback } from './article/Feedback'
 import { FrontMatter, getSlug } from './article/frontMatter'
-import { ShareMenu } from './article/ShareMenu'
 import { SelectionAnchor } from './article/SelectionAnchor'
-
-const CANONICAL_HOST = 'https://leebyron.com'
-const SHARE_HOST = 'https://lwb.io'
-const API_HOST =
-  process.env.NODE_ENV === 'production'
-    ? 'https://lwb.io'
-    : 'http://localhost:3000'
+import { canonicalURL, shareURL, shareImageURL } from './article/shareUtil'
+import { ShareMenu } from './article/ShareMenu'
 
 export default (frontMatter: FrontMatter) => ({
   children
@@ -184,24 +178,7 @@ export default (frontMatter: FrontMatter) => ({
   )
 }
 
-function canonicalURL(frontMatter: FrontMatter): string {
-  return `${CANONICAL_HOST}/${getSlug(frontMatter)}/`
-}
-
-function shareURL(frontMatter: FrontMatter, selection?: string): string {
-  return (
-    `${SHARE_HOST}/${getSlug(frontMatter)}/` +
-    (selection ? '?$=' + selection : '')
-  )
-}
-
-function shareImageURL(frontMatter: FrontMatter, selection?: string) {
-  return (
-    `${API_HOST}/api/article/${encodeURIComponent(getSlug(frontMatter))}/snap` +
-    (selection ? '?selection=' + selection : '')
-  )
-}
-
+// TODO: Generic or merge into above?
 function Page({ children }: { children: ReactNode }) {
   return (
     <div className="page">

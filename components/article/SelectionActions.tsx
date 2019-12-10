@@ -1,6 +1,6 @@
-import { useState, useRef, useLayoutEffect, useEffect, ReactNode } from 'react'
-
-import { isSameRange } from './SelectionAnchor'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { useCopyEffect } from './clipboardUtil'
+import { getCurrentRange, isSameRange } from './selectionUtil'
 import Toaster, { ToastRef } from './Toaster'
 import CopySVG from '../svg/CopySVG'
 import LinkSVG from '../svg/LinkSVG'
@@ -16,21 +16,17 @@ export function SelectionActions({
   createShareLink: (encoded: string) => string
 }) {
   const toaster = useRef<ToastRef>()
-  const copyToClipboard = useCopyEffect<boolean>(
-    copyLinkOnly => {
-      const selection = document.getSelection()
-      if (selection && isSameRange(selection.getRangeAt(0), decoded.range)) {
-        if (copyLinkOnly) {
-          toaster.current && toaster.current.toast('Copied Link')
-          return createShareLink(encoded)
-        } else {
-          toaster.current && toaster.current.toast('Copied Quote')
-          return createShareText(encoded, decoded, createShareLink)
-        }
+  const copyToClipboard = useCopyEffect<boolean>(copyLinkOnly => {
+    if (isSameRange(getCurrentRange(), decoded.range)) {
+      if (copyLinkOnly) {
+        toaster.current && toaster.current.toast('Copied Link')
+        return createShareLink(encoded)
+      } else {
+        toaster.current && toaster.current.toast('Copied Quote')
+        return createShareText(encoded, decoded, createShareLink)
       }
-    },
-    [decoded]
-  )
+    }
+  })
 
   const actionsRef = useRef<HTMLDivElement | null>(null)
   const { width, height } = useWindowSize()
@@ -134,6 +130,7 @@ export function SelectionActions({
   )
 }
 
+// TODO: move to shareLinks
 function createTwitterLink(
   encoded: string,
   decoded: { range: Range; isOutdated: boolean },
@@ -166,6 +163,7 @@ function createShareText(
   return `“${quote}” — @leeb ${shareLink}`
 }
 
+// TODO: merge into above and simplify
 function useWindowSize(): { width: number; height: number } {
   const [state, setState] = useState({ width: 1200, height: 800 })
   useLayoutEffect(() => {
@@ -184,31 +182,4 @@ function useWindowSize(): { width: number; height: number } {
     }
   }, [])
   return state
-}
-
-function useCopyEffect<CopyContext>(
-  copyEffect: (ctx: CopyContext | undefined) => string | undefined,
-  deps?: any[]
-): (ctx: CopyContext) => void {
-  const ctxRef = useRef<CopyContext | undefined>()
-  useEffect(() => {
-    function onCopy(event: ClipboardEvent) {
-      if (event.clipboardData) {
-        const replacementData = copyEffect(ctxRef.current)
-        if (replacementData) {
-          event.clipboardData.setData('text/plain', replacementData)
-          event.preventDefault()
-        }
-      }
-    }
-    document.addEventListener('copy', onCopy)
-    return () => {
-      document.removeEventListener('copy', onCopy)
-    }
-  }, deps)
-  return ctx => {
-    ctxRef.current = ctx
-    document.execCommand('copy')
-    ctxRef.current = undefined
-  }
 }

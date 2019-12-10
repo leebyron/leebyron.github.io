@@ -11,6 +11,7 @@ import {
   NativeFeedback,
   MediumPostFeedback
 } from '../../../../components/article/Feedback'
+import { CANONICAL_HOST } from '../../../../components/article/shareUtil'
 
 const ALLOWED_HEADERS = [
   'X-Requested-With',
@@ -28,9 +29,9 @@ export default async (
   try {
     if (
       typeof req.headers.origin === 'string' &&
-      req.headers.origin === 'https://leebyron.com'
+      req.headers.origin === CANONICAL_HOST
     ) {
-      res.setHeader('Access-Control-Allow-Origin', 'https://leebyron.com')
+      res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
     }
     res.setHeader('Vary', 'Origin')
 

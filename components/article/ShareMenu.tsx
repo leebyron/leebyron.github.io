@@ -1,13 +1,17 @@
 import { useCallback, useRef } from 'react'
-
-import { FrontMatter, getSlug } from './frontMatter'
+import { FrontMatter } from './frontMatter'
+import { copyToClipboard } from './clipboardUtil'
+import {
+  canonicalURL,
+  twitterShareURL,
+  facebookShareURL,
+  canNativeShare,
+  nativeShare
+} from './shareUtil'
+import Toaster, { ToastRef } from './Toaster'
 import FacebookSVG from '../svg/FacebookSVG'
 import TwitterSVG from '../svg/TwitterSVG'
 import LinkSVG from '../svg/LinkSVG'
-import Toaster, { ToastRef } from './Toaster'
-
-const CANONICAL_HOST = 'https://leebyron.com'
-const SHARE_HOST = 'https://lwb.io'
 
 export function ShareMenu({ frontMatter }: { frontMatter: FrontMatter }) {
   const toaster = useRef<ToastRef>()
@@ -82,72 +86,5 @@ export function ShareMenu({ frontMatter }: { frontMatter: FrontMatter }) {
         </a>
       </div>
     </div>
-  )
-}
-
-function canNativeShare() {
-  return (
-    typeof navigator === 'object' &&
-    typeof (navigator as any).share === 'function' &&
-    (typeof (navigator as any).canShare !== 'function' ||
-      (navigator as any).canShare() === true)
-  )
-}
-
-function nativeShare(data: {
-  title?: string
-  text?: string
-  url: string
-}): Promise<void> {
-  return (navigator as any).share(data)
-}
-
-function copyToClipboard(content: string) {
-  const selection = document.getSelection()
-  if (selection) {
-    const prevRange = !selection.isCollapsed && selection.getRangeAt(0)
-    const textarea = document.createElement('textarea')
-    textarea.value = content
-    textarea.setAttribute('readonly', '')
-    textarea.style.userSelect = 'all'
-    textarea.style.position = 'absolute'
-    textarea.style.top = '-9999px'
-    document.body.appendChild(textarea)
-    textarea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textarea)
-    if (prevRange) {
-      selection.removeAllRanges()
-      selection.addRange(prevRange)
-    }
-  }
-}
-
-function canonicalURL(frontMatter: FrontMatter): string {
-  return `${CANONICAL_HOST}/${getSlug(frontMatter)}/`
-}
-
-function twitterShareURL(frontMatter: FrontMatter): string {
-  const tweet = `${frontMatter.title} by @leeb ${shareURL(frontMatter)}`
-  return `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`
-}
-
-function facebookShareURL(
-  frontMatter: FrontMatter,
-  selection?: string
-): string {
-  return (
-    `https://www.facebook.com/v3.3/dialog/share?display=page` +
-    `&app_id=46273233281` +
-    `&href=${encodeURIComponent(shareURL(frontMatter, selection))}` +
-    `&redirect_uri=${encodeURIComponent(canonicalURL(frontMatter))}`
-    // &quote=
-  )
-}
-
-function shareURL(frontMatter: FrontMatter, selection?: string): string {
-  return (
-    `${SHARE_HOST}/${getSlug(frontMatter)}` +
-    (selection ? '?$=' + selection : '')
   )
 }
