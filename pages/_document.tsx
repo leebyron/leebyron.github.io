@@ -45,6 +45,10 @@ export default class MyDocument extends Document {
             name="msapplication-TileImage"
             content={require('../assets/icon-144.png')}
           />
+          <meta name="robots" content="index,follow" />
+          <meta name="referrer" content="unsafe-url" />
+          <meta name="fb:app_id" content="46273233281" />
+          <meta name="twitter:site" content="@leeb" />
         </Head>
         <body>
           <script

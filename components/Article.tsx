@@ -23,151 +23,172 @@ export default (frontMatter: FrontMatter) => ({
   children
 }: {
   children: ReactNode
-}) => (
-  <Body>
-    <style jsx>{`
-      :global(.articleLogo) {
-        height: 24px;
-      }
-
-      @media screen and (max-width: 600px) {
+}) => {
+  const router = useRouter()
+  const initialSelection =
+    typeof router.query.$ === 'string' ? router.query.$ : undefined
+  const readMin = Math.round(frontMatter.wordCount / 250)
+  return (
+    <Body>
+      <style jsx>{`
         :global(.articleLogo) {
-          height: 18px;
+          height: 24px;
         }
-      }
 
-      .metaData {
-        margin: -2em 0 2em;
-        font-style: italic;
-      }
+        @media screen and (max-width: 600px) {
+          :global(.articleLogo) {
+            height: 18px;
+          }
+        }
 
-      .metaData > a {
-        text-decoration: none;
-      }
+        .metaData {
+          margin: -2em 0 2em;
+          font-style: italic;
+        }
 
-      .metaData > a:hover {
-        text-decoration: underline;
-      }
+        .metaData > a {
+          text-decoration: none;
+        }
 
-      h1 {
-        font-family: 'Inter', sans-serif;
-        font-size: 3rem;
-        font-style: italic;
-        font-weight: 100;
-        letter-spacing: -0.03em;
-        line-height: 1.1;
-        margin: 3rem 0.3em 3rem calc(1em / -16 - 0.25em);
-        color: black;
-        position: relative;
-      }
+        .metaData > a:hover {
+          text-decoration: underline;
+        }
 
-      h1 span {
-        padding: 0 0.3em 0 0.25em;
-        box-decoration-break: clone;
-      }
-
-      h1 > div {
-        position: absolute;
-      }
-
-      h1 > div > span {
-        background: url(${require('../assets/bg-highlight.svg')}) space,
-          #fff181 content-box;
-        color: transparent;
-        user-select: none;
-      }
-
-      :global(blockquote > p) {
-        background: url(${require('../assets/bg-highlight.svg')}) space,
-          #fff181 content-box;
-        padding: 0 1ch;
-        display: inline;
-        box-decoration-break: clone;
-        color: black;
-      }
-
-      h1 > span {
-        position: relative;
-        user-select: all;
-      }
-
-      footer {
-        align-items: center;
-        display: flex;
-        flex-spacing: space-between;
-        justify-content: space-between;
-        margin: 2rem 0;
-      }
-
-      .share {
-        display: flex;
-      }
-
-      .share > * {
-        display: block;
-      }
-
-      .share :global(svg) {
-        fill: #222;
-        height: 2em;
-        margin: 0.2em;
-        width: 2em;
-      }
-
-      @media screen and (max-width: 600px) {
         h1 {
-          font-size: 2em;
-          margin-top: 2rem;
+          font-family: 'Inter', sans-serif;
+          font-size: 3rem;
+          font-style: italic;
+          font-weight: 100;
+          letter-spacing: -0.03em;
+          line-height: 1.1;
+          margin: 3rem 0.3em 3rem calc(1em / -16 - 0.25em);
+          color: black;
+          position: relative;
+        }
+
+        h1 span {
+          padding: 0 0.3em 0 0.25em;
+          box-decoration-break: clone;
+        }
+
+        h1 > div {
+          position: absolute;
+        }
+
+        h1 > div > span {
+          background: url(${require('../assets/bg-highlight.svg')}) space,
+            #fff181 content-box;
+          color: transparent;
+          user-select: none;
+        }
+
+        :global(blockquote > p) {
+          background: url(${require('../assets/bg-highlight.svg')}) space,
+            #fff181 content-box;
+          padding: 0 1ch;
+          display: inline;
+          box-decoration-break: clone;
+          color: black;
+        }
+
+        h1 > span {
+          position: relative;
+          user-select: all;
+        }
+
+        footer {
+          align-items: center;
+          display: flex;
+          flex-spacing: space-between;
+          justify-content: space-between;
+          margin: 2rem 0;
+        }
+
+        .share {
+          display: flex;
+        }
+
+        .share > * {
+          display: block;
         }
 
         .share :global(svg) {
-          height: 1.8em;
-          width: 1.8em;
+          fill: #222;
+          height: 2em;
+          margin: 0.2em;
+          width: 2em;
         }
-      }
-    `}</style>
-    <Head>
-      <title>{frontMatter.title}</title>
-      <link rel="canonical" href={canonicalURL(frontMatter)} />
-      <meta property="og:type" content="article" />
-      <meta property="og:image" content={shareImageURL(frontMatter)} />
-      <meta property="og:image:type" content="image/png" />
-      <meta property="og:image:width" content="900" />
-      <meta property="og:image:height" content="450" />
-    </Head>
-    <Page>
-      <ExplodingLogo offset={isMobile() ? 10 : 50} className="articleLogo" />
-      <h1>
-        <div aria-hidden="true">
+
+        @media screen and (max-width: 600px) {
+          h1 {
+            font-size: 2em;
+            margin-top: 2rem;
+          }
+
+          .share :global(svg) {
+            height: 1.8em;
+            width: 1.8em;
+          }
+        }
+      `}</style>
+      <Head>
+        <title>{frontMatter.title}</title>
+        <link rel="canonical" href={canonicalURL(frontMatter)} />
+        <meta name="og:type" content="article" />
+        <meta name="og:url" content={shareURL(frontMatter, initialSelection)} />
+        <meta name="og:title" content={frontMatter.title} />
+        {/* TODO: og:description */}
+        <meta
+          name="og:image"
+          content={shareImageURL(frontMatter, initialSelection)}
+        />
+        <meta
+          name="og:image:secure_url"
+          content={shareImageURL(frontMatter, initialSelection)}
+        />
+        <meta name="og:image:type" content="image/png" />
+        <meta name="og:image:width" content="900" />
+        <meta name="og:image:height" content="450" />
+        <meta name="og:image:alt" content="" />
+        <meta name="author" content="Lee Byron" />
+        <meta name="article:author" content="https://twitter.com/@leeb" />
+        <meta name="twitter:creator" content="@leeb" />
+        <meta name="twitter:label1" content="Reading time" />
+        <meta name="twitter:data1" content={`${readMin} min read`} />
+      </Head>
+      <Page>
+        <ExplodingLogo offset={isMobile() ? 10 : 50} className="articleLogo" />
+        <h1>
+          <div aria-hidden="true">
+            <span>{frontMatter.title}</span>
+          </div>
           <span>{frontMatter.title}</span>
+        </h1>
+        <div className="metaData">
+          <a href={canonicalURL(frontMatter)}>{frontMatter.date}</a>
+          {` · ${readMin} min read`}
         </div>
-        <span>{frontMatter.title}</span>
-      </h1>
-      <div className="metaData">
-        <a href={canonicalURL(frontMatter)}>{frontMatter.date}</a>
-        {` · `}
-        {Math.round(frontMatter.wordCount / 250)} min read
-      </div>
-      <SelectionAnchor
-        showActions={!useRouter().query.screenshot}
-        initialSelection={useRouter().query.$}
-        createShareLink={selection => shareURL(frontMatter, selection)}
-      >
-        {children}
-      </SelectionAnchor>
-      <footer>
-        <Feedback article={getSlug(frontMatter)} />
-        <div className="share">
-          <TwitterSVG />
-          <a target="_blank" href={facebookShareURL(frontMatter)}>
-            <FacebookSVG />
-          </a>
-          <LinkedInSVG />
-        </div>
-      </footer>
-    </Page>
-  </Body>
-)
+        <SelectionAnchor
+          showActions={!router.query.screenshot}
+          initialSelection={initialSelection}
+          createShareLink={selection => shareURL(frontMatter, selection)}
+        >
+          {children}
+        </SelectionAnchor>
+        <footer>
+          <Feedback article={getSlug(frontMatter)} />
+          <div className="share">
+            <TwitterSVG />
+            <a target="_blank" href={facebookShareURL(frontMatter)}>
+              <FacebookSVG />
+            </a>
+            <LinkedInSVG />
+          </div>
+        </footer>
+      </Page>
+    </Body>
+  )
+}
 
 function canonicalURL(frontMatter: FrontMatter): string {
   return `${CANONICAL_HOST}/${getSlug(frontMatter)}/`
@@ -182,6 +203,7 @@ function facebookShareURL(
     `&app_id=46273233281` +
     `&href=${encodeURIComponent(shareURL(frontMatter, selection))}` +
     `&redirect_uri=${encodeURIComponent(canonicalURL(frontMatter))}`
+    // &quote=
   )
 }
 
@@ -192,8 +214,7 @@ function shareURL(frontMatter: FrontMatter, selection?: string): string {
   )
 }
 
-function shareImageURL(frontMatter: FrontMatter) {
-  const { $: selection } = useRouter().query
+function shareImageURL(frontMatter: FrontMatter, selection?: string) {
   return (
     `${API_HOST}/api/snap?article=${getSlug(frontMatter)}` +
     (selection ? '&selection=' + selection : '')
