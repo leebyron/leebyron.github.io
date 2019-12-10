@@ -52,7 +52,7 @@ export default (frontMatter: FrontMatter) => ({
         <meta property="og:image:width" content="900" />
         <meta property="og:image:height" content="470" />
         <meta property="og:image:alt" content="" />
-        <meta property="article:author" content="https://twitter.com/@leeb" />
+        <meta property="article:author" content="https://leebyron.com/" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:label1" content="Reading time" />
         <meta name="twitter:data1" content={`${readMin} min read`} />
