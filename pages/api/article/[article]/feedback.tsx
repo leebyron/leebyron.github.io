@@ -1,7 +1,10 @@
 import { Client as FaunaClient, query as q } from 'faunadb'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
-import { getBySlug, FrontMatter } from '../../../../components/article/frontMatter'
+import {
+  getBySlug,
+  FrontMatter
+} from '../../../../components/article/frontMatter'
 import {
   MAX_FEEDBACK_COUNT,
   FeedbackResponse,
@@ -32,7 +35,10 @@ export default async (
     res.setHeader('Vary', 'Origin')
 
     if (req.method === 'GET' || req.method === 'OPTIONS') {
-      res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate')
+      res.setHeader(
+        'Cache-Control',
+        's-maxage=300, stale-while-revalidate=15768000'
+      )
     }
 
     if (req.method === 'OPTIONS') {
