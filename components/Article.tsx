@@ -34,7 +34,10 @@ export default (frontMatter: FrontMatter) => ({
         <title>{frontMatter.title}</title>
         <link rel="canonical" href={canonicalURL(frontMatter)} />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={shareURL(frontMatter, initialSelection)} />
+        <meta
+          property="og:url"
+          content={shareURL(frontMatter, initialSelection)}
+        />
         <meta property="og:title" content={frontMatter.title} />
         {/* TODO: og:description */}
         <meta
@@ -47,9 +50,10 @@ export default (frontMatter: FrontMatter) => ({
         />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="900" />
-        <meta property="og:image:height" content="450" />
+        <meta property="og:image:height" content="470" />
         <meta property="og:image:alt" content="" />
         <meta property="article:author" content="https://twitter.com/@leeb" />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:label1" content="Reading time" />
         <meta name="twitter:data1" content={`${readMin} min read`} />
       </Head>
@@ -214,8 +218,8 @@ function shareURL(frontMatter: FrontMatter, selection?: string): string {
 
 function shareImageURL(frontMatter: FrontMatter, selection?: string) {
   return (
-    `${API_HOST}/api/snap?article=${getSlug(frontMatter)}` +
-    (selection ? '&selection=' + selection : '')
+    `${API_HOST}/api/article/${encodeURIComponent(getSlug(frontMatter))}/snap` +
+    (selection ? '?selection=' + selection : '')
   )
 }
 

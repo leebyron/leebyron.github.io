@@ -1,13 +1,13 @@
+import { Client as FaunaClient, query as q } from 'faunadb'
 import { NextApiRequest, NextApiResponse } from 'next'
 import fetch from 'node-fetch'
-import { getBySlug, FrontMatter } from '../../components/article/frontMatter'
-import { Client as FaunaClient, query as q } from 'faunadb'
+import { getBySlug, FrontMatter } from '../../../../components/article/frontMatter'
 import {
   MAX_FEEDBACK_COUNT,
   FeedbackResponse,
   NativeFeedback,
   MediumPostFeedback
-} from '../../components/article/Feedback'
+} from '../../../../components/article/Feedback'
 
 const ALLOWED_HEADERS = [
   'X-Requested-With',

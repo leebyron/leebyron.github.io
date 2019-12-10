@@ -36,6 +36,7 @@ export default ({ children }: { children: ReactNode }) => {
         <meta name="robots" content="index,follow" />
         <meta name="referrer" content="unsafe-url" />
         <meta name="author" content="Lee Byron" />
+        <meta property="og:site_name" content="Lee Byron" />
         <meta property="fb:app_id" content="46273233281" />
         <meta name="twitter:site" content="@leeb" />
         <meta name="twitter:creator" content="@leeb" />

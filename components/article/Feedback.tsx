@@ -808,7 +808,7 @@ async function fetchFeedback(
   signal: AbortSignal | undefined
 ): Promise<FeedbackResponse> {
   const response = await fetch(
-    `${getAPIHost()}/api/feedback?article=${encodeURIComponent(article)}`,
+    `${getAPIHost()}/api/article/${encodeURIComponent(article)}/feedback`,
     {
       mode: 'cors',
       headers: { Accept: 'application/json' },
@@ -844,7 +844,7 @@ async function postFeedback(
   signal: AbortSignal | undefined
 ): Promise<FeedbackResponse> {
   const response = await fetch(
-    `${getAPIHost()}/api/feedback?article=${encodeURIComponent(article)}`,
+    `${getAPIHost()}/api/article/${encodeURIComponent(article)}/feedback`,
     {
       method: 'POST',
       mode: 'cors',

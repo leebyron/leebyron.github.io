@@ -9,7 +9,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { article, selection } = req.query
   const browser = await puppeteer.launch({
     // headless: false,
-    defaultViewport: { width: 450, height: 225, deviceScaleFactor: 3 },
+    defaultViewport: { width: 450, height: 235, deviceScaleFactor: 3 },
     args: process.env.NODE_ENV === 'production' ? chrome.args : undefined,
     executablePath:
       process.env.NODE_ENV === 'production'
