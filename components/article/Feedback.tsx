@@ -183,6 +183,9 @@ export const Feedback = memo(({ article }: Props) => {
         .uncover {
           transition: transform 0.25s ease-out;
         }
+        .uncovered {
+          transform: translate(0, -50px);
+        }
         :global(.sparkles-off) .t {
           visibility: hidden;
           pointer-events: none;
@@ -288,6 +291,9 @@ export const Feedback = memo(({ article }: Props) => {
                 </g>
                 <g
                   style={{
+                    transition: isActive
+                      ? 'fill 0.1s ease-out'
+                      : 'fill 0.15s ease-out 0.3s',
                     fill:
                       count === 0 || (isActive && isActive.fromCount === count)
                         ? '#ddd'
@@ -307,12 +313,7 @@ export const Feedback = memo(({ article }: Props) => {
                 </g>
               </g>
             </g>
-            <g
-              className="uncover"
-              style={{
-                transform: isCovering ? 'translate(0,-50px)' : 'translate(0)'
-              }}
-            >
+            <g className={isCovering ? 'uncover uncovered' : 'uncover'}>
               <g ref={snack}>
                 {count > 0 && (
                   <text
