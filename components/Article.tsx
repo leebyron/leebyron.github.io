@@ -13,7 +13,8 @@ import LinkedInSVG from './svg/LinkedInSVG'
 import TwitterSVG from './svg/TwitterSVG'
 
 const CANONICAL_HOST = 'https://leebyron.com'
-const SHARE_HOST =
+const SHARE_HOST = 'https://lwb.io'
+const API_HOST =
   process.env.NODE_ENV === 'production'
     ? 'https://lwb.io'
     : 'http://localhost:3000'
@@ -98,10 +99,19 @@ export default (frontMatter: FrontMatter) => ({
         margin: 2rem 0;
       }
 
-      .share > :global(svg) {
-        width: 2em;
-        margin: 0.2em;
+      .share {
+        display: flex;
+      }
+
+      .share > * {
+        display: block;
+      }
+
+      .share :global(svg) {
         fill: #222;
+        height: 2em;
+        margin: 0.2em;
+        width: 2em;
       }
 
       @media screen and (max-width: 600px) {
@@ -110,7 +120,8 @@ export default (frontMatter: FrontMatter) => ({
           margin-top: 2rem;
         }
 
-        .share > :global(svg) {
+        .share :global(svg) {
+          height: 1.8em;
           width: 1.8em;
         }
       }
@@ -120,6 +131,9 @@ export default (frontMatter: FrontMatter) => ({
       <link rel="canonical" href={canonicalURL(frontMatter)} />
       <meta property="og:type" content="article" />
       <meta property="og:image" content={shareImageURL(frontMatter)} />
+      <meta property="og:image:type" content="image/png" />
+      <meta property="og:image:width" content="900" />
+      <meta property="og:image:height" content="450" />
     </Head>
     <Page>
       <ExplodingLogo offset={isMobile() ? 10 : 50} className="articleLogo" />
@@ -145,7 +159,9 @@ export default (frontMatter: FrontMatter) => ({
         <Feedback article={getSlug(frontMatter)} />
         <div className="share">
           <TwitterSVG />
-          <FacebookSVG />
+          <a target="_blank" href={facebookShareURL(frontMatter)}>
+            <FacebookSVG />
+          </a>
           <LinkedInSVG />
         </div>
       </footer>
@@ -153,21 +169,33 @@ export default (frontMatter: FrontMatter) => ({
   </Body>
 )
 
-function canonicalURL(frontMatter: any): string {
-  return `${CANONICAL_HOST}/${getSlug(frontMatter)}`
+function canonicalURL(frontMatter: FrontMatter): string {
+  return `${CANONICAL_HOST}/${getSlug(frontMatter)}/`
 }
 
-function shareURL(frontMatter: any, selection?: string): string {
+function facebookShareURL(
+  frontMatter: FrontMatter,
+  selection?: string
+): string {
+  return (
+    `https://www.facebook.com/v3.3/dialog/share?display=page` +
+    `&app_id=46273233281` +
+    `&href=${encodeURIComponent(shareURL(frontMatter, selection))}` +
+    `&redirect_uri=${encodeURIComponent(canonicalURL(frontMatter))}`
+  )
+}
+
+function shareURL(frontMatter: FrontMatter, selection?: string): string {
   return (
     `${SHARE_HOST}/${getSlug(frontMatter)}` +
     (selection ? '?$=' + selection : '')
   )
 }
 
-function shareImageURL(frontMatter: any) {
+function shareImageURL(frontMatter: FrontMatter) {
   const { $: selection } = useRouter().query
   return (
-    `${SHARE_HOST}/api/snap?article=${getSlug(frontMatter)}` +
+    `${API_HOST}/api/snap?article=${getSlug(frontMatter)}` +
     (selection ? '&selection=' + selection : '')
   )
 }
