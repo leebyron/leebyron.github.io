@@ -12,13 +12,14 @@ module.exports = withMDX({
   }
 })({
   // TODO: fix this awfulness
-  ...(process.env.NODE_ENV === 'production'
-    ? {}
-    : {
-        serverRuntimeConfig: {
-          FAUNA_SECRET: process.env.FAUNA_SECRET
-        }
-      }),
+  serverRuntimeConfig: process.env.NODE_ENV === 'production' ? undefined : {
+    FAUNA_SECRET: process.env.FAUNA_SECRET
+  },
+  exportPathMap(defaultPathMap) {
+    // Not sure why this happens, but remove it
+    delete defaultPathMap['/index']
+    return defaultPathMap
+  },
   exportTrailingSlash: true,
   webpack(config, options) {
     config.module.rules.push({

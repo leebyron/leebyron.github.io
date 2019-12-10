@@ -9,7 +9,6 @@ import { isMobile } from '../components/isMobile'
 export default () => (
   <Body>
     <Head>
-      <title>Lee Byron</title>
       <meta property="og:title" content="Lee Byron" />
       <meta property="og:url" content="https://leebyron.com/" />
       <meta property="og:image" content={require('../assets/me.jpg')} />
