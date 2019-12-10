@@ -30,107 +30,6 @@ export default (frontMatter: FrontMatter) => ({
   const readMin = Math.round(frontMatter.wordCount / 250)
   return (
     <Body>
-      <style jsx>{`
-        :global(.articleLogo) {
-          height: 24px;
-        }
-
-        @media screen and (max-width: 600px) {
-          :global(.articleLogo) {
-            height: 18px;
-          }
-        }
-
-        .metaData {
-          margin: -2em 0 2em;
-          font-style: italic;
-        }
-
-        .metaData > a {
-          text-decoration: none;
-        }
-
-        .metaData > a:hover {
-          text-decoration: underline;
-        }
-
-        h1 {
-          font-family: 'Inter', sans-serif;
-          font-size: 3rem;
-          font-style: italic;
-          font-weight: 100;
-          letter-spacing: -0.03em;
-          line-height: 1.1;
-          margin: 3rem 0.3em 3rem calc(1em / -16 - 0.25em);
-          color: black;
-          position: relative;
-        }
-
-        h1 span {
-          padding: 0 0.3em 0 0.25em;
-          box-decoration-break: clone;
-        }
-
-        h1 > div {
-          position: absolute;
-        }
-
-        h1 > div > span {
-          background: url(${require('../assets/bg-highlight.svg')}) space,
-            #fff181 content-box;
-          color: transparent;
-          user-select: none;
-        }
-
-        :global(blockquote > p) {
-          background: url(${require('../assets/bg-highlight.svg')}) space,
-            #fff181 content-box;
-          padding: 0 1ch;
-          display: inline;
-          box-decoration-break: clone;
-          color: black;
-        }
-
-        h1 > span {
-          position: relative;
-          user-select: all;
-        }
-
-        footer {
-          align-items: center;
-          display: flex;
-          flex-spacing: space-between;
-          justify-content: space-between;
-          margin: 2rem 0;
-        }
-
-        .share {
-          display: flex;
-        }
-
-        .share > * {
-          display: block;
-        }
-
-        .share :global(svg) {
-          fill: #222;
-          height: 2em;
-          margin: 0.2em;
-          width: 2em;
-        }
-
-        @media screen and (max-width: 600px) {
-          h1 {
-            font-size: 2em;
-            margin-top: 2rem;
-          }
-
-          .share :global(svg) {
-            height: 1.8em;
-            width: 1.8em;
-          }
-        }
-      `}</style>
       <Head>
         <title>{frontMatter.title}</title>
         <link rel="canonical" href={canonicalURL(frontMatter)} />
@@ -157,6 +56,107 @@ export default (frontMatter: FrontMatter) => ({
         <meta name="twitter:data1" content={`${readMin} min read`} />
       </Head>
       <Page>
+        <style jsx>{`
+          :global(.articleLogo) {
+            height: 24px;
+          }
+
+          @media screen and (max-width: 600px) {
+            :global(.articleLogo) {
+              height: 18px;
+            }
+          }
+
+          .metaData {
+            margin: -2em 0 2em;
+            font-style: italic;
+          }
+
+          .metaData > a {
+            text-decoration: none;
+          }
+
+          .metaData > a:hover {
+            text-decoration: underline;
+          }
+
+          h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 3rem;
+            font-style: italic;
+            font-weight: 100;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin: 3rem 0.3em 3rem calc(1em / -16 - 0.25em);
+            color: black;
+            position: relative;
+          }
+
+          h1 span {
+            padding: 0 0.3em 0 0.25em;
+            box-decoration-break: clone;
+          }
+
+          h1 > div {
+            position: absolute;
+          }
+
+          h1 > div > span {
+            background: url(${require('../assets/bg-highlight.svg')}) space,
+              #fff181 content-box;
+            color: transparent;
+            user-select: none;
+          }
+
+          :global(blockquote > p) {
+            background: url(${require('../assets/bg-highlight.svg')}) space,
+              #fff181 content-box;
+            padding: 0 1ch;
+            display: inline;
+            box-decoration-break: clone;
+            color: black;
+          }
+
+          h1 > span {
+            position: relative;
+            user-select: all;
+          }
+
+          footer {
+            align-items: center;
+            display: flex;
+            flex-spacing: space-between;
+            justify-content: space-between;
+            margin: 2rem 0;
+          }
+
+          .share {
+            display: flex;
+          }
+
+          .share > * {
+            display: block;
+          }
+
+          .share :global(svg) {
+            fill: #222;
+            height: 2em;
+            margin: 0.2em;
+            width: 2em;
+          }
+
+          @media screen and (max-width: 600px) {
+            h1 {
+              font-size: 2em;
+              margin-top: 2rem;
+            }
+
+            .share :global(svg) {
+              height: 1.8em;
+              width: 1.8em;
+            }
+          }
+        `}</style>
         <ExplodingLogo offset={isMobile() ? 10 : 50} className="articleLogo" />
         <h1>
           <div aria-hidden="true">
