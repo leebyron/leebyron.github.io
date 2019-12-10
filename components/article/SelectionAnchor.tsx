@@ -87,7 +87,7 @@ function getDocumentSelectionRange(): Range | null {
   return selection.getRangeAt(0)
 }
 
-function isSameRange(r1: Range | null, r2: Range | null): boolean {
+export function isSameRange(r1: Range | null, r2: Range | null): boolean {
   return (
     r1 === r2 ||
     (r1 !== null &&

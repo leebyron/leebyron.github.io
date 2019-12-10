@@ -1,5 +1,6 @@
 import { useState, useRef, useLayoutEffect, useEffect, ReactNode } from 'react'
 
+import { isSameRange } from './SelectionAnchor'
 import Toaster, { ToastRef } from './Toaster'
 import CopySVG from '../svg/CopySVG'
 import LinkSVG from '../svg/LinkSVG'
@@ -17,12 +18,15 @@ export function SelectionActions({
   const toaster = useRef<ToastRef>()
   const copyToClipboard = useCopyEffect<boolean>(
     copyLinkOnly => {
-      if (copyLinkOnly) {
-        toaster.current && (toaster.current as any).toast('Copied Link')
-        return createShareLink(encoded)
-      } else {
-        toaster.current && (toaster.current as any).toast('Copied Quote')
-        return createShareText(encoded, decoded, createShareLink)
+      const selection = document.getSelection()
+      if (selection && isSameRange(selection.getRangeAt(0), decoded.range)) {
+        if (copyLinkOnly) {
+          toaster.current && toaster.current.toast('Copied Link')
+          return createShareLink(encoded)
+        } else {
+          toaster.current && toaster.current.toast('Copied Quote')
+          return createShareText(encoded, decoded, createShareLink)
+        }
       }
     },
     [decoded]
@@ -58,6 +62,7 @@ export function SelectionActions({
           color: #666;
           display: flex;
           padding: 0.3em 0.6em 0.4em;
+          position: relative;
         }
         .actions :global(svg) {
           width: 1.6em;
@@ -182,15 +187,18 @@ function useWindowSize(): { width: number; height: number } {
 }
 
 function useCopyEffect<CopyContext>(
-  copyEffect: (ctx: CopyContext | undefined) => string,
+  copyEffect: (ctx: CopyContext | undefined) => string | undefined,
   deps?: any[]
 ): (ctx: CopyContext) => void {
   const ctxRef = useRef<CopyContext | undefined>()
   useEffect(() => {
     function onCopy(event: ClipboardEvent) {
       if (event.clipboardData) {
-        event.clipboardData.setData('text/plain', copyEffect(ctxRef.current))
-        event.preventDefault()
+        const replacementData = copyEffect(ctxRef.current)
+        if (replacementData) {
+          event.clipboardData.setData('text/plain', replacementData)
+          event.preventDefault()
+        }
       }
     }
     document.addEventListener('copy', onCopy)

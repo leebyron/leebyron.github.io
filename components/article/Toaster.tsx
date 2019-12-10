@@ -1,4 +1,10 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+  useEffect
+} from 'react'
 
 const TOAST_TIME = 2000
 let uid = 1
@@ -7,11 +13,17 @@ export type ToastRef = { toast: (message: string) => void }
 
 export default forwardRef<ToastRef | undefined>(function Toaster(_, ref) {
   const [toasts, setState] = useState<[string, number][]>([])
+  const isMounted = useRef(true)
+  useEffect(() => () => {
+    isMounted.current = false
+  })
   useImperativeHandle(ref, () => ({
     toast(toast: string) {
       setState(toasts => [...toasts, [toast, uid++]])
       setTimeout(() => {
-        setState(toasts => toasts.slice(1))
+        if (isMounted.current) {
+          setState(toasts => toasts.slice(1))
+        }
       }, TOAST_TIME)
     }
   }))
@@ -23,9 +35,8 @@ export default forwardRef<ToastRef | undefined>(function Toaster(_, ref) {
           top: 0;
           left: 0;
           right: 0;
-          z-index: -1;
           display: flex;
-          flex-direction: column-reverse;
+          flex-direction: column;
           align-items: center;
         }
 
@@ -41,7 +52,8 @@ export default forwardRef<ToastRef | undefined>(function Toaster(_, ref) {
         }
 
         @keyframes toast {
-          from, to {
+          from,
+          to {
             transform: translateY(0);
             opacity: 0;
           }

@@ -7,10 +7,8 @@ import { isMobile } from './isMobile'
 import { ExplodingLogo } from './ExplodingLogo'
 import { Feedback } from './article/Feedback'
 import { FrontMatter, getSlug } from './article/frontMatter'
+import { ShareMenu } from './article/ShareMenu'
 import { SelectionAnchor } from './article/SelectionAnchor'
-import FacebookSVG from './svg/FacebookSVG'
-import LinkedInSVG from './svg/LinkedInSVG'
-import TwitterSVG from './svg/TwitterSVG'
 
 const CANONICAL_HOST = 'https://leebyron.com'
 const SHARE_HOST = 'https://lwb.io'
@@ -179,13 +177,7 @@ export default (frontMatter: FrontMatter) => ({
         </SelectionAnchor>
         <footer>
           <Feedback article={getSlug(frontMatter)} />
-          <div className="share">
-            <TwitterSVG />
-            <a target="_blank" href={facebookShareURL(frontMatter)}>
-              <FacebookSVG />
-            </a>
-            <LinkedInSVG />
-          </div>
+          <ShareMenu frontMatter={frontMatter} />
         </footer>
       </Page>
     </Body>
@@ -196,22 +188,9 @@ function canonicalURL(frontMatter: FrontMatter): string {
   return `${CANONICAL_HOST}/${getSlug(frontMatter)}/`
 }
 
-function facebookShareURL(
-  frontMatter: FrontMatter,
-  selection?: string
-): string {
-  return (
-    `https://www.facebook.com/v3.3/dialog/share?display=page` +
-    `&app_id=46273233281` +
-    `&href=${encodeURIComponent(shareURL(frontMatter, selection))}` +
-    `&redirect_uri=${encodeURIComponent(canonicalURL(frontMatter))}`
-    // &quote=
-  )
-}
-
 function shareURL(frontMatter: FrontMatter, selection?: string): string {
   return (
-    `${SHARE_HOST}/${getSlug(frontMatter)}` +
+    `${SHARE_HOST}/${getSlug(frontMatter)}/` +
     (selection ? '?$=' + selection : '')
   )
 }
