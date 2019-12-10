@@ -39,7 +39,7 @@ export default (frontMatter: FrontMatter) => ({
           content={shareURL(frontMatter, initialSelection)}
         />
         <meta property="og:title" content={frontMatter.title} />
-        {/* TODO: og:description */}
+        <meta property="og:description" content="" />
         <meta
           property="og:image"
           content={shareImageURL(frontMatter, initialSelection)}
