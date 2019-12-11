@@ -1,0 +1,37 @@
+---
+layout: Article
+title: JS Development on a 12" Macbook?
+date: 2018-04-06T22:24:17.249Z
+published: true
+medium: https://medium.com/@leeb/js-development-on-a-12-macbook-7d8b70205f50
+tags:
+  - JavaScript
+  - Development
+  - MacBook
+---
+
+Last week I asked for opinions about developing on a 12" Macbook, and after getting pretty overwhelmingly positive feedback decided to give it a go.
+
+I’ll admit that I was nervous that the underpowered processor would grind my typical workflows to a halt. The 12" Macbook has half the memory and less than half the clock speed of my previous Macbook Pro.
+
+![](https://cdn-images-1.medium.com/max/2616/1*WRx9QVFjX1IYetSaLkjdyQ.png)
+
+For the last week I’ve been using the Macbook for day to day JavaScript development with VS Code, Github, and a handful of common tools. Everything has felt about the same, with no noticeable slow down or pauses. I decided to speed test some of the day to day CPU-intensive tasks I perform in the terminal: `yarn`, `flow`, `prettier` and `node` tests.
+
+For this not very scientific test, I decided to use GraphQL.js as my testbed, since it’s indicative of the kinds of repositories I spend my time in and has commands for running flow, prettier, and tests. Both machines were plugged in and not running any other intensive software at the time.
+
+![](https://cdn-images-1.medium.com/max/2000/1*rH261SZ1YyZGsm0czoT0DA.png)
+
+I was really surprised to see that there was _almost no difference_ for most of these cpu-bound tasks between the two machines. A full Flow check ran in exactly the same amount of time. Prettier and Mocha tests ran about 10% slower. The biggest difference was in a full yarn install, which seems to be anywhere from 30–50% slower, but still acceptable.
+
+I’m not sure how to reconcile these results with the realities of the hardware they’re running on, but I’m quite impressed.
+
+Why settle with a machine that’s not the fastest out there? I’m interested in being able to travel lightly and still get work done. I’m really impressed with how lightweight the Macbook is and how long the battery lasts. After a 9 hour workday of pretty typical VS Code, Terminal, and Safari usage I still had over 20% battery remaining. Meanwhile I’m lucky to get 2 hours from my Macbook Pro.
+
+While I’m pretty satisfied so far with my jump to the 12", there are still some gripes I have that I hope get addressed in future models:
+
+- The single USB-C port is not Thunderbolt 3, and I’ve yet to find a way to plug it into my Cinema Display while simultaneously using an external keyboard and mouse. I’d prefer to ditch the headphone port for a second USB port.
+
+- The screen is very high quality, but the bezel thickness is far more noticeable at the smaller size. I would love to have an edge-to-edge true-tone OLED screen similar to what can be found on the iPhone X.
+
+- The keyboard is a pure downgrade from my 2015 era Macbook Pro. The space between keys has shrunk which makes finger placement more challenging and the arrow keys easier to miss. The much shallower key travel takes some getting used to. And thank god it still has a real escape key and function keys, which I consider a positive over the new model Macbook Pros. I’d love to see the keyboard quality improve.

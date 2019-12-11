@@ -1,0 +1,48 @@
+---
+layout: Article
+title: Why Invest in Tools?
+date: 2015-07-06T04:40:48.446Z
+published: true
+medium: https://medium.com/@leeb/why-invest-in-tools-3240ce289930
+tags:
+  - Facebook
+  - Engineering Mangement
+---
+
+A few days ago I got to share GraphQL at the React-Europe conference, a project I’ve been working on for over three years at Facebook.
+
+After this talk, multiple attendees of the conference asked me how Facebook is able to consistently produce new technology that “rethinks current best practices” which succeeds in altering the way we build software as an industry.
+
+This was a React conference, so let’s start there…
+*Photo: Rasmus Andersson*
+
+React was laughed at by the JavaScript community when it open sourced 2 years ago, and for the first few months of its existence internally at Facebook many (including myself) thought it was a bad idea. [Jordan Walke](https://www.facebook.com/jordwalke) was stubborn in all the right ways and his idealism eventually found impact. We thought he was crazy, and he is, but he was also on to something. React has changed the way we build things across *all* platforms. [Adam Ernst](https://www.facebook.com/adamjernst) borrowed these ideas and built [ComponentKit](http://componentkit.org/) for iOS which was met at first by great skepticism by our internal iOS teams. It too dramatically changed the way we build software for iOS.
+
+Both React and ComponentKit were started by single individuals without being asked to do so. In fact, these projects were started in direct opposition to the inertia of their engineering teams at the time. React directly challenged other JavaScript frameworks we were betting on. ComponentKit started development just as other internally built iOS UI frameworks were ready for use. There was nothing wrong with the other tools, they weren’t bad (in fact brilliant) but they were also not perfect. They had different tradeoffs, strengths and weaknesses. A single engineer decided that a better tool for their job could exist if only they could be allowed to create it.
+
+In my experience at Facebook, experiments like this are not only allowed but encouraged. They are risky, and more often than not ideas like these are actually not exciting and fail. However sometimes you get [React](http://facebook.github.io/react/), [ComponentKit](http://componentkit.org/), [HHVM](http://hhvm.com/), [GraphQL](http://facebook.github.io/graphql/), [Immutable.js](http://facebook.github.io/immutable-js/), [Flow](http://flowtype.org/), [Pop](https://github.com/facebook/pop), or [AsyncDisplayKit](http://asyncdisplaykit.org/). The risks are worth taking. One benefit of Facebook growing into a sizable engineering organization is that we can afford to allow talented engineers to take risks like these, rather than strictly adhering to a scrum schedule or the company’s top-line short-term goals.
+
+Every single project I just mentioned faced considerable internal opposition. There were people (sometimes me) who wanted a project to admit failure earlier. And yet they continued. Facebook has both the engineering management philosophy as well as some great engineering managers who know how important it is to trust your people. Despite opposition from some trusted co-workers, despite not yet understanding the value, despite there being more important things to work on, good managers at Facebook trust individuals to take the right risks and focus their time where they believe they will find impact.
+
+My team, Product Infrastructure, and most of Facebook, shares a philosophy that engineering impact doesn’t stop with company products. That list of projects are all open source, with strong communities around each of them, and each has had some significant effect on the way people think about and build software across the industry. Open source is not just a philanthropic ideal, it’s a critical part of how we learn and demonstrate the impact to which our work aspires.
+
+Healthy open source is also extremely powerful for recruiting. I have personally interviewed dozens of people who told me they paid attention to Facebook after seeing React, AsyncDisplayKit, Pop, and other projects they wanted to be a part of. This brings smart people in and the positive cycle continues.
+
+Success is not found in isolation. As projects become exciting, and the potential is seen by others, teams form — ad-hoc or otherwise — and a snowball effect helps propel a project. At Facebook it’s not uncommon to be working on projects outside of your primary job responsibilities, or to move between teams quickly, and this allows for this snowball effect to occur. That also means there are many unsung heroes behind these projects.
+
+For GraphQL I’d like to point out some (but far from all) who made a meaningful impact early on other than the original team of [Nick Schrock](https://www.facebook.com/schrockn), [Daniel Schafer](https://www.facebook.com/dschafer) and myself.
+
+[Beau Hartshorne](https://www.facebook.com/beau) was the true catalyst for GraphQL. He identified and articulated the problem, found the right people, and inspired us to find solutions. Sometimes it’s hard to see the forest through the trees, and Beau’s a rare person who is always looking at the forest.
+
+[Jonathan Dann](https://www.facebook.com/j.p.dann) and [David Renie](https://www.facebook.com/dmr) were two iOS engineers who were early proponents of our rough first version of GraphQL and did the bulk of the work to integrate it into iOS News Feed. They also helped establish some important infrastructure we continue to use today which will be fodder for future blog posts.
+
+[Rasmus Andersson](https://www.facebook.com/rsms) was the first to look at our client SDKs with fresh eyes and imagine a different way of moving data throughout mobile apps. This became the foundation of our Android SDK and some of these ideas inspired Relay, a tool for building for the web with GraphQL.
+
+Other GraphQL team alumni, [Nathaniel Roman](https://www.facebook.com/nroman) and [Charles Ma](https://www.facebook.com/charlesma), were early members of our team and helped start what became GraphQL’s client tools.
+
+[Scott Wolchok](https://www.facebook.com/swolchok) single-handedly organized and improved GraphQL’s data models on iOS and later client tools across all platforms. His critical eye inspired us to investigate recent cross-cutting improvements.
+
+Today, a growing team supports and invests in GraphQL, the server, client tools, and Facebook’s type system.
+> # Facebook is able to consistently produce new technology that “rethinks current best practices” and makes waves in the industry because we focus on producing long-term value. We take risks. We trust our people to do what they think is right, and when something seems to have potential, smart people across teams come together.
+
+Our job is not to just build Facebook, our job is to make the world more open and connected — and we in Product Infrastructure are tasked with giving the whole software industry the tools to help us accomplish this mission.
