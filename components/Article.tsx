@@ -54,6 +54,20 @@ export default (frontMatter: FrontMatter) => ({
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:label1" content="Reading time" />
         <meta name="twitter:data1" content={`${readMin} min read`} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org/',
+              '@type': 'Article',
+              dateCreated: frontMatter.date.toISOString(),
+              image: shareImageURL(frontMatter, initialSelection),
+              author: 'https://leebyron.com',
+              wordCount: frontMatter.wordCount,
+              timeRequired: `PT${readMin}M`
+            })
+          }}
+        />
       </Head>
       <Page>
         <style jsx>{`

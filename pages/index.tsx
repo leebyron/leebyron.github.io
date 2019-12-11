@@ -19,6 +19,23 @@ export default () => (
       <meta property="og:profile:last_name" content="Byron" />
       <meta property="og:profile:username" content="leebyron" />
       <meta property="og:profile:gender" content="male" />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org/',
+            '@type': 'Person',
+            name: 'Lee Byron',
+            image: require('../assets/me.jpg'),
+            gender: 'https://schema.org/Male',
+            spouse: 'http://ashsmash.com',
+            hasOccupation: {
+              '@type': 'Occupation',
+              name: 'Design Technologist'
+            }
+          })
+        }}
+      />
     </Head>
     <Header />
     <Page>
