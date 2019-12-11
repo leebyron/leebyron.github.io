@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 
 import Body from './Body'
@@ -55,12 +56,21 @@ export default (frontMatter: FrontMatter) => ({
       </Head>
       <Page>
         <style jsx>{`
-          :global(.articleLogo) {
+          .articleLogo {
+            display: block;
+            display: table;
             height: 24px;
+            margin: -0.5em;
+            padding: 0.5em;
+          }
+
+          .articleLogo :global(svg) {
+            display: block;
+            height: 100%;
           }
 
           @media screen and (max-width: 600px) {
-            :global(.articleLogo) {
+            .articleLogo {
               height: 18px;
             }
           }
@@ -165,7 +175,11 @@ export default (frontMatter: FrontMatter) => ({
             }
           }
         `}</style>
-        <ExplodingLogo offset={isMobile() ? 10 : 50} className="articleLogo" />
+        <Link href="/">
+          <a className="articleLogo">
+            <ExplodingLogo offset={isMobile() ? 10 : 50} />
+          </a>
+        </Link>
         <h1>
           <div aria-hidden="true">
             <span>{frontMatter.title}</span>
@@ -261,7 +275,7 @@ function Page({ children }: { children: ReactNode }) {
 
         @media not screen and (min-width: 768px) and (min-height: 500px) {
           .page {
-            padding: 8vmax 5vw 6em;
+            padding: calc(5vw + 1.5em) 5vw 6em;
             margin: calc(6vh + env(safe-area-inset-top)) auto
               calc(12vh + env(safe-area-inset-bottom));
             width: calc(
