@@ -116,12 +116,14 @@ export default ({ children }: { children: ReactNode }) => {
           p,
           blockquote,
           a {
-            -webkit-text-size-adjust: 100%;
-            font-family: 'courier-prime', courier, monospace;
-            font-display: auto;
-            font-size: 1rem;
-            line-height: 1.3125;
             color: #303030;
+            font-display: auto;
+            font-family: 'courier-prime', courier, monospace;
+            font-size: 1rem;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.3125;
+            text-rendering: optimizeLegibility;
+            -webkit-text-size-adjust: 100%;
           }
 
           body {

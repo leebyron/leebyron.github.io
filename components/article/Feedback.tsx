@@ -396,6 +396,7 @@ function FeedbackPhrase({ response }: { response: AsyncFeedback }) {
           margin-left: 1ch;
           overflow: hidden;
           padding-top: 0.2em;
+          word-break: break-all;
         }
         @media screen and (max-width: 600px) {
           .phrase > .long {

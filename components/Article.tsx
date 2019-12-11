@@ -61,16 +61,47 @@ export default (frontMatter: FrontMatter) => ({
             }
           }
 
-          .metaData {
+          .meta {
             margin: -2em 0 2em;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .share {
+            display: none;
+          }
+
+          @media screen {
+            .share {
+              display: block;
+            }
+          }
+
+          .share {
+            margin-top: 0.5em;
+          }
+
+          @media screen and (min-width: 460px) {
+            .meta {
+              flex-direction: row;
+              justify-content: space-between;
+              align-items: center;
+            }
+
+            .share {
+              margin-top: -0.5em;
+            }
+          }
+
+          .data {
             font-style: italic;
           }
 
-          .metaData > a {
+          .data > a {
             text-decoration: none;
           }
 
-          .metaData > a:hover {
+          .data > a:hover {
             text-decoration: underline;
           }
 
@@ -119,7 +150,6 @@ export default (frontMatter: FrontMatter) => ({
           footer {
             align-items: center;
             display: flex;
-            flex-spacing: space-between;
             justify-content: space-between;
             margin: 2rem 0;
           }
@@ -138,9 +168,16 @@ export default (frontMatter: FrontMatter) => ({
           </div>
           <span>{frontMatter.title}</span>
         </h1>
-        <div className="metaData">
-          <a href={canonicalURL(frontMatter)}>{frontMatter.date}</a>
-          {` · ${readMin} min read`}
+        <div className="meta">
+          <div className="data">
+            <a href={canonicalURL(frontMatter)}>{frontMatter.date}</a>
+            {` · ${readMin} min read`}
+          </div>
+          {!router.query.screenshot && (
+            <div className="share">
+              <ShareMenu frontMatter={frontMatter} />
+            </div>
+          )}
         </div>
         <SelectionAnchor
           showActions={!router.query.screenshot}

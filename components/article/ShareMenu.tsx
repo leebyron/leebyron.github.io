@@ -42,7 +42,7 @@ export function ShareMenu({ frontMatter }: { frontMatter: FrontMatter }) {
       <style jsx>{`
         .share {
           position: relative;
-          margin: 0 -0.4em;
+          margin: 0 -0.5em;
         }
 
         .actions {
@@ -61,6 +61,13 @@ export function ShareMenu({ frontMatter }: { frontMatter: FrontMatter }) {
           height: 2em;
           margin: 0 0.3em;
           width: 2em;
+        }
+
+        @media screen and (max-width: 600px) {
+          .actions :global(svg) {
+            height: 1.7em;
+            width: 1.7em;
+          }
         }
 
         .actions :global(svg):hover {
