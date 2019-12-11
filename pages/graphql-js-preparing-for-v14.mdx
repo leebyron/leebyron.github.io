@@ -11,19 +11,19 @@ tags:
 
 Since it’s open sourcing almost three years ago, GraphQL.js has followed a “pre-major” version scheme. The most recent release was `v0.13.2`. The next release will move to a proper semver major version as `v14.0.0`. I need your help to prepare.
 
-### What happened to v1.0.0?
+## What happened to v1.0.0?
 
 Versions serve two purposes: a way people can talk about a project’s progress as well as a way software can express dependencies. The [semver spec](https://semver.org/) makes it clear that major version zero means an API is unstable and can change; moving to major versions indicates the beginning of a stable API. However people place meaning the progression of version numbers and can have preconceived notions of version 1.0 as the “beginning” or as a significant break from what came before.
 
 However GraphQL.js has held a stable API and has been depended upon by many in production for quite some time. While moving to major versions fits better with this reality, it does not reflect any significant break from what came before. Other than this versioning change, there will be few if any breaking changes in this next release. Moving from v0.13 to v14.0 will help people see, understand, and talk about the change as a natural progression rather than a significant break.
 
-### Duplicate installs and peer dependencies
+## Duplicate installs and peer dependencies
 
 A common problem after a new version of GraphQL.js is released is finding some of your other dependencies (like Relay, GraphiQL, graphql-tools) support the new version at different times and can leave your node_modules directory with duplicate installs of GraphQL.js. In the past this led to difficult to track bugs while more recent versions present an error message with some guidance on resolving the situation.
 
 Attempting to support duplicate GraphQL.js installs simply trades one problem for another. Duplicate modules are almost never what is intended and could lead to oversized client bundles or subtle server errors. Instead, we should make it easier to ensure there is only one installation of GraphQL.js in your project. While asking devs to use [`npm dedupe`](https://docs.npmjs.com/cli/dedupe) or [`yarn install --flat`](https://yarnpkg.com/lang/en/docs/cli/install/#toc-yarn-install-flat) can help, library authors using [`peerDependencies`](https://nodejs.org/en/blog/npm/peer-dependencies/) will help solve this problem.
 
-### Should my project use `peerDependencies`?
+## Should my project use `peerDependencies`?
 
 `peerDependencies` should be used by *companion libraries* to GraphQL.js. However if your project is not deployed to NPM (perhaps it’s a final product) or your project is a globally installed tool (like [graphql-cli](https://github.com/graphql-cli/graphql-cli)) then the normal `dependencies` field is still appropriate.
 
@@ -31,7 +31,7 @@ I need your help in updating GraphQL companion libraries to change to list Graph
 
 ![Here’s a flow chart to help you decide if `peerDependencies` is right for you](https://cdn-images-1.medium.com/max/2204/1*LHshB-KUxwhp5ia3KzCScg.png)*Here’s a flow chart to help you decide if peerDependencies is right for you*
 
-### Supported version range
+## Supported version range
 
 If your companion library changes to use `peerDependencies`, it’s useful to describe the broadest range of support. Support whichever oldest version of GraphQL.js you confirm works, while including newest versions with `||`. After v14 is released (or even before!) your package.json might look like:
 
@@ -39,7 +39,7 @@ If your companion library changes to use `peerDependencies`, it’s useful to de
       "graphql": "^0.12.0 || ^0.13.0 || ^14.0.0"
     }
 
-### Installation documentation
+## Installation documentation
 
 Finally, npm and yarn require `peerDependencies` to be manually installed. You might consider changing your library’s installation to mention also installing GraphQL.js to avoid confusion. For example, your installation command might now look like:
 
@@ -47,6 +47,6 @@ Finally, npm and yarn require `peerDependencies` to be manually installed. You m
 
 With your help, companion libraries to GraphQL.js can switch to use `peerDependencies` and help mitigate the pains that come with upgrading the whole ecosystem to support newly released versions, and releasing GraphQL.js v14 will be smooth and painless!
 
-### Development and `devDependencies`
+## Development and `devDependencies`
 
 `peerDependencies` are only installed explicitly by the end user. During development of your library you’ll want to ensure the latest version of GraphQL.js you support is installed during `npm install`. To account for this, I recommend including *both* the latest supported version of GraphQL.js in your `devDependencies` (for development and tests) as well as the range of versions supported in `peerDependencies` (for end users).

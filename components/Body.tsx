@@ -113,6 +113,8 @@ export default ({ children }: { children: ReactNode }) => {
           body,
           h1,
           h2,
+          h3,
+          h4,
           p,
           blockquote,
           a {
@@ -161,6 +163,8 @@ export default ({ children }: { children: ReactNode }) => {
 
           h1,
           h2,
+          h3,
+          h4,
           p,
           p > *,
           blockquote,
@@ -175,9 +179,21 @@ export default ({ children }: { children: ReactNode }) => {
           }
 
           h2 {
+            font-weight: bold;
+            font-style: italic;
+            margin: 3em 0 1em;
+          }
+
+          h3 {
             font-weight: normal;
             font-style: italic;
             margin: 3em 0 1em;
+          }
+
+          h4 {
+            font-weight: normal;
+            font-style: italic;
+            margin: 2em 0 1em;
           }
 
           blockquote {
