@@ -2,8 +2,10 @@ import { frontMatter } from './allFrontMatter'
 
 export type FrontMatter = {
   __resourcePath: string
+  slug: string,
   title: string
   date: Date
+  dateModified?: Date
   wordCount: number
   tags?: Array<string>
   published?: boolean
@@ -15,8 +17,7 @@ export function allBySlug(): { [slug: string]: FrontMatter } {
   if (!_bySlug) {
     _bySlug = {}
     for (const matter of frontMatter) {
-      const slug = getSlug(matter)
-      _bySlug[slug] = matter
+      _bySlug[matter.slug] = matter
     }
   }
   return _bySlug
@@ -24,8 +25,4 @@ export function allBySlug(): { [slug: string]: FrontMatter } {
 
 export function getBySlug(slug: string): FrontMatter | undefined {
   return allBySlug()[slug]
-}
-
-export function getSlug(matter: FrontMatter): string {
-  return matter.__resourcePath.split('.')[0].replace(/\/index$/, '')
 }

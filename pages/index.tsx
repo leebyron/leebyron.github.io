@@ -28,11 +28,6 @@ export default () => (
             name: 'Lee Byron',
             image: require('../assets/me.jpg'),
             gender: 'https://schema.org/Male',
-            spouse: 'http://ashsmash.com',
-            hasOccupation: {
-              '@type': 'Occupation',
-              name: 'Design Technologist'
-            }
           })
         }}
       />

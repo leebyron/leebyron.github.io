@@ -2790,9 +2790,9 @@ gauge@~2.7.3:
     wide-align "^1.1.0"
 
 get-own-enumerable-property-symbols@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/get-own-enumerable-property-symbols/-/get-own-enumerable-property-symbols-3.0.1.tgz#6f7764f88ea11e0b514bd9bd860a132259992ca4"
-  integrity sha512-09/VS4iek66Dh2bctjRkowueRJbY1JDGR1L/zRxO1Qk8Uxs6PnqaNSqalpizPT+CDjre3hnEsuzvhgomz9qYrA==
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/get-own-enumerable-property-symbols/-/get-own-enumerable-property-symbols-3.0.2.tgz#b5fde77f22cbe35f390b4e089922c50bce6ef664"
+  integrity sha512-I0UBV/XOz1XkIJHEUDMZAbzCThU/H8DxmSfmdGcKPnVhu2VfFqr34jr9777IyaTYvxjedWhqVIilEDsCdP5G6g==
 
 get-value@^2.0.3, get-value@^2.0.6:
   version "2.0.6"
@@ -3980,10 +3980,9 @@ neo-async@^2.5.0, neo-async@^2.6.1:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.1.tgz#ac27ada66167fa8849a6addd837f6b189ad2081c"
   integrity sha512-iyam8fBuCUpWeKPGpaNMetEocMt364qkCsfL9JuhjXX6dRnguRVOfk2GZaDpPjcOKiiXCPINZC1GczQ7iTq3Zw==
 
-next-mdx-enhanced@2.2.1:
+"next-mdx-enhanced@https://github.com/leebyron/next-mdx-enhanced.git#extend-front-matter":
   version "2.2.1"
-  resolved "https://registry.yarnpkg.com/next-mdx-enhanced/-/next-mdx-enhanced-2.2.1.tgz#46bfd197b7f0a05f2d90b483415d6c125d4532ad"
-  integrity sha512-u+YsqbVN/89nHFUeYT8r+3Y6SQitATyOEieeMWSnCFHVB2e2bI6sSX2e9GQlMel73ZTrXUgDO7IHYfxYnpWq1w==
+  resolved "https://github.com/leebyron/next-mdx-enhanced.git#83205c8b2b2a62b467aa710bd16530d8a58b84f4"
   dependencies:
     "@mdx-js/loader" "^1.5.1"
     debug "^4.1.1"

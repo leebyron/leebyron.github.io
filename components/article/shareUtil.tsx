@@ -1,4 +1,4 @@
-import { FrontMatter, getSlug } from './frontMatter'
+import { FrontMatter } from './frontMatter'
 
 export const CANONICAL_HOST = 'https://leebyron.com'
 export const SHARE_HOST = 'https://lwb.io'
@@ -12,18 +12,18 @@ export const API_HOST =
     : 'http://localhost:3000'
 
 export function canonicalURL(frontMatter: FrontMatter): string {
-  return `${CANONICAL_HOST}/${getSlug(frontMatter)}/`
+  return `${CANONICAL_HOST}/${frontMatter.slug}/`
 }
 
 export function shareURL(frontMatter: FrontMatter, selection?: string): string {
   return selection
-    ? `${SHARE_HOST}/${getSlug(frontMatter)}/?$=${selection}`
+    ? `${SHARE_HOST}/${frontMatter.slug}/?$=${selection}`
     : canonicalURL(frontMatter)
 }
 
 export function shareImageURL(frontMatter: FrontMatter, selection?: string) {
   return (
-    `${API_HOST}/api/article/${encodeURIComponent(getSlug(frontMatter))}/snap` +
+    `${API_HOST}/api/article/${encodeURIComponent(frontMatter.slug)}/snap` +
     (selection ? '?selection=' + selection : '')
   )
 }

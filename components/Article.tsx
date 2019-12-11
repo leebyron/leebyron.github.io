@@ -8,7 +8,7 @@ import { isMobile } from './isMobile'
 import { ExplodingLogo } from './ExplodingLogo'
 import { useWindowSize } from './useWindowSize'
 import { Feedback } from './article/Feedback'
-import { FrontMatter, getSlug } from './article/frontMatter'
+import { FrontMatter } from './article/frontMatter'
 import { SelectionAnchor } from './article/SelectionAnchor'
 import { canonicalURL, shareURL, shareImageURL } from './article/shareUtil'
 import { ShareMenu } from './article/ShareMenu'
@@ -60,11 +60,25 @@ export default (frontMatter: FrontMatter) => ({
             __html: JSON.stringify({
               '@context': 'https://schema.org/',
               '@type': 'Article',
-              dateCreated: frontMatter.date.toISOString(),
+              datePublished: frontMatter.date.toISOString(),
+              dateModified: (
+                frontMatter.dateModified || frontMatter.date
+              ).toISOString(),
+              headline: frontMatter.title,
               image: shareImageURL(frontMatter, initialSelection),
-              author: 'https://leebyron.com',
+              author: {
+                '@type': 'Person',
+                name: 'Lee Byron',
+                sameAs: 'https://leebyron.com'
+              },
+              publisher: {
+                '@type': 'Organization',
+                name: 'leebyron.com',
+                logo: require('../assets/me.jpg')
+              },
               wordCount: frontMatter.wordCount,
-              timeRequired: `PT${readMin}M`
+              timeRequired: `PT${readMin}M`,
+              mainEntityOfPage: canonicalURL(frontMatter)
             })
           }}
         />
@@ -234,7 +248,7 @@ export default (frontMatter: FrontMatter) => ({
           <article>{children}</article>
         </SelectionAnchor>
         <footer>
-          <Feedback article={getSlug(frontMatter)} />
+          <Feedback article={frontMatter.slug} />
           <ShareMenu frontMatter={frontMatter} />
         </footer>
       </Page>

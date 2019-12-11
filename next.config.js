@@ -3,7 +3,8 @@ const withMDX = require('next-mdx-enhanced')
 module.exports = withMDX({
   layoutPath: 'components',
   extendFrontMatter: {
-    process: mdxContent => ({
+    process: (mdxContent, frontMatter) => ({
+      slug: frontMatter.__resourcePath.split('.')[0].replace(/\/index$/, ''),
       wordCount: mdxContent
         .split(/^(---\n.+?\n---\n)/s)
         .pop()
@@ -11,10 +12,10 @@ module.exports = withMDX({
     })
   }
 })({
-  // TODO: fix this awfulness
-  serverRuntimeConfig: process.env.NODE_ENV === 'production' ? undefined : {
-    FAUNA_SECRET: process.env.FAUNA_SECRET
-  },
+  serverRuntimeConfig:
+    process.env.NODE_ENV === 'production'
+      ? undefined
+      : { FAUNA_SECRET: process.env.FAUNA_SECRET },
   exportPathMap(defaultPathMap) {
     // Not sure why this happens, but remove it
     delete defaultPathMap['/index']
