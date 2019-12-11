@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import Body from './Body'
 import { isMobile } from './isMobile'
 import { ExplodingLogo } from './ExplodingLogo'
+import { useWindowSize } from './useWindowSize'
 import { Feedback } from './article/Feedback'
 import { FrontMatter, getSlug } from './article/frontMatter'
 import { SelectionAnchor } from './article/SelectionAnchor'
@@ -59,18 +60,17 @@ export default (frontMatter: FrontMatter) => ({
           .articleLogo {
             display: block;
             display: table;
-            height: 24px;
             margin: -0.5em;
             padding: 0.5em;
           }
 
           .articleLogo :global(svg) {
             display: block;
-            height: 100%;
+            height: 24px;
           }
 
           @media screen and (max-width: 600px) {
-            .articleLogo {
+            .articleLogo :global(svg) {
               height: 18px;
             }
           }
@@ -126,7 +126,7 @@ export default (frontMatter: FrontMatter) => ({
             font-weight: 100;
             letter-spacing: -0.03em;
             line-height: 1.1;
-            margin: 3rem 0.3em 3rem calc(1em / -16 - 0.25em);
+            margin: 3rem -0.3em 3rem calc(1em / -16 - 0.25em);
             color: black;
             position: relative;
           }
@@ -144,6 +144,8 @@ export default (frontMatter: FrontMatter) => ({
             background: url(${require('../assets/bg-highlight.svg')}) space,
               #fff181 content-box;
             color: transparent;
+            pointer-events: none;
+            position: relative;
             user-select: none;
           }
 
@@ -159,6 +161,19 @@ export default (frontMatter: FrontMatter) => ({
           h1 > span {
             position: relative;
             user-select: all;
+          }
+
+          article {
+            hanging-punctuation: first allow-end last;
+            margin: 0 -1em;
+            overflow: hidden;
+            overflow-wrap: break-word;
+            overflow-wrap: anywhere;
+            padding: 0 1em;
+          }
+
+          article > :global(:first-child) {
+            margin-top: 0;
           }
 
           footer {
@@ -180,12 +195,7 @@ export default (frontMatter: FrontMatter) => ({
             <ExplodingLogo offset={isMobile() ? 10 : 50} />
           </a>
         </Link>
-        <h1>
-          <div aria-hidden="true">
-            <span>{frontMatter.title}</span>
-          </div>
-          <span>{frontMatter.title}</span>
-        </h1>
+        <Heading>{frontMatter.title}</Heading>
         <div className="meta">
           <div className="data">
             <a
@@ -207,7 +217,7 @@ export default (frontMatter: FrontMatter) => ({
           initialSelection={initialSelection}
           createShareLink={selection => shareURL(frontMatter, selection)}
         >
-          {children}
+          <article>{children}</article>
         </SelectionAnchor>
         <footer>
           <Feedback article={getSlug(frontMatter)} />
@@ -215,6 +225,77 @@ export default (frontMatter: FrontMatter) => ({
         </footer>
       </Page>
     </Body>
+  )
+}
+
+function Heading({ children }: { children: string }) {
+  const h1 = useRef<HTMLHeadingElement | null>(null)
+  const [isOverflowing, setOverflowing] = useState<boolean>(false)
+  const noWidow = children.replace(/\s+(\S+)$/, (_, end) => `\u00A0${end}`)
+  const title = isOverflowing ? children : noWidow
+  const { width } = useWindowSize()
+  useEffect(() => {
+    if (h1.current) {
+      const span = h1.current.lastElementChild
+      if (span) {
+        h1.current.style.overflow = 'hidden'
+        const text = span.textContent
+        span.textContent = noWidow
+        setOverflowing(h1.current.scrollWidth > h1.current.clientWidth)
+        span.textContent = text
+        h1.current.style.overflow = ''
+      }
+    }
+  }, [width])
+  return (
+    <h1 ref={h1}>
+      <style jsx>{`
+        h1 {
+          color: black;
+          font-family: 'Inter', sans-serif;
+          font-size: 3rem;
+          font-style: italic;
+          font-weight: 100;
+          letter-spacing: -0.03em;
+          line-height: 1.1;
+          margin: 3rem 0.3em 3rem calc(1em / -16 - 0.25em);
+          position: relative;
+        }
+
+        h1 span {
+          padding: 0 0.3em 0 0.25em;
+          box-decoration-break: clone;
+        }
+
+        h1 > div {
+          position: absolute;
+        }
+
+        h1 > div > span {
+          background: url(${require('../assets/bg-highlight.svg')}) space,
+            #fff181 content-box;
+          color: transparent;
+          position: relative;
+          user-select: none;
+        }
+
+        h1 > span {
+          position: relative;
+          user-select: all;
+        }
+
+        @media screen and (max-width: 600px) {
+          h1 {
+            font-size: 2em;
+            margin-top: 2rem;
+          }
+        }
+      `}</style>
+      <div aria-hidden="true">
+        <span>{title}</span>
+      </div>
+      <span>{title}</span>
+    </h1>
   )
 }
 

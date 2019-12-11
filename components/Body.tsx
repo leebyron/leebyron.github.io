@@ -123,9 +123,10 @@ export default ({ children }: { children: ReactNode }) => {
             font-family: 'courier-prime', courier, monospace;
             font-size: 1rem;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             line-height: 1.3125;
             text-rendering: optimizeLegibility;
-            -webkit-text-size-adjust: 100%;
+            text-size-adjust: none;
           }
 
           body {

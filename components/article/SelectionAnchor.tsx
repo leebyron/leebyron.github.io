@@ -1,4 +1,11 @@
-import { ReactNode, useRef, useEffect, useState } from 'react'
+import {
+  Children,
+  cloneElement,
+  ReactElement,
+  useRef,
+  useEffect,
+  useState
+} from 'react'
 import { SelectionActions } from './SelectionActions'
 import {
   getCurrentRange,
@@ -17,7 +24,7 @@ export function SelectionAnchor({
   showActions: boolean
   initialSelection: string | undefined
   createShareLink: (encoded: string) => string
-  children: ReactNode
+  children: ReactElement
 }) {
   const rootNode = useRef<HTMLDivElement | null>(null)
   const decodedRef = useRef<{ range: Range; isOutdated: boolean } | null>(null)
@@ -66,7 +73,7 @@ export function SelectionAnchor({
 
   return (
     <>
-      <article ref={rootNode}>{children}</article>
+      {cloneElement(Children.only(children), { ref: rootNode })}
       {showActions && encodedRange && decodedRef.current && (
         <SelectionActions
           encoded={encodedRange}

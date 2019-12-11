@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useCopyEffect } from './clipboardUtil'
 import { getCurrentRange, isSameRange } from './selectionUtil'
 import Toaster, { ToastRef } from './Toaster'
+import { useWindowSize } from '../useWindowSize'
 import CopySVG from '../svg/CopySVG'
 import LinkSVG from '../svg/LinkSVG'
 import TwitterSVG from '../svg/TwitterSVG'
@@ -161,25 +162,4 @@ function createShareText(
   }
   const shareLink = createShareLink(encoded)
   return `“${quote}” — @leeb ${shareLink}`
-}
-
-// TODO: merge into above and simplify
-function useWindowSize(): { width: number; height: number } {
-  const [state, setState] = useState({ width: 1200, height: 800 })
-  useLayoutEffect(() => {
-    const update = () =>
-      setState(prev =>
-        prev.width === window.innerWidth && prev.height === window.innerHeight
-          ? prev
-          : { width: window.innerWidth, height: window.innerHeight }
-      )
-    update()
-    window.addEventListener('resize', update)
-    window.addEventListener('load', update)
-    return () => {
-      window.removeEventListener('resize', update)
-      window.removeEventListener('load', update)
-    }
-  }, [])
-  return state
 }
