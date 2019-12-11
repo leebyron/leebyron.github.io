@@ -25,10 +25,14 @@ export default (frontMatter: FrontMatter) => ({
       <Head>
         <title>{frontMatter.title}</title>
         <link rel="canonical" href={canonicalURL(frontMatter)} />
-        <meta property="og:type" content="article" />
         <meta
           property="og:url"
           content={shareURL(frontMatter, initialSelection)}
+        />
+        <meta property="og:type" content="article" />
+        <meta
+          property="article:published_time"
+          content={frontMatter.date.toISOString()}
         />
         <meta property="og:title" content={frontMatter.title} />
         <meta property="og:description" content="" />
@@ -170,7 +174,12 @@ export default (frontMatter: FrontMatter) => ({
         </h1>
         <div className="meta">
           <div className="data">
-            <a href={canonicalURL(frontMatter)}>{frontMatter.date}</a>
+            <a
+              href={canonicalURL(frontMatter)}
+              title={longDate(frontMatter.date)}
+            >
+              {shortDate(frontMatter.date)}
+            </a>
             {` · ${readMin} min read`}
           </div>
           {!router.query.screenshot && (
@@ -193,6 +202,42 @@ export default (frontMatter: FrontMatter) => ({
       </Page>
     </Body>
   )
+}
+
+function shortDate(date: Date): string {
+  try {
+    return date.toLocaleDateString(undefined, {
+      timeZone: 'America/Los_Angeles',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  } catch (error) {
+    if (error.name === 'RangeError') {
+      return date.toDateString()
+    }
+    throw error
+  }
+}
+
+function longDate(date: Date): string {
+  try {
+    return date.toLocaleString(undefined, {
+      timeZone: 'America/Los_Angeles',
+      weekday: 'short',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      timeZoneName: 'long'
+    })
+  } catch (error) {
+    if (error.name === 'RangeError') {
+      return String(date)
+    }
+    throw error
+  }
 }
 
 // TODO: Generic or merge into above?

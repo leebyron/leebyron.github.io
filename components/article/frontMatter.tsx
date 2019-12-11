@@ -3,8 +3,10 @@ import { frontMatter } from './allFrontMatter'
 export type FrontMatter = {
   __resourcePath: string
   title: string
-  date?: string
+  date: Date
   wordCount: number
+  tags?: Array<string>
+  published?: boolean
   medium?: string
 }
 
