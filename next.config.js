@@ -1,15 +1,28 @@
 const withMDX = require('next-mdx-enhanced')
+const remark = require('remark-parse')
+const visitRemark = require('unist-util-visit')
 
 module.exports = withMDX({
   layoutPath: 'components',
   extendFrontMatter: {
-    process: (mdxContent, frontMatter) => ({
-      slug: frontMatter.__resourcePath.split('.')[0].replace(/\/index$/, ''),
-      wordCount: mdxContent
-        .split(/^(---\n.+?\n---\n)/s)
-        .pop()
-        .split(/\s+/g).length
-    })
+    process: (mdxContent, frontMatter) => {
+      const sansFrontMatter = mdxContent.replace(/^(---\n.+?\n---\n)?/s, '')
+      const ast = new remark.Parser(null, sansFrontMatter).parse()
+      const firstParagraph = ast.children.find(
+        node => node.type === 'paragraph'
+      )
+      let synopsis = ''
+      if (firstParagraph) {
+        visitRemark(firstParagraph, 'text', node => {
+          synopsis += node.value
+        })
+      }
+      return {
+        slug: frontMatter.__resourcePath.split('.')[0].replace(/\/index$/, ''),
+        wordCount: sansFrontMatter.split(/\s+/g).length,
+        synopsis
+      }
+    }
   }
 })({
   serverRuntimeConfig:

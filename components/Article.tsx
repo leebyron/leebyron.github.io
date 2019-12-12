@@ -37,7 +37,7 @@ export default (frontMatter: FrontMatter) => ({
           content={frontMatter.date.toISOString()}
         />
         <meta property="og:title" content={frontMatter.title} />
-        <meta property="og:description" content="" />
+        <meta property="og:description" content={frontMatter.synopsis} />
         <meta
           property="og:image"
           content={shareImageURL(frontMatter, initialSelection)}
@@ -60,6 +60,7 @@ export default (frontMatter: FrontMatter) => ({
             __html: JSON.stringify({
               '@context': 'https://schema.org/',
               '@type': 'Article',
+              abstract: frontMatter.synopsis,
               datePublished: frontMatter.date.toISOString(),
               dateModified: (
                 frontMatter.dateModified || frontMatter.date
@@ -74,7 +75,10 @@ export default (frontMatter: FrontMatter) => ({
               publisher: {
                 '@type': 'Organization',
                 name: 'leebyron.com',
-                logo: require('../assets/me.jpg')
+                logo: {
+                  '@type': 'ImageObject',
+                  url: require('../assets/me.jpg')
+                }
               },
               wordCount: frontMatter.wordCount,
               timeRequired: `PT${readMin}M`,

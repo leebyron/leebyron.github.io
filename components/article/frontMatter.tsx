@@ -2,8 +2,9 @@ import { frontMatter } from './allFrontMatter'
 
 export type FrontMatter = {
   __resourcePath: string
-  slug: string,
+  slug: string
   title: string
+  synopsis: string
   date: Date
   dateModified?: Date
   wordCount: number

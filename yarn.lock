@@ -5328,6 +5328,27 @@ remark-parse@7.0.1:
     vfile-location "^2.0.0"
     xtend "^4.0.1"
 
+remark-parse@7.0.2:
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/remark-parse/-/remark-parse-7.0.2.tgz#41e7170d9c1d96c3d32cf1109600a9ed50dba7cf"
+  integrity sha512-9+my0lQS80IQkYXsMA8Sg6m9QfXYJBnXjWYN5U+kFc5/n69t+XZVXU/ZBYr3cYH8FheEGf1v87rkFDhJ8bVgMA==
+  dependencies:
+    collapse-white-space "^1.0.2"
+    is-alphabetical "^1.0.0"
+    is-decimal "^1.0.0"
+    is-whitespace-character "^1.0.0"
+    is-word-character "^1.0.0"
+    markdown-escapes "^1.0.0"
+    parse-entities "^1.1.0"
+    repeat-string "^1.5.4"
+    state-toggle "^1.0.0"
+    trim "0.0.1"
+    trim-trailing-lines "^1.0.0"
+    unherit "^1.0.4"
+    unist-util-remove-position "^1.0.0"
+    vfile-location "^2.0.0"
+    xtend "^4.0.1"
+
 remark-squeeze-paragraphs@3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/remark-squeeze-paragraphs/-/remark-squeeze-paragraphs-3.0.4.tgz#9fe50c3bf3b572dd88754cd426ada007c0b8dc5f"
@@ -6209,6 +6230,15 @@ unist-util-visit@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/unist-util-visit/-/unist-util-visit-2.0.0.tgz#1fdae5ea88251651bfe49b7e84390d664fc227c5"
   integrity sha512-kiTpWKsF54u/78L/UU/i7lxrnqGiEWBgqCpaIZBYP0gwUC+Akq0Ajm4U8JiNIoQNfAioBdsyarnOcTEAb9mLeQ==
+  dependencies:
+    "@types/unist" "^2.0.0"
+    unist-util-is "^4.0.0"
+    unist-util-visit-parents "^3.0.0"
+
+unist-util-visit@2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/unist-util-visit/-/unist-util-visit-2.0.1.tgz#b4e1c1cb414250c6b3cb386b8e461d79312108ae"
+  integrity sha512-bEDa5S/O8WRDeI1mLaMoKuFFi89AjF+UAoMNxO+bbVdo06q+53Vhq4iiv1PenL6Rx1ZxIpXIzqZoc5HD2I1oMA==
   dependencies:
     "@types/unist" "^2.0.0"
     unist-util-is "^4.0.0"
