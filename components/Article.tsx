@@ -10,8 +10,9 @@ import { useWindowSize } from './useWindowSize'
 import { Feedback } from './article/Feedback'
 import { FrontMatter } from './article/frontMatter'
 import { SelectionAnchor } from './article/SelectionAnchor'
+import { SelectionActions } from './article/SelectionActions'
+import { ShareActions } from './article/ShareActions'
 import { canonicalURL, shareURL, shareImageURL } from './article/shareUtil'
-import { ShareMenu } from './article/ShareMenu'
 
 export default (frontMatter: FrontMatter) => ({
   children
@@ -26,10 +27,10 @@ export default (frontMatter: FrontMatter) => ({
     <Body>
       <Head>
         <title>{frontMatter.title}</title>
-        <link rel="canonical" href={canonicalURL(frontMatter)} />
+        <link rel="canonical" href={canonicalURL(frontMatter.slug)} />
         <meta
           property="og:url"
-          content={shareURL(frontMatter, initialSelection)}
+          content={shareURL(frontMatter.slug, initialSelection)}
         />
         <meta property="og:type" content="article" />
         <meta
@@ -40,11 +41,11 @@ export default (frontMatter: FrontMatter) => ({
         <meta property="og:description" content={frontMatter.synopsis} />
         <meta
           property="og:image"
-          content={shareImageURL(frontMatter, initialSelection)}
+          content={shareImageURL(frontMatter.slug, initialSelection)}
         />
         <meta
           property="og:image:secure_url"
-          content={shareImageURL(frontMatter, initialSelection)}
+          content={shareImageURL(frontMatter.slug, initialSelection)}
         />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="900" />
@@ -66,7 +67,7 @@ export default (frontMatter: FrontMatter) => ({
                 frontMatter.dateModified || frontMatter.date
               ).toISOString(),
               headline: frontMatter.title,
-              image: shareImageURL(frontMatter, initialSelection),
+              image: shareImageURL(frontMatter.slug, initialSelection),
               author: {
                 '@type': 'Person',
                 name: 'Lee Byron',
@@ -82,7 +83,7 @@ export default (frontMatter: FrontMatter) => ({
               },
               wordCount: frontMatter.wordCount,
               timeRequired: `PT${readMin}M`,
-              mainEntityOfPage: canonicalURL(frontMatter)
+              mainEntityOfPage: canonicalURL(frontMatter.slug)
             })
           }}
         />
@@ -231,7 +232,7 @@ export default (frontMatter: FrontMatter) => ({
         <div className="meta">
           <div className="data">
             <a
-              href={canonicalURL(frontMatter)}
+              href={canonicalURL(frontMatter.slug)}
               title={longDate(frontMatter.date)}
             >
               {shortDate(frontMatter.date)}
@@ -240,20 +241,27 @@ export default (frontMatter: FrontMatter) => ({
           </div>
           {!router.query.screenshot && (
             <div className="share">
-              <ShareMenu frontMatter={frontMatter} />
+              <ShareActions frontMatter={frontMatter} />
             </div>
           )}
         </div>
         <SelectionAnchor
-          showActions={!router.query.screenshot}
           initialSelection={initialSelection}
-          createShareLink={selection => shareURL(frontMatter, selection)}
+          actions={({ encoded, decoded }) =>
+            !router.query.screenshot && (
+              <SelectionActions
+                article={frontMatter.slug}
+                encoded={encoded}
+                decoded={decoded}
+              />
+            )
+          }
         >
           <article>{children}</article>
         </SelectionAnchor>
         <footer>
           <Feedback article={frontMatter.slug} />
-          <ShareMenu frontMatter={frontMatter} />
+          <ShareActions frontMatter={frontMatter} />
         </footer>
       </Page>
     </Body>

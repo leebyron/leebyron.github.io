@@ -2,11 +2,11 @@ import {
   Children,
   cloneElement,
   ReactElement,
+  ReactNode,
   useRef,
   useEffect,
   useState
 } from 'react'
-import { SelectionActions } from './SelectionActions'
 import {
   getCurrentRange,
   setCurrentRange,
@@ -15,19 +15,22 @@ import {
   decodeRange
 } from './selectionUtil'
 
+export type DecodedSelection = {
+  range: Range
+  isOutdated: boolean
+}
+
 export function SelectionAnchor({
-  showActions,
   initialSelection,
-  createShareLink,
+  actions,
   children
 }: {
-  showActions: boolean
   initialSelection: string | undefined
-  createShareLink: (encoded: string) => string
+  actions: (props: { encoded: string; decoded: DecodedSelection }) => ReactNode
   children: ReactElement
 }) {
   const rootNode = useRef<HTMLDivElement | null>(null)
-  const decodedRef = useRef<{ range: Range; isOutdated: boolean } | null>(null)
+  const decodedRef = useRef<DecodedSelection | null>(null)
   const [encodedRange, setEncodedRange] = useState<string | null>(null)
 
   useEffect(() => {
@@ -74,13 +77,9 @@ export function SelectionAnchor({
   return (
     <>
       {cloneElement(Children.only(children), { ref: rootNode })}
-      {showActions && encodedRange && decodedRef.current && (
-        <SelectionActions
-          encoded={encodedRange}
-          decoded={decodedRef.current}
-          createShareLink={createShareLink}
-        />
-      )}
+      {encodedRange &&
+        decodedRef.current &&
+        actions({ encoded: encodedRange, decoded: decodedRef.current })}
     </>
   )
 }

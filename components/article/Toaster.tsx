@@ -10,8 +10,14 @@ const TOAST_TIME = 2000
 let uid = 1
 
 export type ToastRef = { toast: (message: string) => void }
+type Props = {
+  popUnder?: boolean
+}
 
-export default forwardRef<ToastRef | undefined>(function Toaster(_, ref) {
+export default forwardRef<ToastRef | undefined, Props>(function Toaster(
+  { popUnder = false },
+  ref
+) {
   const [toasts, setState] = useState<[string, number][]>([])
   const isMounted = useRef(true)
   useEffect(() => () => {
@@ -28,7 +34,7 @@ export default forwardRef<ToastRef | undefined>(function Toaster(_, ref) {
     }
   }))
   return (
-    <div className="toaster">
+    <div className={popUnder ? 'toaster popUnder' : 'toaster'}>
       <style jsx>{`
         .toaster {
           position: absolute;
@@ -51,6 +57,11 @@ export default forwardRef<ToastRef | undefined>(function Toaster(_, ref) {
           white-space: nowrap;
         }
 
+        .toaster.popUnder > span {
+          animation: 2s ease-in-out both toast-under;
+          top: 0.5em;
+        }
+
         @keyframes toast {
           from,
           to {
@@ -60,6 +71,18 @@ export default forwardRef<ToastRef | undefined>(function Toaster(_, ref) {
           10%,
           90% {
             transform: translateY(-2.25em);
+            opacity: 0.9;
+          }
+        }
+        @keyframes toast-under {
+          from,
+          to {
+            transform: translateY(0);
+            opacity: 0;
+          }
+          10%,
+          90% {
+            transform: translateY(2.25em);
             opacity: 0.9;
           }
         }

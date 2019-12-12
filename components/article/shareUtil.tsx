@@ -11,39 +11,66 @@ export const API_HOST =
     ? ''
     : 'http://localhost:3000'
 
-export function canonicalURL(frontMatter: FrontMatter): string {
-  return `${CANONICAL_HOST}/${frontMatter.slug}/`
+export function canonicalURL(articleSlug: string): string {
+  return `${CANONICAL_HOST}/${articleSlug}/`
 }
 
-export function shareURL(frontMatter: FrontMatter, selection?: string): string {
+export function shareURL(articleSlug: string, selection?: string): string {
   return selection
-    ? `${SHARE_HOST}/${frontMatter.slug}/?$=${selection}`
-    : canonicalURL(frontMatter)
+    ? `${SHARE_HOST}/${articleSlug}/?$=${selection}`
+    : canonicalURL(articleSlug)
 }
 
-export function shareImageURL(frontMatter: FrontMatter, selection?: string) {
+export function shareImageURL(articleSlug: string, selection?: string) {
   return (
-    `${API_HOST}/api/article/${encodeURIComponent(frontMatter.slug)}/snap` +
+    `${API_HOST}/api/article/${encodeURIComponent(articleSlug)}/snap` +
     (selection ? '?selection=' + selection : '')
   )
 }
 
-export function twitterShareURL(frontMatter: FrontMatter): string {
-  const tweet = `${frontMatter.title} by @leeb ${shareURL(frontMatter)}`
+export function twitterTitleTweet(articleSlug: string, title: string): string {
+  return `“${title}” by @leeb ${canonicalURL(articleSlug)}`
+}
+
+export function twitterQuoteTweet(
+  articleSlug: string,
+  selection: string,
+  selectedText: string
+): string {
+  const quote = selectedQuote(selectedText, 250)
+  return `${quote} — @leeb ${shareURL(articleSlug, selection)}`
+}
+
+export function twitterShareURL(tweet: string): string {
   return `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`
 }
 
 export function facebookShareURL(
-  frontMatter: FrontMatter,
+  articleSlug: string,
   selection?: string
 ): string {
   return (
     `https://www.facebook.com/v3.3/dialog/share?display=page` +
     `&app_id=46273233281` +
-    `&href=${encodeURIComponent(shareURL(frontMatter, selection))}` +
-    `&redirect_uri=${encodeURIComponent(canonicalURL(frontMatter))}`
-    // &quote=
+    `&href=${encodeURIComponent(shareURL(articleSlug, selection))}` +
+    `&redirect_uri=${encodeURIComponent(canonicalURL(articleSlug))}`
   )
+}
+
+export function selectedQuote(selectedText: string, maxLength?: number): string {
+  let quote = selectedText
+  if (maxLength && quote.length > maxLength) {
+    const words = quote.split(/(?=\s)/g)
+    quote = ''
+    for (const word of words) {
+      if (quote.length + word.length >= maxLength) {
+        break
+      }
+      quote += word
+    }
+    quote += '…'
+  }
+  return `“${quote.trim()}”`
 }
 
 export function canNativeShare(): boolean {

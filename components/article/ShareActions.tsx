@@ -6,33 +6,40 @@ import {
   twitterShareURL,
   facebookShareURL,
   canNativeShare,
-  nativeShare
+  nativeShare,
+  twitterTitleTweet
 } from './shareUtil'
 import Toaster, { ToastRef } from './Toaster'
 import FacebookSVG from '../svg/FacebookSVG'
 import TwitterSVG from '../svg/TwitterSVG'
 import LinkSVG from '../svg/LinkSVG'
+import { isAlternateClick } from './isAlterateClick'
 
-export function ShareMenu({ frontMatter }: { frontMatter: FrontMatter }) {
+export function ShareActions({ frontMatter }: { frontMatter: FrontMatter }) {
   const toaster = useRef<ToastRef>()
   const onClickShareLink = useCallback(event => {
+    // Allow right-click and command-click to behave as normal.
+    if (isAlternateClick(event)) {
+      return
+    }
     event.preventDefault()
     if (canNativeShare()) {
       nativeShare({
         title: frontMatter.title,
-        url: canonicalURL(frontMatter)
+        text: `“${frontMatter.title}” by Lee Byron`,
+        url: canonicalURL(frontMatter.slug)
       }).then(
         () => {
           toaster.current && toaster.current.toast('Shared')
         },
         (error: Error) => {
           if (error.name !== 'AbortError') {
-            console.error(error)
+            throw error
           }
         }
       )
     } else {
-      copyToClipboard(canonicalURL(frontMatter))
+      copyToClipboard(canonicalURL(frontMatter.slug))
       toaster.current && toaster.current.toast('Link Copied')
     }
   }, [])
@@ -76,13 +83,18 @@ export function ShareMenu({ frontMatter }: { frontMatter: FrontMatter }) {
       `}</style>
       <Toaster ref={toaster} />
       <div className="actions">
-        <a target="_blank" href={twitterShareURL(frontMatter)}>
+        <a
+          target="_blank"
+          href={twitterShareURL(
+            twitterTitleTweet(frontMatter.slug, frontMatter.title)
+          )}
+        >
           <TwitterSVG />
         </a>
-        <a target="_blank" href={facebookShareURL(frontMatter)}>
+        <a target="_blank" href={facebookShareURL(frontMatter.slug)}>
           <FacebookSVG />
         </a>
-        <a href={canonicalURL(frontMatter)} onClick={onClickShareLink}>
+        <a href={canonicalURL(frontMatter.slug)} onClick={onClickShareLink}>
           <LinkSVG />
         </a>
       </div>

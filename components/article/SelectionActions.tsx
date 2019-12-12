@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useCopyEffect } from './clipboardUtil'
 import { getCurrentRange, isSameRange } from './selectionUtil'
 import Toaster, { ToastRef } from './Toaster'
@@ -6,25 +6,38 @@ import { useWindowSize } from '../useWindowSize'
 import CopySVG from '../svg/CopySVG'
 import LinkSVG from '../svg/LinkSVG'
 import TwitterSVG from '../svg/TwitterSVG'
+import { isAlternateClick } from './isAlterateClick'
+import {
+  canNativeShare,
+  nativeShare,
+  shareURL,
+  twitterShareURL,
+  twitterQuoteTweet,
+  selectedQuote,
+  facebookShareURL
+} from './shareUtil'
+import { DecodedSelection } from './SelectionAnchor'
+import FacebookSVG from '../svg/FacebookSVG'
 
 export function SelectionActions({
+  article,
   encoded,
-  decoded,
-  createShareLink
+  decoded
 }: {
+  article: string
   encoded: string
-  decoded: { range: Range; isOutdated: boolean }
-  createShareLink: (encoded: string) => string
+  decoded: DecodedSelection
 }) {
+  const popUnder = /iPad|iPhone|iOS|Android/.test(navigator.userAgent)
   const toaster = useRef<ToastRef>()
   const copyToClipboard = useCopyEffect<boolean>(copyLinkOnly => {
     if (isSameRange(getCurrentRange(), decoded.range)) {
       if (copyLinkOnly) {
         toaster.current && toaster.current.toast('Copied Link')
-        return createShareLink(encoded)
+        return shareURL(article, encoded)
       } else {
         toaster.current && toaster.current.toast('Copied Quote')
-        return createShareText(encoded, decoded, createShareLink)
+        return `${selectedQuote(decoded.range.toString())} — Lee Byron`
       }
     }
   })
@@ -34,8 +47,12 @@ export function SelectionActions({
   useLayoutEffect(() => {
     const elem = actionsRef.current
     if (elem) {
-      const { top, left, right } = decoded.range.getBoundingClientRect()
-      elem.style.top = `${window.scrollY + top}px`
+      const { top, bottom, left, right } = decoded.range.getBoundingClientRect()
+      if (popUnder) {
+        elem.style.top = `${window.scrollY + bottom}px`
+      } else {
+        elem.style.top = `${window.scrollY + top}px`
+      }
       elem.style.left = `${window.scrollX + (left + right) / 2}px`
     }
   }, [encoded, width, height])
@@ -43,7 +60,13 @@ export function SelectionActions({
   return (
     <div
       ref={actionsRef}
-      className={decoded.isOutdated ? 'outdated rangeActions' : 'rangeActions'}
+      className={[
+        'rangeActions',
+        decoded.isOutdated && 'outdated',
+        popUnder && 'popUnder'
+      ]
+        .filter(x => x)
+        .join(' ')}
     >
       <style jsx>{`
         .rangeActions {
@@ -51,6 +74,9 @@ export function SelectionActions({
           margin-top: -2.7em;
           position: absolute;
           transform: translateX(-50%);
+        }
+        .rangeActions.popUnder {
+          margin-top: 1em;
         }
         .actions {
           background: black;
@@ -87,6 +113,10 @@ export function SelectionActions({
           transform: translateX(-50%) rotate(45deg);
           width: 0.75em;
         }
+        .rangeActions.popUnder .actions:after {
+          bottom: unset;
+          top: -0.375em;
+        }
         .outdated {
           background: red;
         }
@@ -100,13 +130,18 @@ export function SelectionActions({
           }
         }
       `}</style>
-      <Toaster ref={toaster} />
+      <Toaster ref={toaster} popUnder={popUnder} />
       <div className="actions">
         <a
-          href={createTwitterLink(encoded, decoded, createShareLink)}
+          href={twitterShareURL(
+            twitterQuoteTweet(article, encoded, decoded.range.toString())
+          )}
           target="_blank"
         >
           <TwitterSVG />
+        </a>
+        <a href={facebookShareURL(article, encoded)} target="_blank">
+          <FacebookSVG />
         </a>
         <a
           href="#"
@@ -118,10 +153,30 @@ export function SelectionActions({
           <CopySVG />
         </a>
         <a
-          href={createShareLink(encoded)}
+          href={shareURL(article, encoded)}
           onClick={event => {
-            copyToClipboard(true)
+            // Allow right-click and command-click to behave as normal.
+            if (isAlternateClick(event)) {
+              return
+            }
             event.preventDefault()
+            if (canNativeShare()) {
+              nativeShare({
+                text: decoded.range.toString(),
+                url: shareURL(article, encoded)
+              }).then(
+                () => {
+                  toaster.current && toaster.current.toast('Shared')
+                },
+                (error: Error) => {
+                  if (error.name !== 'AbortError') {
+                    throw error
+                  }
+                }
+              )
+            } else {
+              copyToClipboard(true)
+            }
           }}
         >
           <LinkSVG />
@@ -129,37 +184,4 @@ export function SelectionActions({
       </div>
     </div>
   )
-}
-
-// TODO: move to shareLinks
-function createTwitterLink(
-  encoded: string,
-  decoded: { range: Range; isOutdated: boolean },
-  createShareLink: (encoded: string) => string
-) {
-  return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-    createShareText(encoded, decoded, createShareLink, 250)
-  )}`
-}
-
-function createShareText(
-  encoded: string,
-  decoded: { range: Range; isOutdated: boolean },
-  createShareLink: (encoded: string) => string,
-  maxLength?: number
-) {
-  let quote = decoded.range.toString()
-  if (maxLength && quote.length > maxLength) {
-    const words = quote.split(/(?=\s)/g)
-    quote = ''
-    for (const word of words) {
-      if (quote.length + word.length >= maxLength) {
-        break
-      }
-      quote += word
-    }
-    quote += '…'
-  }
-  const shareLink = createShareLink(encoded)
-  return `“${quote}” — @leeb ${shareLink}`
 }
