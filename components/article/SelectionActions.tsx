@@ -18,16 +18,18 @@ import {
 } from './shareUtil'
 import { DecodedSelection } from './SelectionAnchor'
 import FacebookSVG from '../svg/FacebookSVG'
+import { FrontMatter } from './frontMatter'
 
 export function SelectionActions({
-  article,
+  frontMatter,
   encoded,
   decoded
 }: {
-  article: string
+  frontMatter: FrontMatter
   encoded: string
   decoded: DecodedSelection
 }) {
+  const article = frontMatter.slug
   const popUnder = /iPad|iPhone|iOS|Android/.test(navigator.userAgent)
   const toaster = useRef<ToastRef>()
   const copyToClipboard = useCopyEffect<boolean>(copyLinkOnly => {
@@ -57,6 +59,20 @@ export function SelectionActions({
     }
   }, [encoded, width, height])
 
+  const shareSelection = (linkOnly: boolean) => {
+    if (canNativeShare()) {
+      const url = shareURL(article, encoded)
+      nativeShare({
+        url: linkOnly ? url : undefined,
+        text: linkOnly
+          ? undefined
+          : `${selectedQuote(decoded.range.toString())} — Lee Byron ${url}`
+      })
+    } else {
+      copyToClipboard(linkOnly)
+    }
+  }
+
   return (
     <div
       ref={actionsRef}
@@ -76,7 +92,7 @@ export function SelectionActions({
           transform: translateX(-50%);
         }
         .rangeActions.popUnder {
-          margin-top: 1em;
+          margin-top: 1.65em;
         }
         .actions {
           background: black;
@@ -146,8 +162,8 @@ export function SelectionActions({
         <a
           href="#"
           onClick={event => {
-            copyToClipboard(false)
             event.preventDefault()
+            shareSelection(false)
           }}
         >
           <CopySVG />
@@ -160,23 +176,7 @@ export function SelectionActions({
               return
             }
             event.preventDefault()
-            if (canNativeShare()) {
-              nativeShare({
-                text: decoded.range.toString(),
-                url: shareURL(article, encoded)
-              }).then(
-                () => {
-                  toaster.current && toaster.current.toast('Shared')
-                },
-                (error: Error) => {
-                  if (error.name !== 'AbortError') {
-                    throw error
-                  }
-                }
-              )
-            } else {
-              copyToClipboard(true)
-            }
+            shareSelection(true)
           }}
         >
           <LinkSVG />

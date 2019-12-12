@@ -57,7 +57,10 @@ export function facebookShareURL(
   )
 }
 
-export function selectedQuote(selectedText: string, maxLength?: number): string {
+export function selectedQuote(
+  selectedText: string,
+  maxLength?: number
+): string {
   let quote = selectedText
   if (maxLength && quote.length > maxLength) {
     const words = quote.split(/(?=\s)/g)
@@ -76,6 +79,7 @@ export function selectedQuote(selectedText: string, maxLength?: number): string 
 export function canNativeShare(): boolean {
   return (
     typeof navigator === 'object' &&
+    /iPhone|iPad|iOS|Android/.test(navigator.userAgent) &&
     typeof (navigator as any).share === 'function' &&
     (typeof (navigator as any).canShare !== 'function' ||
       (navigator as any).canShare() === true)
@@ -85,7 +89,11 @@ export function canNativeShare(): boolean {
 export function nativeShare(data: {
   title?: string
   text?: string
-  url: string
+  url?: string
 }): Promise<void> {
-  return (navigator as any).share(data)
+  return (navigator as any).share(data).catch((error: Error) => {
+    if (error.name !== 'AbortError') {
+      console.error(error)
+    }
+  })
 }

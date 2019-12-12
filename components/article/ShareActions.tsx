@@ -26,18 +26,8 @@ export function ShareActions({ frontMatter }: { frontMatter: FrontMatter }) {
     if (canNativeShare()) {
       nativeShare({
         title: frontMatter.title,
-        text: `“${frontMatter.title}” by Lee Byron`,
         url: canonicalURL(frontMatter.slug)
-      }).then(
-        () => {
-          toaster.current && toaster.current.toast('Shared')
-        },
-        (error: Error) => {
-          if (error.name !== 'AbortError') {
-            throw error
-          }
-        }
-      )
+      })
     } else {
       copyToClipboard(canonicalURL(frontMatter.slug))
       toaster.current && toaster.current.toast('Link Copied')

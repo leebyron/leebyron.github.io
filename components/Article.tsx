@@ -248,7 +248,7 @@ export default (frontMatter: FrontMatter) => ({
           actions={({ encoded, decoded }) =>
             !router.query.screenshot && (
               <SelectionActions
-                article={frontMatter.slug}
+                frontMatter={frontMatter}
                 encoded={encoded}
                 decoded={decoded}
               />
@@ -260,7 +260,7 @@ export default (frontMatter: FrontMatter) => ({
               components={{
                 a: Anchor,
                 img: Image,
-                p: P,
+                p: P
               }}
             >
               {children}
