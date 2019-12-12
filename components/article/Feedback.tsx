@@ -228,7 +228,7 @@ export const Feedback = memo(({ article }: Props) => {
         .zero.zero-active {
           transform: translate(-45px);
         }
-        @media not screen and (min-width: 768px) {
+        @media not screen and (min-width: 768px) and (min-height: 500px) {
           .zero.zero-active {
             transform: translate(0, 40px);
           }
