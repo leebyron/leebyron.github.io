@@ -21,7 +21,7 @@
     ]
   },
   "dependencies": {
-    "@mdx-js/loader": "1.5.1",
+    "@mdx-js/react": "1.5.1",
     "chrome-aws-lambda": "2.0.1",
     "faunadb": "2.10.0",
     "next": "9.1.5",

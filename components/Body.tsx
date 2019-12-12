@@ -117,6 +117,7 @@ export default ({ children }: { children: ReactNode }) => {
           h4,
           p,
           blockquote,
+          code,
           a {
             color: #303030;
             font-display: auto;
@@ -202,7 +203,7 @@ export default ({ children }: { children: ReactNode }) => {
             font-style: italic;
           }
 
-          @media screen and (max-width: 480px) {
+          @media screen and (max-width: 600px) {
             blockquote {
               margin: 2em 1ch;
             }
@@ -214,6 +215,29 @@ export default ({ children }: { children: ReactNode }) => {
 
           a:hover {
             text-decoration: none;
+          }
+
+          code {
+            background: #f0f0f0;
+            color: #202020;
+            margin: 0 -0.3ch;
+            padding: 0 0.3ch;
+            user-select: all;
+          }
+
+          ol,
+          ul {
+            margin: 2em 0;
+            padding-inline-end: 3ch;
+            padding-inline-start: 4ch;
+          }
+
+          @media screen and (max-width: 600px) {
+            ol,
+            ul {
+              padding-inline-end: 1ch;
+              padding-inline-start: 2ch;
+            }
           }
         `}</style>
         {children}

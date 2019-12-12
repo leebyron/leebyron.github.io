@@ -1,7 +1,8 @@
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState, isValidElement } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { MDXProvider } from '@mdx-js/react'
 
 import Body from './Body'
 import { isMobile } from './isMobile'
@@ -198,11 +199,8 @@ export default (frontMatter: FrontMatter) => ({
 
           article {
             hanging-punctuation: first allow-end last;
-            margin: 0 -1em;
-            overflow: hidden;
             overflow-wrap: break-word;
             overflow-wrap: anywhere;
-            padding: 0 1em;
           }
 
           article > :global(:first-child) {
@@ -257,7 +255,17 @@ export default (frontMatter: FrontMatter) => ({
             )
           }
         >
-          <article>{children}</article>
+          <article>
+            <MDXProvider
+              components={{
+                a: Anchor,
+                img: Image,
+                p: P,
+              }}
+            >
+              {children}
+            </MDXProvider>
+          </article>
         </SelectionAnchor>
         <footer>
           <Feedback article={frontMatter.slug} />
@@ -337,6 +345,79 @@ function Heading({ children }: { children: string }) {
       <span>{title}</span>
     </h1>
   )
+}
+
+function Anchor({ href, children }: { href?: string; children?: ReactNode }) {
+  return !href || /^https?:\/\//.test(href) ? (
+    <a href={href} target="_blank">
+      {children}
+    </a>
+  ) : (
+    <Link href={href}>
+      <a>{children}</a>
+    </Link>
+  )
+}
+
+function Image({
+  src,
+  alt,
+  title: className
+}: {
+  src?: string
+  alt?: string
+  title?: string
+}) {
+  return (
+    <figure className={className}>
+      <style jsx>{`
+        figure {
+          margin: 0;
+        }
+        img {
+          display: block;
+          margin: 2em 0 2em 50%;
+          transform: translateX(-50%);
+          max-width: 100%;
+        }
+        @media screen and (min-width: 768px) and (min-height: 500px) {
+          img {
+            max-width: calc(100% + 6em);
+          }
+        }
+        figcaption {
+          font-style: italic;
+          margin: -1em 0 2em;
+          opacity: 0.6;
+          text-align: center;
+        }
+        @media screen {
+          figure.overflow img {
+            max-width: calc(
+              100vw - env(safe-area-inset-left) - env(safe-area-inset-right)
+            );
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          }
+        }
+        @media screen and (min-width: 113ch) {
+          figure.overflow img {
+            max-width: calc(100% + 28ch);
+          }
+        }
+      `}</style>
+      <img alt={alt} src={src} />
+      {alt && <figcaption aria-hidden="true">{alt}</figcaption>}
+    </figure>
+  )
+}
+
+function P({ children }: { children?: ReactNode }) {
+  // A block consisting of only an image will render as a block element,
+  // so do not render a wrapping p tag around it.
+  if (isValidElement(children) && children.props.mdxType === 'img') {
+    return children
+  }
+  return <p>{children}</p>
 }
 
 function shortDate(date: Date): string {

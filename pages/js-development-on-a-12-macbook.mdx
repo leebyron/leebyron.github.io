@@ -20,7 +20,7 @@ For the last week I’ve been using the Macbook for day to day JavaScript develo
 
 For this not very scientific test, I decided to use GraphQL.js as my testbed, since it’s indicative of the kinds of repositories I spend my time in and has commands for running flow, prettier, and tests. Both machines were plugged in and not running any other intensive software at the time.
 
-![](https://cdn-images-1.medium.com/max/2000/1*rH261SZ1YyZGsm0czoT0DA.png)
+![](https://cdn-images-1.medium.com/max/2000/1*rH261SZ1YyZGsm0czoT0DA.png "overflow")
 
 I was really surprised to see that there was _almost no difference_ for most of these cpu-bound tasks between the two machines. A full Flow check ran in exactly the same amount of time. Prettier and Mocha tests ran about 10% slower. The biggest difference was in a full yarn install, which seems to be anywhere from 30–50% slower, but still acceptable.
 
