@@ -21,25 +21,40 @@ export function shareURL(articleSlug: string, selection?: string): string {
     : canonicalURL(articleSlug)
 }
 
-export function shareImageURL(
+type Image = { src: string; width?: number; height?: number; mime?: string }
+
+export function shareImage(
   markdown: ReactNode,
   articleSlug: string,
   selection?: string
-) {
-  const screenshotSrc =
-    `${API_HOST}/api/article/${encodeURIComponent(articleSlug)}/snap` +
-    (selection ? '?selection=' + selection : '')
-  return selection ? screenshotSrc : getHeroImageSrc(markdown) || screenshotSrc
+): Image {
+  const screenshot = {
+    src:
+      `${API_HOST}/api/article/${encodeURIComponent(articleSlug)}/snap` +
+      (selection ? '?selection=' + selection : ''),
+    width: 900,
+    height: 470,
+    mime: 'image/png'
+  }
+  return selection ? screenshot : heroImage(markdown) || screenshot
 }
 
-export function getHeroImageSrc(markdown: ReactNode): string | undefined {
-  let heroSrc: string | undefined
+export function heroImage(markdown: ReactNode): Image | undefined {
+  let src: string | undefined
+  let width: number | undefined
+  let height: number | undefined
   Children.forEach(markdown, child => {
-    if (isValidElement(child) && child.props.hero && !heroSrc) {
-      heroSrc = child.props.src
+    if (isValidElement(child) && child.props.hero && !src) {
+      src = CANONICAL_HOST + child.props.src
+      width = child.props.width
+      height = child.props.height
     }
   })
-  return heroSrc
+  if (src) {
+    const ext = src.split('.').pop()
+    const mime = `image/${ext === 'jpg' ? 'jpeg' : ext}`
+    return { src, width, height, mime }
+  }
 }
 
 export function twitterTitleTweet(articleSlug: string, title: string): string {

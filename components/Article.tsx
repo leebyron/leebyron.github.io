@@ -1,4 +1,11 @@
-import { Children, ReactNode, useEffect, useRef, useState, isValidElement } from 'react'
+import {
+  Children,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+  isValidElement
+} from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -13,7 +20,7 @@ import { FrontMatter } from './article/frontMatter'
 import { SelectionAnchor } from './article/SelectionAnchor'
 import { SelectionActions } from './article/SelectionActions'
 import { ShareActions } from './article/ShareActions'
-import { canonicalURL, shareURL, shareImageURL } from './article/shareUtil'
+import { canonicalURL, shareURL, shareImage } from './article/shareUtil'
 
 export default (frontMatter: FrontMatter) => ({
   children
@@ -24,7 +31,7 @@ export default (frontMatter: FrontMatter) => ({
   const initialSelection =
     typeof router.query.$ === 'string' ? router.query.$ : undefined
   const readMin = Math.round(frontMatter.wordCount / 250)
-  const shareImage = shareImageURL(children, frontMatter.slug, initialSelection)
+  const ogImage = shareImage(children, frontMatter.slug, initialSelection)
   return (
     <Body>
       <Head>
@@ -41,17 +48,17 @@ export default (frontMatter: FrontMatter) => ({
         />
         <meta property="og:title" content={frontMatter.title} />
         <meta property="og:description" content={frontMatter.synopsis} />
+        <meta property="og:image" content={ogImage.src} />
+        <meta property="og:image:secure_url" content={ogImage.src} />
+        <meta property="og:image:type" content={ogImage.mime || 'image/png'} />
         <meta
-          property="og:image"
-          content={shareImage}
+          property="og:image:width"
+          content={String(ogImage.width || 900)}
         />
         <meta
-          property="og:image:secure_url"
-          content={shareImage}
+          property="og:image:height"
+          content={String(ogImage.height || 470)}
         />
-        <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="900" />
-        <meta property="og:image:height" content="470" />
         <meta property="og:image:alt" content="" />
         <meta property="article:author" content="https://leebyron.com/" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -382,9 +389,11 @@ function Image({
         }
         img {
           display: block;
+          height: auto;
           margin: 2em 0 2em 50%;
-          transform: translateX(-50%);
           max-width: 100%;
+          transform: translateX(-50%);
+          width: auto;
         }
         @media screen and (min-width: 768px) and (min-height: 500px) {
           img {

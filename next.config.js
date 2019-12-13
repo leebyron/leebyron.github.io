@@ -40,9 +40,8 @@ module.exports = withMDX({
       test: /\.(jpe?g|png|svg|gif|ico|webp|woff2?)$/,
       use: [
         {
-          loader: require.resolve('url-loader'),
+          loader: require.resolve('./imageLoader'),
           options: {
-            esModule: false,
             limit: 1024,
             publicPath: `/_next/static/images/`,
             outputPath: `${options.isServer ? '../' : ''}static/images/`,
