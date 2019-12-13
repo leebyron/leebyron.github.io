@@ -121,6 +121,7 @@ export default (frontMatter: FrontMatter) => ({
             margin: -2em 0 2em;
             display: flex;
             flex-direction: column;
+            align-items: start;
           }
 
           .share {
@@ -134,7 +135,7 @@ export default (frontMatter: FrontMatter) => ({
           }
 
           .share {
-            margin-top: 0.5em;
+            margin-top: 0.8em;
           }
 
           @media screen and (min-width: 460px) {
@@ -151,6 +152,9 @@ export default (frontMatter: FrontMatter) => ({
 
           .data {
             font-style: italic;
+            background: #ffffff;
+            padding: 0 1ch;
+            margin: 0 -1ch;
           }
 
           .data > a {
@@ -161,48 +165,13 @@ export default (frontMatter: FrontMatter) => ({
             text-decoration: underline;
           }
 
-          h1 {
-            font-family: 'Inter', sans-serif;
-            font-size: 3rem;
-            font-style: italic;
-            font-weight: 100;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
-            margin: 3rem -0.3em 3rem calc(1em / -16 - 0.25em);
-            color: black;
-            position: relative;
-          }
-
-          h1 span {
-            padding: 0 0.3em 0 0.25em;
-            box-decoration-break: clone;
-          }
-
-          h1 > div {
-            position: absolute;
-          }
-
-          h1 > div > span {
-            background: url(${require('../assets/bg-highlight.svg')}) space,
-              #fff181 content-box;
-            color: transparent;
-            pointer-events: none;
-            position: relative;
-            user-select: none;
-          }
-
           :global(blockquote > p) {
             background: url(${require('../assets/bg-highlight.svg')}) space,
               #fff181 content-box;
-            padding: 0 1ch;
-            display: inline;
             box-decoration-break: clone;
             color: black;
-          }
-
-          h1 > span {
-            position: relative;
-            user-select: all;
+            display: inline;
+            padding: 0 1ch;
           }
 
           article {
@@ -213,6 +182,11 @@ export default (frontMatter: FrontMatter) => ({
 
           article > :global(:first-child) {
             margin-top: 0;
+          }
+
+          header {
+            position: relative;
+            z-index: 1;
           }
 
           footer {
@@ -229,28 +203,30 @@ export default (frontMatter: FrontMatter) => ({
             }
           }
         `}</style>
-        <Link href="/">
-          <a className="articleLogo">
-            <ExplodingLogo offset={isMobile() ? 10 : 50} />
-          </a>
-        </Link>
-        <Heading>{frontMatter.title}</Heading>
-        <div className="meta">
-          <div className="data">
-            <a
-              href={canonicalURL(frontMatter.slug)}
-              title={longDate(frontMatter.date)}
-            >
-              {shortDate(frontMatter.date)}
+        <header>
+          <Link href="/">
+            <a className="articleLogo">
+              <ExplodingLogo offset={isMobile() ? 10 : 50} />
             </a>
-            {` · ${readMin} min read`}
-          </div>
-          {!router.query.screenshot && (
-            <div className="share">
-              <ShareActions frontMatter={frontMatter} />
+          </Link>
+          <Heading>{frontMatter.title}</Heading>
+          <div className="meta">
+            <div className="data">
+              <a
+                href={canonicalURL(frontMatter.slug)}
+                title={longDate(frontMatter.date)}
+              >
+                {shortDate(frontMatter.date)}
+              </a>
+              {` · ${readMin} min read`}
             </div>
-          )}
-        </div>
+            {!router.query.screenshot && (
+              <div className="share">
+                <ShareActions frontMatter={frontMatter} />
+              </div>
+            )}
+          </div>
+        </header>
         <SelectionAnchor
           initialSelection={initialSelection}
           actions={({ encoded, decoded }) =>
@@ -413,10 +389,23 @@ function Image({
             );
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
           }
+          figure.top img {
+            margin-top: -7em;
+          }
         }
         @media screen and (min-width: 113ch) {
           figure.overflow img {
             max-width: calc(100% + 28ch);
+          }
+        }
+        @media screen and (max-width: 600px) {
+          figure.top img {
+            margin-top: -6em;
+          }
+        }
+        @media screen and (max-width: 459px) {
+          figure.top img {
+            margin-top: -8.5em;
           }
         }
       `}</style>

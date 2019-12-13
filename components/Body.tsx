@@ -117,6 +117,7 @@ export default ({ children }: { children: ReactNode }) => {
           h4,
           p,
           blockquote,
+          figcaption,
           code,
           a {
             color: #303030;
@@ -170,7 +171,8 @@ export default ({ children }: { children: ReactNode }) => {
           p,
           p > *,
           blockquote,
-          blockquote > * {
+          blockquote > *,
+          figcaption {
             user-select: text;
           }
 

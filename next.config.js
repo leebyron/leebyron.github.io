@@ -8,8 +8,9 @@ module.exports = withMDX({
     process: (mdxContent, frontMatter) => {
       const sansFrontMatter = mdxContent.replace(/^(---\n.+?\n---\n)?/s, '')
       const ast = new remark.Parser(null, sansFrontMatter).parse()
+      // TODO: actually use mdx parser to filter out other types
       const firstParagraph = ast.children.find(
-        node => node.type === 'paragraph'
+        node => node.type === 'paragraph' && (node.children[0].type !== 'text' || node.children[0].value[0] !== '<')
       )
       let synopsis = ''
       if (firstParagraph) {
