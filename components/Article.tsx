@@ -296,7 +296,7 @@ function AuthorInfo() {
 
         h3,
         p {
-          margin-left: 7.5rem;
+          margin-left: 13ch;
         }
 
         @media screen and (max-width: 600px) {
@@ -312,7 +312,7 @@ function AuthorInfo() {
           }
 
           h3 {
-            margin: -2rem 0 1.5rem 4rem;
+            margin: -2rem 0 1.5rem calc(3rem + 1ch);
           }
 
           p {

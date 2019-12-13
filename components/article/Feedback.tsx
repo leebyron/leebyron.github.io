@@ -155,6 +155,7 @@ export const Feedback = memo(({ article }: Props) => {
         .snackRing {
           cursor: grab;
           height: 50px;
+          margin: 0 -1px;
           position: relative;
           width: 50px;
         }
@@ -218,7 +219,7 @@ export const Feedback = memo(({ article }: Props) => {
           cursor: pointer;
           display: block;
           height: 18px;
-          left: 16px;
+          left: 15px;
           opacity: 0.25;
           padding: 2px;
           position: absolute;
@@ -388,10 +389,10 @@ export const Feedback = memo(({ article }: Props) => {
 
 function FeedbackPhrase({ response }: { response: AsyncFeedback }) {
   return (
-    <div className="phrase">
+    <div>
       {' '}
       <style jsx>{`
-        .phrase {
+        div {
           flex: 1;
           margin-left: 1ch;
           overflow: hidden;
@@ -399,7 +400,7 @@ function FeedbackPhrase({ response }: { response: AsyncFeedback }) {
           word-break: break-all;
         }
         @media screen and (max-width: 600px) {
-          .phrase > .long {
+          span {
             display: none;
           }
         }
@@ -412,15 +413,12 @@ function FeedbackPhrase({ response }: { response: AsyncFeedback }) {
         <>
           {totalFeedbackCount(response.value) === 0 ? (
             <>
-              <span className="long">Be the first to </span>leave a snack
+              <span>Be the first to </span>leave a snack
             </>
           ) : (
             <>
               {totalFeedbackCount(response.value)} snacks
-              <span className="long">
-                {' '}
-                left by {totalClients(response.value)} people
-              </span>
+              <span> left by {totalClients(response.value)} people</span>
             </>
           )}
           {response.state === 'loaded' ? '.' : ''}

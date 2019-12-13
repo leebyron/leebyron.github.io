@@ -120,6 +120,7 @@ export default ({ children }: { children: ReactNode }) => {
           p,
           blockquote,
           figcaption,
+          pre,
           code,
           a {
             color: #303030;
@@ -214,12 +215,6 @@ export default ({ children }: { children: ReactNode }) => {
             font-style: italic;
           }
 
-          @media screen and (max-width: 600px) {
-            blockquote {
-              margin: 2rem 1ch;
-            }
-          }
-
           a {
             text-decoration: underline;
           }
@@ -229,11 +224,32 @@ export default ({ children }: { children: ReactNode }) => {
           }
 
           code {
-            background: #f0f0f0;
+            user-select: all;
+          }
+
+          pre {
+            background: #f6f6f6;
+            margin: 1ch;
+            max-width: calc(100% - 2ch);
+            overflow: scroll;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+            width: intrinsic;
+            width: fit-content;
+          }
+
+          pre > code {
+            color: #202020;
+            display: table;
+            padding: 1ch;
+            white-space: pre;
+          }
+
+          :not(pre) > code {
+            background: #f3f3f3;
             color: #202020;
             margin: 0 -0.3ch;
             padding: 0 0.3ch;
-            user-select: all;
           }
 
           ol,
@@ -258,6 +274,15 @@ export default ({ children }: { children: ReactNode }) => {
           }
 
           @media screen and (max-width: 600px) {
+            blockquote {
+              margin: 2rem 1ch;
+            }
+
+            pre {
+              margin: 1rem 0;
+              max-width: 100%;
+            }
+
             ol,
             ul {
               padding-inline-end: 1ch;
