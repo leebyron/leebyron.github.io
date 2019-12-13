@@ -189,11 +189,55 @@ export default (frontMatter: FrontMatter) => ({
             z-index: 1;
           }
 
-          footer {
+          .footerActions {
             align-items: center;
             display: flex;
             justify-content: space-between;
             margin: 2rem 0;
+          }
+
+          .authorInfo {
+            border-bottom: 1px solid #ddd;
+            border-top: 1px solid #ddd;
+            margin: 2rem 0;
+            padding: 2rem 0 1rem;
+            position: relative;
+          }
+
+          .authorInfo img {
+            border-radius: 3.5rem;
+            display: block;
+            height: 7rem;
+            margin: -0.5rem;
+            position: absolute;
+            width: 7rem;
+          }
+
+          .authorInfo > strong,
+          .authorInfo > p {
+            display: block;
+            margin-left: 7.5rem;
+          }
+
+          @media screen and (max-width: 600px) {
+            .authorInfo {
+              padding: 1rem 0;
+            }
+
+            .authorInfo img {
+              position: relative;
+              height: 3rem;
+              width: 3rem;
+              margin: 0;
+            }
+
+            .authorInfo > strong {
+              margin: -2rem 0 1.5rem 4rem;
+            }
+
+            .authorInfo > p {
+              margin-left: 0;
+            }
           }
 
           @media screen and (max-width: 600px) {
@@ -252,8 +296,19 @@ export default (frontMatter: FrontMatter) => ({
           </article>
         </SelectionAnchor>
         <footer>
-          <Feedback article={frontMatter.slug} />
-          <ShareActions frontMatter={frontMatter} />
+          <div className="footerActions">
+            <Feedback article={frontMatter.slug} />
+            <ShareActions frontMatter={frontMatter} />
+          </div>
+          <div className="authorInfo">
+            <img {...require('../assets/me.jpg')} />
+            <strong>Lee Byron</strong>
+            <p>
+              Co-creator of GraphQL, Executive Director of the GraphQL
+              Foundation, and Engineering Manager at Robinhood. Opinions are my
+              own. I like snacks.
+            </p>
+          </div>
         </footer>
       </Page>
     </Body>

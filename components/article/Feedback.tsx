@@ -149,7 +149,7 @@ export const Feedback = memo(({ article }: Props) => {
           align-items: center;
           display: flex;
           flex: 1;
-          margin: 0 10px 0 -10px;
+          margin-right: 10px;
           position: relative;
         }
         .snackRing {
