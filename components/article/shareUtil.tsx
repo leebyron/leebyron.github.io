@@ -1,4 +1,4 @@
-import { FrontMatter } from './frontMatter'
+import { Children, isValidElement, ReactNode } from 'react'
 
 export const CANONICAL_HOST = 'https://leebyron.com'
 export const SHARE_HOST = 'https://lwb.io'
@@ -21,11 +21,25 @@ export function shareURL(articleSlug: string, selection?: string): string {
     : canonicalURL(articleSlug)
 }
 
-export function shareImageURL(articleSlug: string, selection?: string) {
-  return (
+export function shareImageURL(
+  markdown: ReactNode,
+  articleSlug: string,
+  selection?: string
+) {
+  const screenshotSrc =
     `${API_HOST}/api/article/${encodeURIComponent(articleSlug)}/snap` +
     (selection ? '?selection=' + selection : '')
-  )
+  return selection ? screenshotSrc : getHeroImageSrc(markdown) || screenshotSrc
+}
+
+export function getHeroImageSrc(markdown: ReactNode): string | undefined {
+  let heroSrc: string | undefined
+  Children.forEach(markdown, child => {
+    if (isValidElement(child) && child.props.hero && !heroSrc) {
+      heroSrc = child.props.src
+    }
+  })
+  return heroSrc
 }
 
 export function twitterTitleTweet(articleSlug: string, title: string): string {

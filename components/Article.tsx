@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState, isValidElement } from 'react'
+import { Children, ReactNode, useEffect, useRef, useState, isValidElement } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -24,6 +24,7 @@ export default (frontMatter: FrontMatter) => ({
   const initialSelection =
     typeof router.query.$ === 'string' ? router.query.$ : undefined
   const readMin = Math.round(frontMatter.wordCount / 250)
+  const shareImage = shareImageURL(children, frontMatter.slug, initialSelection)
   return (
     <Body>
       <Head>
@@ -42,11 +43,11 @@ export default (frontMatter: FrontMatter) => ({
         <meta property="og:description" content={frontMatter.synopsis} />
         <meta
           property="og:image"
-          content={shareImageURL(frontMatter.slug, initialSelection)}
+          content={shareImage}
         />
         <meta
           property="og:image:secure_url"
-          content={shareImageURL(frontMatter.slug, initialSelection)}
+          content={shareImage}
         />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="900" />
@@ -68,7 +69,7 @@ export default (frontMatter: FrontMatter) => ({
                 frontMatter.dateModified || frontMatter.date
               ).toISOString(),
               headline: frontMatter.title,
-              image: shareImageURL(frontMatter.slug, initialSelection),
+              image: shareImage,
               author: {
                 '@type': 'Person',
                 name: 'Lee Byron',
@@ -362,14 +363,19 @@ function Anchor({ href, children }: { href?: string; children?: ReactNode }) {
 function Image({
   src,
   alt,
-  title: className
+  title,
+  class: className,
+  hero,
+  ...rest
 }: {
   src?: string
   alt?: string
   title?: string
+  class?: string
+  hero?: boolean
 }) {
   return (
-    <figure className={className}>
+    <figure className={className || title}>
       <style jsx>{`
         figure {
           margin: 0;
@@ -405,7 +411,7 @@ function Image({
           }
         }
       `}</style>
-      <img alt={alt} src={src} />
+      <img alt={alt} src={src} {...rest} />
       {alt && <figcaption aria-hidden="true">{alt}</figcaption>}
     </figure>
   )
