@@ -35,10 +35,6 @@ export default (frontMatter: FrontMatter) => ({
           content={shareURL(frontMatter.slug, initialSelection)}
         />
         <meta property="og:type" content="article" />
-        <meta
-          property="article:published_time"
-          content={isoDate(frontMatter.date)}
-        />
         <meta property="og:title" content={frontMatter.title} />
         <meta property="og:description" content={frontMatter.synopsis} />
         <meta property="og:image" content={ogImage.src} />
@@ -54,6 +50,14 @@ export default (frontMatter: FrontMatter) => ({
         />
         <meta property="og:image:alt" content="" />
         <meta property="article:author" content="https://leebyron.com/" />
+        <meta
+          property="article:published_time"
+          content={isoDate(frontMatter.date)}
+        />
+        {frontMatter.tags &&
+          frontMatter.tags.map(tag => (
+            <meta key={tag} property="article:tag" content={tag} />
+          ))}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:label1" content="Reading time" />
         <meta name="twitter:data1" content={`${readMin} min read`} />
@@ -83,6 +87,9 @@ export default (frontMatter: FrontMatter) => ({
                   url: require('../assets/me.jpg')
                 }
               },
+              keywords: frontMatter.tags
+                ? frontMatter.tags.join(', ')
+                : undefined,
               wordCount: frontMatter.wordCount,
               timeRequired: `PT${readMin}M`,
               mainEntityOfPage: canonicalURL(frontMatter.slug)
