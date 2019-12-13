@@ -39,10 +39,8 @@ function updateCallbacks() {
   eventPending = false
   const scroll = window.scrollY
   const height = window.innerHeight
-  if (scroll < height * 2) {
-    for (let i = 0; i < callbacks.length; i++) {
-      callbacks[i].call(null, { scroll, height })
-    }
+  for (let i = 0; i < callbacks.length; i++) {
+    callbacks[i].call(null, { scroll, height })
   }
 }
 
