@@ -1,11 +1,4 @@
-import {
-  Children,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-  isValidElement
-} from 'react'
+import { ReactNode, useEffect, useRef, useState, isValidElement } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -16,7 +9,7 @@ import { isMobile } from './isMobile'
 import { ExplodingLogo } from './ExplodingLogo'
 import { useWindowSize } from './useWindowSize'
 import { Feedback } from './article/Feedback'
-import { FrontMatter } from './article/frontMatter'
+import { FrontMatter, allFrontMatter } from './article/frontMatter'
 import { SelectionAnchor } from './article/SelectionAnchor'
 import { SelectionActions } from './article/SelectionActions'
 import { ShareActions } from './article/ShareActions'
@@ -44,7 +37,7 @@ export default (frontMatter: FrontMatter) => ({
         <meta property="og:type" content="article" />
         <meta
           property="article:published_time"
-          content={frontMatter.date.toISOString()}
+          content={isoDate(frontMatter.date)}
         />
         <meta property="og:title" content={frontMatter.title} />
         <meta property="og:description" content={frontMatter.synopsis} />
@@ -71,10 +64,10 @@ export default (frontMatter: FrontMatter) => ({
               '@context': 'https://schema.org/',
               '@type': 'Article',
               abstract: frontMatter.synopsis,
-              datePublished: frontMatter.date.toISOString(),
-              dateModified: (
+              datePublished: isoDate(frontMatter.date),
+              dateModified: isoDate(
                 frontMatter.dateModified || frontMatter.date
-              ).toISOString(),
+              ),
               headline: frontMatter.title,
               image: shareImage,
               author: {
@@ -195,57 +188,6 @@ export default (frontMatter: FrontMatter) => ({
             justify-content: space-between;
             margin: 2rem 0;
           }
-
-          .authorInfo {
-            border-bottom: 1px solid #ddd;
-            border-top: 1px solid #ddd;
-            margin: 2rem 0;
-            padding: 2rem 0 1rem;
-            position: relative;
-          }
-
-          .authorInfo img {
-            border-radius: 3.5rem;
-            display: block;
-            height: 7rem;
-            margin: -0.5rem;
-            position: absolute;
-            width: 7rem;
-          }
-
-          .authorInfo > strong,
-          .authorInfo > p {
-            display: block;
-            margin-left: 7.5rem;
-          }
-
-          @media screen and (max-width: 600px) {
-            .authorInfo {
-              padding: 1rem 0;
-            }
-
-            .authorInfo img {
-              position: relative;
-              height: 3rem;
-              width: 3rem;
-              margin: 0;
-            }
-
-            .authorInfo > strong {
-              margin: -2rem 0 1.5rem 4rem;
-            }
-
-            .authorInfo > p {
-              margin-left: 0;
-            }
-          }
-
-          @media screen and (max-width: 600px) {
-            h1 {
-              font-size: 2em;
-              margin-top: 2rem;
-            }
-          }
         `}</style>
         <header>
           <Link href="/">
@@ -300,18 +242,113 @@ export default (frontMatter: FrontMatter) => ({
             <Feedback article={frontMatter.slug} />
             <ShareActions frontMatter={frontMatter} />
           </div>
-          <div className="authorInfo">
-            <img {...require('../assets/me.jpg')} />
-            <strong>Lee Byron</strong>
-            <p>
-              Co-creator of GraphQL, Executive Director of the GraphQL
-              Foundation, and Engineering Manager at Robinhood. Opinions are my
-              own. I like snacks.
-            </p>
-          </div>
+          <AuthorInfo />
+          <AdditionalReading article={frontMatter.slug} />
         </footer>
       </Page>
     </Body>
+  )
+}
+
+function AuthorInfo() {
+  return (
+    <div className="authorInfo">
+      <style jsx>{`
+        .authorInfo {
+          border-bottom: 1px solid #ddd;
+          border-top: 1px solid #ddd;
+          margin: 2rem 0;
+          padding: 2rem 0 1rem;
+          position: relative;
+        }
+
+        .authorInfo img {
+          border-radius: 3.5rem;
+          display: block;
+          height: 7rem;
+          margin: -0.5rem;
+          position: absolute;
+          width: 7rem;
+        }
+
+        .authorInfo > h2 {
+          margin-top: 0;
+        }
+
+        .authorInfo > h2,
+        .authorInfo > p {
+          margin-left: 7.5rem;
+        }
+
+        @media screen and (max-width: 600px) {
+          .authorInfo {
+            padding: 1rem 0;
+          }
+
+          .authorInfo img {
+            position: relative;
+            height: 3rem;
+            width: 3rem;
+            margin: 0;
+          }
+
+          .authorInfo > h2 {
+            margin: -2rem 0 1.5rem 4rem;
+          }
+
+          .authorInfo > p {
+            margin-left: 0;
+          }
+        }
+      `}</style>
+      <img {...require('../assets/me.jpg')} />
+      <h2>Lee Byron</h2>
+      <p>
+        Co-creator of GraphQL, Executive Director of the GraphQL Foundation, and
+        Engineering Manager at Robinhood. Opinions are my own. I like snacks.
+      </p>
+    </div>
+  )
+}
+
+function AdditionalReading({ article }: { article: string }) {
+  return (
+    <>
+      <style jsx>{`
+        .additionalReading li {
+          margin-bottom: 1rem;
+        }
+
+        .additionalReading a {
+          text-decoration: none;
+        }
+
+        .additionalReading a:hover {
+          text-decoration: underline;
+        }
+
+        .additionalReading em {
+          display: block;
+          opacity: 0.6;
+        }
+      `}</style>
+      <h2>Additional Reading</h2>
+      <ul className="additionalReading">
+        {allFrontMatter().map(
+          frontMatter =>
+            frontMatter.slug !== article && (
+              <li key={frontMatter.slug}>
+                <Link href={`/${frontMatter.slug}`}>
+                  <a>{frontMatter.title}</a>
+                </Link>
+                <em>{`${Math.round(
+                  frontMatter.wordCount / 250
+                )} min read · ${shortDate(frontMatter.date)}`}</em>
+              </li>
+            )
+        )}
+      </ul>
+    </>
   )
 }
 
@@ -479,9 +516,13 @@ function P({ children }: { children?: ReactNode }) {
   return <p>{children}</p>
 }
 
-function shortDate(date: Date): string {
+function isoDate(date: Date | string): string {
+  return new Date(String(date)).toISOString()
+}
+
+function shortDate(date: Date | string): string {
   try {
-    return date.toLocaleDateString(undefined, {
+    return new Date(String(date)).toLocaleDateString(undefined, {
       timeZone: 'America/Los_Angeles',
       month: 'short',
       day: 'numeric',
@@ -489,15 +530,15 @@ function shortDate(date: Date): string {
     })
   } catch (error) {
     if (error.name === 'RangeError') {
-      return date.toDateString()
+      return new Date(String(date)).toDateString()
     }
     throw error
   }
 }
 
-function longDate(date: Date): string {
+function longDate(date: Date | string): string {
   try {
-    return date.toLocaleString(undefined, {
+    return new Date(String(date)).toLocaleString(undefined, {
       timeZone: 'America/Los_Angeles',
       weekday: 'short',
       month: 'long',
@@ -527,8 +568,8 @@ function Page({ children }: { children: ReactNode }) {
 
         @media screen and (min-width: 768px) and (min-height: 500px) {
           .page {
-            padding: 8em 10ch 10em;
-            margin: 6em auto 12em;
+            padding: 8rem 10ch 6rem;
+            margin: 6rem auto 14rem;
             width: 70vw;
             max-width: 65ch;
           }
@@ -536,9 +577,9 @@ function Page({ children }: { children: ReactNode }) {
 
         @media not screen and (min-width: 768px) and (min-height: 500px) {
           .page {
-            padding: calc(5vw + 1.5em) 5vw 6em;
+            padding: calc(5vw + 1.5rem) 5vw calc(5vw + 2rem);
             margin: calc(6vh + env(safe-area-inset-top)) auto
-              calc(12vh + env(safe-area-inset-bottom));
+              calc(20vh + env(safe-area-inset-bottom));
             width: calc(
               86vw - env(safe-area-inset-left) - env(safe-area-inset-right)
             );

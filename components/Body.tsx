@@ -234,6 +234,20 @@ export default ({ children }: { children: ReactNode }) => {
             padding-inline-start: 4ch;
           }
 
+          ul {
+            list-style: none;
+          }
+
+          li {
+            position: relative;
+          }
+
+          li::before {
+            content: '•';
+            position: absolute;
+            left: -2ch;
+          }
+
           @media screen and (max-width: 600px) {
             ol,
             ul {
