@@ -66,28 +66,28 @@ export default () => (
 
 function Talks() {
   return (
-    <div className="talks">
+    <div>
       <style jsx>{`
-        .talk {
+        a {
           display: block;
           margin-bottom: 2em;
         }
 
-        .talk img {
+        img {
           width: 100%;
           display: block;
           margin-bottom: 0.5em;
         }
 
         @media screen and (min-width: 350px) {
-          .talks {
+          div {
             display: flex;
             flex-wrap: wrap;
             margin-bottom: -2em;
             margin-left: -2ch;
           }
 
-          .talk {
+          a {
             min-width: 24px;
             width: calc(50% - 2ch);
             margin-left: 2ch;
@@ -95,32 +95,32 @@ function Talks() {
         }
 
         @media screen and (min-width: 700px) {
-          .talk {
+          a {
             width: calc(33.3% - 2ch);
           }
         }
       `}</style>
-      <a className="talk" href="https://youtu.be/vG8WpLr6y_U" target="_blank">
+      <a href="https://youtu.be/vG8WpLr6y_U" target="_blank">
         <img src={require('../assets/talks/1999.jpg')} />
         Program like it's 1999
       </a>
-      <a className="talk" href="https://youtu.be/VjHWkBr3tjI" target="_blank">
+      <a href="https://youtu.be/VjHWkBr3tjI" target="_blank">
         <img src={require('../assets/talks/graphql-history.jpg')} />
         Brief history of GraphQL
       </a>
-      <a className="talk" href="https://youtu.be/oTcDmnAXZ4E" target="_blank">
+      <a href="https://youtu.be/oTcDmnAXZ4E" target="_blank">
         <img src={require('../assets/talks/idea-architecture.jpg')} />
         The IDEA Architecture
       </a>
-      <a className="talk" href="https://youtu.be/Oh5oC98ztvI" target="_blank">
+      <a href="https://youtu.be/Oh5oC98ztvI" target="_blank">
         <img src={require('../assets/talks/data-language.jpg')} />
         Designing a data language
       </a>
-      <a className="talk" href="https://youtu.be/WQLzZf34FJ8" target="_blank">
+      <a href="https://youtu.be/WQLzZf34FJ8" target="_blank">
         <img src={require('../assets/talks/exploring-graphql.jpg')} />
         Exploring GraphQL
       </a>
-      <a className="talk" href="https://youtu.be/I7IdS-PbEgI" target="_blank">
+      <a href="https://youtu.be/I7IdS-PbEgI" target="_blank">
         <img src={require('../assets/talks/immutable-data.jpg')} />
         Immutable data in React
       </a>
@@ -168,6 +168,12 @@ function Header() {
   return (
     <div className="cardSurface">
       <style jsx>{`
+        .cardBack {
+          align-items: start;
+          display: flex;
+          flex-direction: column;
+        }
+
         .cardBack em {
           display: block;
           margin: 1em 0;

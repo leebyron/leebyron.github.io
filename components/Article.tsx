@@ -119,54 +119,6 @@ export default (frontMatter: FrontMatter) => ({
             }
           }
 
-          .meta {
-            margin: -2em 0 2em;
-            display: flex;
-            flex-direction: column;
-            align-items: start;
-          }
-
-          .share {
-            display: none;
-          }
-
-          @media screen {
-            .share {
-              display: block;
-            }
-          }
-
-          .share {
-            margin-top: 0.8em;
-          }
-
-          @media screen and (min-width: 460px) {
-            .meta {
-              flex-direction: row;
-              justify-content: space-between;
-              align-items: center;
-            }
-
-            .share {
-              margin-top: -0.5em;
-            }
-          }
-
-          .data {
-            font-style: italic;
-            background: #ffffff;
-            padding: 0 1ch;
-            margin: 0 -1ch;
-          }
-
-          .data > a {
-            text-decoration: none;
-          }
-
-          .data > a:hover {
-            text-decoration: underline;
-          }
-
           :global(blockquote > p) {
             background: url(${require('../assets/bg-highlight.svg')}) space,
               #fff181 content-box;
@@ -205,22 +157,7 @@ export default (frontMatter: FrontMatter) => ({
             </a>
           </Link>
           <Heading>{frontMatter.title}</Heading>
-          <div className="meta">
-            <div className="data">
-              <a
-                href={canonicalURL(frontMatter.slug)}
-                title={longDate(frontMatter.date)}
-              >
-                {shortDate(frontMatter.date)}
-              </a>
-              {` · ${readMin} min read`}
-            </div>
-            {!router.query.screenshot && (
-              <div className="share">
-                <ShareActions frontMatter={frontMatter} />
-              </div>
-            )}
-          </div>
+          {!router.query.screenshot && <HeaderMeta frontMatter={frontMatter} />}
         </header>
         <SelectionAnchor
           initialSelection={initialSelection}
@@ -260,11 +197,79 @@ export default (frontMatter: FrontMatter) => ({
   )
 }
 
+function HeaderMeta({ frontMatter }: { frontMatter: FrontMatter }) {
+  return (
+    <div className="meta">
+      <style jsx>{`
+        .meta {
+          margin: -1rem 0 2rem;
+          display: flex;
+          flex-direction: column;
+          align-items: start;
+        }
+
+        .share {
+          display: none;
+        }
+
+        @media screen {
+          .share {
+            display: block;
+          }
+        }
+
+        .share {
+          margin-top: 0.8em;
+        }
+
+        @media screen and (min-width: 460px) {
+          .meta {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .share {
+            margin-top: -0.5em;
+          }
+        }
+
+        .data {
+          font-style: italic;
+          background: #ffffff;
+          padding: 0 1ch;
+          margin: 0 -1ch;
+        }
+
+        .data > a {
+          text-decoration: none;
+        }
+
+        .data > a:hover {
+          text-decoration: underline;
+        }
+      `}</style>
+      <div className="data">
+        <a
+          href={canonicalURL(frontMatter.slug)}
+          title={longDate(frontMatter.date)}
+        >
+          {shortDate(frontMatter.date)}
+        </a>
+        {` · ${Math.round(frontMatter.wordCount / 250)} min read`}
+      </div>
+      <div className="share">
+        <ShareActions frontMatter={frontMatter} />
+      </div>
+    </div>
+  )
+}
+
 function AuthorInfo() {
   return (
-    <div className="authorInfo">
+    <div>
       <style jsx>{`
-        .authorInfo {
+        div {
           border-bottom: 1px solid #ddd;
           border-top: 1px solid #ddd;
           margin: 2rem 0;
@@ -272,11 +277,11 @@ function AuthorInfo() {
           position: relative;
         }
 
-        .authorInfo a {
+        a {
           text-decoration: none;
         }
 
-        .authorInfo img {
+        img {
           border-radius: 3.5rem;
           display: block;
           height: 7rem;
@@ -285,32 +290,32 @@ function AuthorInfo() {
           width: 7rem;
         }
 
-        .authorInfo > h2 {
+        h3 {
           margin-top: 0;
         }
 
-        .authorInfo > h2,
-        .authorInfo > p {
+        h3,
+        p {
           margin-left: 7.5rem;
         }
 
         @media screen and (max-width: 600px) {
-          .authorInfo {
+          div {
             padding: 1rem 0;
           }
 
-          .authorInfo img {
+          img {
             position: relative;
             height: 3rem;
             width: 3rem;
             margin: 0;
           }
 
-          .authorInfo > h2 {
+          h3 {
             margin: -2rem 0 1.5rem 4rem;
           }
 
-          .authorInfo > p {
+          p {
             margin-left: 0;
           }
         }
@@ -320,11 +325,11 @@ function AuthorInfo() {
           <img {...require('../assets/me.jpg')} />
         </a>
       </Link>
-      <h2>
+      <h3>
         <Link href="/">
           <a>Lee Byron</a>
         </Link>
-      </h2>
+      </h3>
       <p>
         Co-creator of GraphQL, Executive Director of the GraphQL Foundation, and
         Engineering Manager at Robinhood. Opinions are my own. I like snacks.
@@ -363,7 +368,7 @@ function Heading({ children }: { children: string }) {
           font-weight: 100;
           letter-spacing: -0.03em;
           line-height: 1.1;
-          margin: 3rem 0.3em 3rem calc(1em / -16 - 0.25em);
+          margin-left: calc(1em / -16 - 0.25em);
           position: relative;
         }
 
@@ -392,7 +397,7 @@ function Heading({ children }: { children: string }) {
         @media screen and (max-width: 600px) {
           h1 {
             font-size: 2em;
-            margin-top: 2rem;
+            margin-top: 2.5rem;
           }
         }
       `}</style>

@@ -48,9 +48,10 @@ export default ({ children }: { children: ReactNode }) => {
             font-style: italic;
             font-weight: 100;
             font-display: swap;
-            src: url(${require('../assets/Inter-ThinItalic.woff2')})
+            src: url('https://rsms.me/inter/font-files/Inter-ThinItalic.woff2')
                 format('woff2'),
-              url(${require('../assets/Inter-ThinItalic.woff')}) format('woff');
+              url('https://rsms.me/inter/font-files/Inter-ThinItalic.woff')
+                format('woff');
           }
 
           @font-face {
@@ -115,6 +116,7 @@ export default ({ children }: { children: ReactNode }) => {
           h2,
           h3,
           h4,
+          h5,
           p,
           blockquote,
           figcaption,
@@ -168,6 +170,7 @@ export default ({ children }: { children: ReactNode }) => {
           h2,
           h3,
           h4,
+          h5,
           p,
           p > *,
           blockquote,
@@ -179,35 +182,41 @@ export default ({ children }: { children: ReactNode }) => {
           h1 {
             font-weight: bold;
             font-style: italic;
-            margin: 3em 0 2em;
+            margin: 4rem 0 2rem;
           }
 
           h2 {
             font-weight: bold;
             font-style: italic;
-            margin: 3em 0 1em;
+            margin: 4rem 0 2rem;
           }
 
           h3 {
-            font-weight: normal;
+            font-weight: bold;
             font-style: italic;
-            margin: 3em 0 1em;
+            margin: 3rem 0 1rem;
           }
 
           h4 {
             font-weight: normal;
             font-style: italic;
-            margin: 2em 0 1em;
+            margin: 3rem 0 1rem;
+          }
+
+          h5 {
+            font-weight: normal;
+            font-style: italic;
+            margin: 2rem 0 1rem;
           }
 
           blockquote {
-            margin: 2em 3ch;
+            margin: 2rem 3ch;
             font-style: italic;
           }
 
           @media screen and (max-width: 600px) {
             blockquote {
-              margin: 2em 1ch;
+              margin: 2rem 1ch;
             }
           }
 
@@ -229,7 +238,7 @@ export default ({ children }: { children: ReactNode }) => {
 
           ol,
           ul {
-            margin: 2em 0;
+            margin: 2rem 0;
             padding-inline-end: 3ch;
             padding-inline-start: 4ch;
           }

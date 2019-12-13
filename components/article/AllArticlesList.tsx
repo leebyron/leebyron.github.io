@@ -4,21 +4,35 @@ import { shortDate } from './dateUtil'
 
 export function AllArticlesList({ exclude }: { exclude?: string }) {
   return (
-    <ul className="additionalReading">
+    <ul className="allArticles">
       <style jsx>{`
-        .additionalReading li {
+        ul {
+          padding-inline-start: 0;
+        }
+
+        li {
           margin-bottom: 1rem;
         }
 
-        .additionalReading a {
+        li::before {
+          opacity: 0.6;
+        }
+
+        @media not screen and (min-width: 768px) and (min-height: 500px) {
+          li::before {
+            display: none;
+          }
+        }
+
+        a {
           text-decoration: none;
         }
 
-        .additionalReading a:hover {
+        a:hover {
           text-decoration: underline;
         }
 
-        .additionalReading em {
+        em {
           display: block;
           opacity: 0.6;
         }
