@@ -163,7 +163,7 @@ function Page({ children }: { children: ReactNode }) {
 }
 
 function Header() {
-  const { scroll: ms, height: hei } = useScrollAndHeight()
+  const { scroll: ms, height: hei } = useScrollAndHeight(1)
 
   return (
     <div className="cardSurface">
@@ -203,25 +203,27 @@ function Header() {
           }
 
           .cardSurface {
+            overflow: hidden;
             padding-top: 200vh;
+            position: relative;
+            width: 100vw;
           }
 
           .card {
             pointer-events: none;
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
-            bottom: 0;
             right: 0;
-            margin: auto;
+            margin: 50vh auto;
 
             -webkit-perspective: 1600px;
             perspective: 1600px;
             -webkit-transform-style: preserve-3d;
             transform-style: preserve-3d;
 
-            -webkit-transform: translate3d(0, 0, 0);
-            transform: translate3d(0, 0, 0);
+            -webkit-transform: translate3d(0, -50%, 0);
+            transform: translate3d(0, -50%, 0);
 
             width: 80vm;
             width: 80vmin;
@@ -231,6 +233,14 @@ function Header() {
             max-height: 330px;
             min-width: 440px;
             min-height: 242px;
+          }
+
+          .card.flipping {
+            position: fixed;
+          }
+
+          .card.flipped {
+            top: 100vh;
           }
 
           .cardFront {
@@ -315,7 +325,7 @@ function Header() {
         }
       `}</style>
 
-      <div className="card">
+      <div className={ms === hei ? "card flipped" : ms > 0 ? "card flipping" : "card"}>
         <div className="cardFront" style={cardMove(ms, hei)}>
           <ExplodingLogo
             offset={isMobile() ? 10 : 50}

@@ -6,7 +6,7 @@ export function ExplodingLogo({ offset, position, className }: {
   position?: number,
   className?: string
 }) {
-  const { scroll, height } = useScrollAndHeight()
+  const { scroll, height } = useScrollAndHeight(1)
   const [ ref, center ] = useClientCenter(height)
   const s = scroll * ( 300  / ((position || center) - offset)) - offset
   const r = prng(1234567890)

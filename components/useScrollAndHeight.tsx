@@ -44,13 +44,19 @@ function updateCallbacks() {
   }
 }
 
-export function useScrollAndHeight(): { scroll: number; height: number } {
+export function useScrollAndHeight(
+  limit?: number
+): { scroll: number; height: number } {
   const [state, setState] = useState({ scroll: 0, height: 800 })
   useEffect(() => {
-    const update = (next: { scroll: number; height: number }) =>
+    const update = (next: { scroll: number; height: number }) => {
+      if (limit && next.scroll > next.height * limit) {
+        next.scroll = next.height * limit
+      }
       setState(prev =>
         prev.scroll === next.scroll && prev.height === next.height ? prev : next
       )
+    }
     update({ scroll: window.scrollY, height: window.innerHeight })
     addListener(update)
     return () => removeListener(update)
