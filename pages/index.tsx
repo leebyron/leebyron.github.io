@@ -5,6 +5,7 @@ import Body from '../components/Body'
 import { ExplodingLogo } from '../components/ExplodingLogo'
 import { useScrollAndHeight } from '../components/useScrollAndHeight'
 import { isMobile } from '../components/isMobile'
+import { AllArticlesList } from '../components/article/AllArticlesList'
 
 export default () => (
   <Body>
@@ -27,7 +28,7 @@ export default () => (
             '@type': 'Person',
             name: 'Lee Byron',
             image: require('../assets/me.jpg'),
-            gender: 'https://schema.org/Male',
+            gender: 'https://schema.org/Male'
           })
         }}
       />
@@ -60,6 +61,7 @@ export default () => (
           .talks {
             display: flex;
             flex-wrap: wrap;
+            margin-bottom: -2em;
             margin-left: -2ch;
           }
         }
@@ -101,6 +103,8 @@ export default () => (
           Immutable data in React
         </a>
       </div>
+      <h2>Articles & Essays</h2>
+      <AllArticlesList />
     </Page>
   </Body>
 )

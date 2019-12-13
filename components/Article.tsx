@@ -8,8 +8,10 @@ import Body from './Body'
 import { isMobile } from './isMobile'
 import { ExplodingLogo } from './ExplodingLogo'
 import { useWindowSize } from './useWindowSize'
+import { AllArticlesList } from './article/AllArticlesList'
+import { isoDate, shortDate, longDate } from './article/dateUtil'
 import { Feedback } from './article/Feedback'
-import { FrontMatter, allFrontMatter } from './article/frontMatter'
+import { FrontMatter } from './article/frontMatter'
 import { SelectionAnchor } from './article/SelectionAnchor'
 import { SelectionActions } from './article/SelectionActions'
 import { ShareActions } from './article/ShareActions'
@@ -250,7 +252,8 @@ export default (frontMatter: FrontMatter) => ({
             <ShareActions frontMatter={frontMatter} />
           </div>
           <AuthorInfo />
-          <AdditionalReading article={frontMatter.slug} />
+          <h2>Additional Reading</h2>
+          <AllArticlesList exclude={frontMatter.slug} />
         </footer>
       </Page>
     </Body>
@@ -267,6 +270,10 @@ function AuthorInfo() {
           margin: 2rem 0;
           padding: 2rem 0 1rem;
           position: relative;
+        }
+
+        .authorInfo a {
+          text-decoration: none;
         }
 
         .authorInfo img {
@@ -308,54 +315,21 @@ function AuthorInfo() {
           }
         }
       `}</style>
-      <img {...require('../assets/me.jpg')} />
-      <h2>Lee Byron</h2>
+      <Link href="/">
+        <a>
+          <img {...require('../assets/me.jpg')} />
+        </a>
+      </Link>
+      <h2>
+        <Link href="/">
+          <a>Lee Byron</a>
+        </Link>
+      </h2>
       <p>
         Co-creator of GraphQL, Executive Director of the GraphQL Foundation, and
         Engineering Manager at Robinhood. Opinions are my own. I like snacks.
       </p>
     </div>
-  )
-}
-
-function AdditionalReading({ article }: { article: string }) {
-  return (
-    <>
-      <style jsx>{`
-        .additionalReading li {
-          margin-bottom: 1rem;
-        }
-
-        .additionalReading a {
-          text-decoration: none;
-        }
-
-        .additionalReading a:hover {
-          text-decoration: underline;
-        }
-
-        .additionalReading em {
-          display: block;
-          opacity: 0.6;
-        }
-      `}</style>
-      <h2>Additional Reading</h2>
-      <ul className="additionalReading">
-        {allFrontMatter().map(
-          frontMatter =>
-            frontMatter.slug !== article && (
-              <li key={frontMatter.slug}>
-                <Link href={`/${frontMatter.slug}`}>
-                  <a>{frontMatter.title}</a>
-                </Link>
-                <em>{`${Math.round(
-                  frontMatter.wordCount / 250
-                )} min read · ${shortDate(frontMatter.date)}`}</em>
-              </li>
-            )
-        )}
-      </ul>
-    </>
   )
 }
 
@@ -521,46 +495,6 @@ function P({ children }: { children?: ReactNode }) {
     return children
   }
   return <p>{children}</p>
-}
-
-function isoDate(date: Date | string): string {
-  return new Date(String(date)).toISOString()
-}
-
-function shortDate(date: Date | string): string {
-  try {
-    return new Date(String(date)).toLocaleDateString(undefined, {
-      timeZone: 'America/Los_Angeles',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  } catch (error) {
-    if (error.name === 'RangeError') {
-      return new Date(String(date)).toDateString()
-    }
-    throw error
-  }
-}
-
-function longDate(date: Date | string): string {
-  try {
-    return new Date(String(date)).toLocaleString(undefined, {
-      timeZone: 'America/Los_Angeles',
-      weekday: 'short',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      timeZoneName: 'long'
-    })
-  } catch (error) {
-    if (error.name === 'RangeError') {
-      return String(date)
-    }
-    throw error
-  }
 }
 
 // TODO: Generic or merge into above?
