@@ -8,7 +8,7 @@ export default ({ children }: { children: ReactNode }) => {
         <title>Lee Byron</title>
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover"
         />
         {[192, 96, 32, 16].map(size => (
           <link

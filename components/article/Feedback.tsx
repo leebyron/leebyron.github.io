@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, RefObject, memo } from 'react'
 import { API_HOST } from './shareUtil'
+import { supportsPassiveEvents } from '../supportsPassiveEvents'
 
 export const MAX_FEEDBACK_COUNT = 50
 
@@ -456,7 +457,8 @@ function useTouchActions(
       event: string,
       handler: (event: any) => void
     ): () => void {
-      node.addEventListener(event, handler)
+      const passive: any = supportsPassiveEvents() ? { passive: false } : false
+      node.addEventListener(event, handler, passive)
       const off = () => {
         const idx = offs.indexOf(off)
         if (idx >= 0) {
@@ -466,7 +468,7 @@ function useTouchActions(
             offs[idx] = offs.pop() as any
           }
         }
-        node.removeEventListener(event, handler)
+        node.removeEventListener(event, handler, passive)
       }
       offs.push(off)
       return off

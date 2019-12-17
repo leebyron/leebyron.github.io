@@ -7,6 +7,11 @@ export default () => (
   <Body>
     <Head>
       <title>Whoops</title>
+      <meta name="robots" content="noindex" />
+      <meta
+        name="description"
+        content="This site has recently moved, and some links may have been broken."
+      />
     </Head>
     <style jsx>{`
       .card404 h1 {
@@ -99,6 +104,7 @@ function GHIssueLink({ children }: { children: ReactNode }) {
     <a
       href={`https://github.com/leebyron/leebyron.com/issues/new${query}`}
       target="_blank"
+      rel="noopener"
     >
       {children}
     </a>

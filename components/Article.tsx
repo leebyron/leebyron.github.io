@@ -17,6 +17,8 @@ import { SelectionActions } from './article/SelectionActions'
 import { ShareActions } from './article/ShareActions'
 import { canonicalURL, shareURL, shareImage } from './article/shareUtil'
 
+const headshot = require('../assets/me.jpg')
+
 export default (frontMatter: FrontMatter) => ({
   children
 }: {
@@ -39,6 +41,7 @@ export default (frontMatter: FrontMatter) => ({
         <meta property="og:type" content="article" />
         <meta property="og:title" content={frontMatter.title} />
         <meta property="og:description" content={frontMatter.synopsis} />
+        <meta name="description" content={frontMatter.synopsis} />
         <meta property="og:image" content={ogImage.src} />
         <meta property="og:image:secure_url" content={ogImage.src} />
         <meta property="og:image:type" content={ogImage.mime || 'image/png'} />
@@ -75,7 +78,12 @@ export default (frontMatter: FrontMatter) => ({
                 frontMatter.dateModified || frontMatter.date
               ),
               headline: frontMatter.title,
-              image: shareImage,
+              image: {
+                '@type': 'ImageObject',
+                url: ogImage.src,
+                width: ogImage.width,
+                height: ogImage.height,
+              },
               author: {
                 '@type': 'Person',
                 name: 'Lee Byron',
@@ -86,7 +94,9 @@ export default (frontMatter: FrontMatter) => ({
                 name: 'leebyron.com',
                 logo: {
                   '@type': 'ImageObject',
-                  url: require('../assets/me.jpg')
+                  url: headshot.src,
+                  width: headshot.width,
+                  height: headshot.height,
                 }
               },
               keywords: frontMatter.tags
@@ -322,7 +332,7 @@ function AuthorInfo() {
       `}</style>
       <Link href="/">
         <a>
-          <img {...require('../assets/me.jpg')} />
+          <img alt="Headshot of Lee Byron" {...headshot} />
         </a>
       </Link>
       <h3>
@@ -411,7 +421,7 @@ function Heading({ children }: { children: string }) {
 
 function Anchor({ href, children }: { href?: string; children?: ReactNode }) {
   return !href || /^https?:\/\//.test(href) ? (
-    <a href={href} target="_blank">
+    <a href={href} target="_blank" rel="noopener">
       {children}
     </a>
   ) : (

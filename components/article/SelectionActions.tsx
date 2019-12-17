@@ -153,10 +153,15 @@ export function SelectionActions({
             twitterQuoteTweet(article, encoded, decoded.range.toString())
           )}
           target="_blank"
+          rel="noopener"
         >
           <TwitterSVG />
         </a>
-        <a href={facebookShareURL(article, encoded)} target="_blank">
+        <a
+          href={facebookShareURL(article, encoded)}
+          target="_blank"
+          rel="noopener"
+        >
           <FacebookSVG />
         </a>
         <a

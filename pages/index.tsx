@@ -7,19 +7,39 @@ import { useScrollAndHeight } from '../components/useScrollAndHeight'
 import { isMobile } from '../components/isMobile'
 import { AllArticlesList } from '../components/article/AllArticlesList'
 
+const headshot = require('../assets/me.jpg')
+
+const bio =
+  'Lee is the co-creator of GraphQL and Executive Director of the GraphQL ' +
+  'Foundation. He works at Robinhood as an Engineering Manager and ' +
+  'previously worked at Facebook. Lee has had a hand in open source ' +
+  'libraries used by millions of developers worldwide including GraphQL, ' +
+  'React, Immutable.js, Flow, Relay, Dataloader, and more.'
+
 export default () => (
   <Body>
     <Head>
       <meta property="og:title" content="Lee Byron" />
       <meta property="og:url" content="https://leebyron.com/" />
-      <meta property="og:image" content={require('../assets/me.jpg')} />
-      <meta property="og:image:width" content="745" />
-      <meta property="og:image:height" content="765" />
+      <meta property="og:description" content={bio} />
+      <meta name="description" content={bio} />
+      <meta property="og:image" content={headshot.src} />
+      <meta property="og:image:secure_url" content={headshot.src} />
+      <meta property="og:image:alt" content="Headshot of Lee Byron" />
+      <meta
+        property="og:image:width"
+        content={headshot.width}
+      />
+      <meta
+        property="og:image:height"
+        content={headshot.height}
+      />
       <meta property="og:type" content="profile" />
       <meta property="og:profile:first_name" content="Lee" />
       <meta property="og:profile:last_name" content="Byron" />
       <meta property="og:profile:username" content="leebyron" />
       <meta property="og:profile:gender" content="male" />
+      <meta name="twitter:card" content="summary" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -27,7 +47,7 @@ export default () => (
             '@context': 'https://schema.org/',
             '@type': 'Person',
             name: 'Lee Byron',
-            image: require('../assets/me.jpg'),
+            image: headshot.src,
             gender: 'https://schema.org/Male'
           })
         }}
@@ -49,13 +69,7 @@ export default () => (
         }
       `}</style>
       <img className="logo" src={require('../assets/logo.svg')} width="200" />
-      <p>
-        Lee is the co-creator of GraphQL and Executive Director of the GraphQL
-        Foundation. He works at Robinhood as an Engineering Manager and
-        previously worked at Facebook. Lee has had a hand in open source
-        libraries used by millions of developers worldwide including GraphQL,
-        React, Immutable.js, Flow, Relay, Dataloader, and more.
-      </p>
+      <p>{bio}</p>
       <h2>Speaking</h2>
       <Talks />
       <h2>Articles & Essays</h2>
@@ -74,9 +88,10 @@ function Talks() {
         }
 
         img {
-          width: 100%;
           display: block;
+          height: auto;
           margin-bottom: 0.5em;
+          width: 100%;
         }
 
         @media screen and (min-width: 350px) {
@@ -89,8 +104,8 @@ function Talks() {
 
           a {
             min-width: 24px;
-            width: calc(50% - 2ch);
             margin-left: 2ch;
+            width: calc(50% - 2ch);
           }
         }
 
@@ -100,28 +115,28 @@ function Talks() {
           }
         }
       `}</style>
-      <a href="https://youtu.be/vG8WpLr6y_U" target="_blank">
-        <img src={require('../assets/talks/1999.jpg')} />
+      <a href="https://youtu.be/vG8WpLr6y_U" target="_blank" rel="noopener">
+        <img alt="" {...require('../assets/talks/1999.jpg')} />
         Program like it's 1999
       </a>
-      <a href="https://youtu.be/VjHWkBr3tjI" target="_blank">
-        <img src={require('../assets/talks/graphql-history.jpg')} />
+      <a href="https://youtu.be/VjHWkBr3tjI" target="_blank" rel="noopener">
+        <img alt="" {...require('../assets/talks/graphql-history.jpg')} />
         Brief history of GraphQL
       </a>
-      <a href="https://youtu.be/oTcDmnAXZ4E" target="_blank">
-        <img src={require('../assets/talks/idea-architecture.jpg')} />
+      <a href="https://youtu.be/oTcDmnAXZ4E" target="_blank" rel="noopener">
+        <img alt="" {...require('../assets/talks/idea-architecture.jpg')} />
         The IDEA Architecture
       </a>
-      <a href="https://youtu.be/Oh5oC98ztvI" target="_blank">
-        <img src={require('../assets/talks/data-language.jpg')} />
+      <a href="https://youtu.be/Oh5oC98ztvI" target="_blank" rel="noopener">
+        <img alt="" {...require('../assets/talks/data-language.jpg')} />
         Designing a data language
       </a>
-      <a href="https://youtu.be/WQLzZf34FJ8" target="_blank">
-        <img src={require('../assets/talks/exploring-graphql.jpg')} />
+      <a href="https://youtu.be/WQLzZf34FJ8" target="_blank" rel="noopener">
+        <img alt="" {...require('../assets/talks/exploring-graphql.jpg')} />
         Exploring GraphQL
       </a>
-      <a href="https://youtu.be/I7IdS-PbEgI" target="_blank">
-        <img src={require('../assets/talks/immutable-data.jpg')} />
+      <a href="https://youtu.be/I7IdS-PbEgI" target="_blank" rel="noopener">
+        <img alt="" {...require('../assets/talks/immutable-data.jpg')} />
         Immutable data in React
       </a>
     </div>
@@ -325,7 +340,11 @@ function Header() {
         }
       `}</style>
 
-      <div className={ms === hei ? "card flipped" : ms > 0 ? "card flipping" : "card"}>
+      <div
+        className={
+          ms === hei ? 'card flipped' : ms > 0 ? 'card flipping' : 'card'
+        }
+      >
         <div className="cardFront" style={cardMove(ms, hei)}>
           <ExplodingLogo
             offset={isMobile() ? 10 : 50}
@@ -338,16 +357,16 @@ function Header() {
 
         <div className="cardBack" style={cardMoveBack(ms, hei)}>
           <em>Design Technologist</em>
-          <a href="https://twitter.com/leeb" target="_blank">
+          <a href="https://twitter.com/leeb" target="_blank" rel="noopener">
             @leeb
           </a>
           <a href="mailto&#58;&#108;&#37;65e&#64;leebyron&#46;c&#111;&#109;">
             l&#101;e&#64;&#108;e&#101;&#98;&#121;&#114;on&#46;&#99;om
           </a>
-          <a href="https://github.com/leebyron" target="_blank">
+          <a href="https://github.com/leebyron" target="_blank" rel="noopener">
             github.com/leebyron
           </a>
-          <a href="https://keybase.io/leeb" target="_blank">
+          <a href="https://keybase.io/leeb" target="_blank" rel="noopener">
             keybase.io/leeb
           </a>
         </div>

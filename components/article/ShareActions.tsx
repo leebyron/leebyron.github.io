@@ -74,14 +74,19 @@ export function ShareActions({ frontMatter }: { frontMatter: FrontMatter }) {
       <Toaster ref={toaster} />
       <div className="actions">
         <a
-          target="_blank"
           href={twitterShareURL(
             twitterTitleTweet(frontMatter.slug, frontMatter.title)
           )}
+          target="_blank"
+          rel="noopener"
         >
           <TwitterSVG />
         </a>
-        <a target="_blank" href={facebookShareURL(frontMatter.slug)}>
+        <a
+          href={facebookShareURL(frontMatter.slug)}
+          target="_blank"
+          rel="noopener"
+        >
           <FacebookSVG />
         </a>
         <a href={canonicalURL(frontMatter.slug)} onClick={onClickShareLink}>

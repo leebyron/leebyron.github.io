@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { supportsPassiveEvents } from './supportsPassiveEvents'
 
 type Callback = (props: { scroll: number; height: number }) => void
 
@@ -7,8 +8,9 @@ const callbacks: Array<Callback> = []
 
 function addListener(callback: Callback) {
   if (callbacks.length === 0) {
-    window.addEventListener('scroll', handleEvent)
-    window.addEventListener('resize', handleEvent)
+    const passive: any = supportsPassiveEvents() ? { passive: true } : false
+    window.addEventListener('scroll', handleEvent, passive)
+    window.addEventListener('resize', handleEvent, passive)
   }
   callbacks.push(callback)
 }
@@ -23,8 +25,9 @@ function removeListener(callback: Callback) {
     callbacks[idx] = callbacks.pop() as any
   }
   if (callbacks.length === 0) {
-    window.removeEventListener('scroll', handleEvent)
-    window.removeEventListener('resize', handleEvent)
+    const passive: any = supportsPassiveEvents() ? { passive: true } : false
+    window.removeEventListener('scroll', handleEvent, passive)
+    window.removeEventListener('resize', handleEvent, passive)
   }
 }
 
