@@ -149,8 +149,9 @@ export const Feedback = memo(({ article }: Props) => {
       <Head>
         <link rel="preconnect" href={API_HOST} />
         <link
-          rel="prefetch"
+          rel="preload"
           as="fetch"
+          type="application/json"
           crossOrigin="anonymous"
           href={getFeedbackURL(article)}
         />

@@ -41,28 +41,38 @@ export default ({ children }: { children: ReactNode }) => {
         <meta name="twitter:site" content="@leeb" />
         <meta name="twitter:creator" content="@leeb" />
         <link
-          rel="prefetch"
+          rel="preload"
           as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
           href="https://rsms.me/inter/font-files/Inter-ThinItalic.woff2"
         />
         <link
-          rel="prefetch"
+          rel="preload"
           as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
           href="https://use.typekit.net/af/3538fb/0000000000000000000134f6/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3"
         />
         <link
-          rel="prefetch"
+          rel="preload"
           as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
           href="https://use.typekit.net/af/8caa58/0000000000000000000134f7/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3"
         />
         <link
-          rel="prefetch"
+          rel="preload"
           as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
           href="https://use.typekit.net/af/53deb2/0000000000000000000134f8/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3"
         />
         <link
-          rel="prefetch"
+          rel="preload"
           as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
           href="https://use.typekit.net/af/78b949/0000000000000000000134f9/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3"
         />
       </Head>
