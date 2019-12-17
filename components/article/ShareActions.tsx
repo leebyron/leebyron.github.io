@@ -74,6 +74,7 @@ export function ShareActions({ frontMatter }: { frontMatter: FrontMatter }) {
       <Toaster ref={toaster} />
       <div className="actions">
         <a
+          aria-label="share to Twitter"
           href={twitterShareURL(
             twitterTitleTweet(frontMatter.slug, frontMatter.title)
           )}
@@ -83,13 +84,18 @@ export function ShareActions({ frontMatter }: { frontMatter: FrontMatter }) {
           <TwitterSVG />
         </a>
         <a
+          aria-label="share to Facebook"
           href={facebookShareURL(frontMatter.slug)}
           target="_blank"
           rel="noopener"
         >
           <FacebookSVG />
         </a>
-        <a href={canonicalURL(frontMatter.slug)} onClick={onClickShareLink}>
+        <a
+          aria-label="share link"
+          href={canonicalURL(frontMatter.slug)}
+          onClick={onClickShareLink}
+        >
           <LinkSVG />
         </a>
       </div>

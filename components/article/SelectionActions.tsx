@@ -149,6 +149,7 @@ export function SelectionActions({
       <Toaster ref={toaster} popUnder={popUnder} />
       <div className="actions">
         <a
+          aria-label="share quote to Twitter"
           href={twitterShareURL(
             twitterQuoteTweet(article, encoded, decoded.range.toString())
           )}
@@ -158,6 +159,7 @@ export function SelectionActions({
           <TwitterSVG />
         </a>
         <a
+          aria-label="share quote to Facebook"
           href={facebookShareURL(article, encoded)}
           target="_blank"
           rel="noopener"
@@ -165,6 +167,7 @@ export function SelectionActions({
           <FacebookSVG />
         </a>
         <a
+          aria-label="share quote"
           href="#"
           onClick={event => {
             event.preventDefault()
@@ -174,6 +177,7 @@ export function SelectionActions({
           <CopySVG />
         </a>
         <a
+          aria-label="share link to quote"
           href={shareURL(article, encoded)}
           onClick={event => {
             // Allow right-click and command-click to behave as normal.

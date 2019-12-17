@@ -33,8 +33,8 @@ export function AllArticlesList({ exclude }: { exclude?: string }) {
         }
 
         em {
+          color: #767676;
           display: block;
-          opacity: 0.6;
         }
       `}</style>
       {allFrontMatter().map(

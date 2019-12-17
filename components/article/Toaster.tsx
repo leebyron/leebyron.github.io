@@ -88,7 +88,7 @@ export default forwardRef<ToastRef | undefined, Props>(function Toaster(
         }
       `}</style>
       {toasts.map(([toast, key]) => (
-        <span key={key}>{toast}</span>
+        <span key={key} role="alert">{toast}</span>
       ))}
     </div>
   )

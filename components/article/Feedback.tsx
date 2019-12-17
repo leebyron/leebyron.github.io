@@ -151,8 +151,7 @@ export const Feedback = memo(({ article }: Props) => {
         <link
           rel="prefetch"
           as="fetch"
-          // @ts-ignore
-          crossorigin="anonymous"
+          crossOrigin="anonymous"
           href={getFeedbackURL(article)}
         />
       </Head>
@@ -165,11 +164,18 @@ export const Feedback = memo(({ article }: Props) => {
           position: relative;
         }
         .snackRing {
+          appearance: none;
+          background: none;
+          border: none;
           cursor: grab;
           height: 50px;
           margin: 0 -1px;
           position: relative;
           width: 50px;
+          z-index: 1;
+        }
+        .snackRing:focus .rings {
+          transform: scale(1);
         }
         .snackRing > * {
           pointer-events: none;
@@ -251,16 +257,12 @@ export const Feedback = memo(({ article }: Props) => {
         }
       `}</style>
       <button
-        className={count > 0 ? 'zero zero-active' : 'zero'}
-        onClick={removeCount}
-      >
-        <svg viewBox="0 0 100 100" width="14" height="14" fill="#444">
-          <path d="M93.5,86.5L57.1,50l36.4-36.5c2-2,2-5.1,0-7.1l0,0c-2-2-5.1-2-7.1,0L50,42.9L13.6,6.5c-2-2-5.1-2-7.1,0c-2,2-2,5.1,0,7.1  L42.9,50L6.5,86.5c-2,2-2,5.1,0,7.1c2,2,5.1,2,7.1,0L50,57.1l36.5,36.5c2,2,5.1,2,7.1,0C95.5,91.6,95.5,88.4,93.5,86.5z" />
-        </svg>
-      </button>
-      <div
+        aria-label="give a snack"
         className="snackRing"
         ref={snackRing}
+        onClick={() => {
+          updateCount(s => s + 1)
+        }}
         onMouseEnter={() => {
           if (!isActive) {
             didBecomeActive('mouse')
@@ -393,7 +395,17 @@ export const Feedback = memo(({ article }: Props) => {
             </g>
           </g>
         </svg>
-      </div>
+      </button>
+      <button
+        aria-label="take back snacks"
+        className={count > 0 ? 'zero zero-active' : 'zero'}
+        tabIndex={count > 0 ? 0 : -1}
+        onClick={removeCount}
+      >
+        <svg viewBox="0 0 100 100" width="14" height="14" fill="#444">
+          <path d="M93.5,86.5L57.1,50l36.4-36.5c2-2,2-5.1,0-7.1l0,0c-2-2-5.1-2-7.1,0L50,42.9L13.6,6.5c-2-2-5.1-2-7.1,0c-2,2-2,5.1,0,7.1  L42.9,50L6.5,86.5c-2,2-2,5.1,0,7.1c2,2,5.1,2,7.1,0L50,57.1l36.5,36.5c2,2,5.1,2,7.1,0C95.5,91.6,95.5,88.4,93.5,86.5z" />
+        </svg>
+      </button>
       <FeedbackPhrase response={response} />
     </div>
   )
@@ -694,7 +706,11 @@ function useFeedback(
 
   const updateCount = (updater: (prevCount: number) => number) => {
     const nonce = makeUUID()
-    const count = updater(clientFeedbackCount(response))
+    const prevCount = clientFeedbackCount(response)
+    const count = Math.min(MAX_FEEDBACK_COUNT, updater(prevCount))
+    if (count === prevCount) {
+      return
+    }
     let optimisticValue: FeedbackResponse | undefined
     if ('value' in response) {
       // Compute an optimistic value based on merging in the new count

@@ -162,7 +162,7 @@ export default (frontMatter: FrontMatter) => ({
         `}</style>
         <header>
           <Link href="/">
-            <a className="articleLogo">
+            <a className="articleLogo" aria-label="homepage">
               <ExplodingLogo offset={isMobile() ? 10 : 50} />
             </a>
           </Link>
@@ -331,8 +331,8 @@ function AuthorInfo() {
         }
       `}</style>
       <Link href="/">
-        <a>
-          <img alt="Headshot of Lee Byron" {...headshot} />
+        <a tabIndex={-1}>
+          <img alt="Headshot" {...headshot} />
         </a>
       </Link>
       <h3>
