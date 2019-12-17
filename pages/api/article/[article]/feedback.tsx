@@ -38,7 +38,7 @@ export default async (
     if (req.method === 'GET' || req.method === 'OPTIONS') {
       res.setHeader(
         'Cache-Control',
-        's-maxage=300, stale-while-revalidate=15768000'
+        'maxage=10, s-maxage=300, stale-while-revalidate=15768000'
       )
     }
 

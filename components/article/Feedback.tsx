@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import { useState, useEffect, useRef, RefObject, memo } from 'react'
 import { API_HOST } from './shareUtil'
 import { supportsPassiveEvents } from '../supportsPassiveEvents'
@@ -145,6 +146,16 @@ export const Feedback = memo(({ article }: Props) => {
 
   return (
     <div className="feedback">
+      <Head>
+        <link rel="preconnect" href={API_HOST} />
+        <link
+          rel="prefetch"
+          as="fetch"
+          // @ts-ignore
+          crossorigin="anonymous"
+          href={getFeedbackURL(article)}
+        />
+      </Head>
       <style jsx>{`
         .feedback {
           align-items: center;
@@ -803,18 +814,19 @@ function makeUUID(): string {
   )
 }
 
+function getFeedbackURL(article: string): string {
+  return `${API_HOST}/api/article/${encodeURIComponent(article)}/feedback`
+}
+
 async function fetchFeedback(
   article: string,
   signal: AbortSignal | undefined
 ): Promise<FeedbackResponse> {
-  const response = await fetch(
-    `${API_HOST}/api/article/${encodeURIComponent(article)}/feedback`,
-    {
-      mode: 'cors',
-      headers: { Accept: 'application/json' },
-      signal
-    }
-  )
+  const response = await fetch(getFeedbackURL(article), {
+    mode: 'cors',
+    headers: { Accept: 'application/json' },
+    signal
+  })
   if (response.ok) {
     return await response.json()
   }
@@ -843,19 +855,16 @@ async function postFeedback(
   nonce: string,
   signal: AbortSignal | undefined
 ): Promise<FeedbackResponse> {
-  const response = await fetch(
-    `${API_HOST}/api/article/${encodeURIComponent(article)}/feedback`,
-    {
-      method: 'POST',
-      mode: 'cors',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ nonce, count, client: getClientUUID() }),
-      signal
-    }
-  )
+  const response = await fetch(getFeedbackURL(article), {
+    method: 'POST',
+    mode: 'cors',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ nonce, count, client: getClientUUID() }),
+    signal
+  })
   if (response.ok) {
     return await response.json()
   }

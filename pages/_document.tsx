@@ -15,7 +15,9 @@ export default class MyDocument extends Document {
   render() {
     return (
       <Html lang="en">
-        <Head />
+        <Head>
+          <link rel="preconnect" href="https://www.google-analytics.com" />
+        </Head>
         <body>
           <script
             dangerouslySetInnerHTML={{

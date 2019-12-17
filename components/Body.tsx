@@ -40,6 +40,31 @@ export default ({ children }: { children: ReactNode }) => {
         <meta property="fb:app_id" content="46273233281" />
         <meta name="twitter:site" content="@leeb" />
         <meta name="twitter:creator" content="@leeb" />
+        <link
+          rel="prefetch"
+          as="font"
+          href="https://rsms.me/inter/font-files/Inter-ThinItalic.woff2"
+        />
+        <link
+          rel="prefetch"
+          as="font"
+          href="https://use.typekit.net/af/3538fb/0000000000000000000134f6/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3"
+        />
+        <link
+          rel="prefetch"
+          as="font"
+          href="https://use.typekit.net/af/8caa58/0000000000000000000134f7/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3"
+        />
+        <link
+          rel="prefetch"
+          as="font"
+          href="https://use.typekit.net/af/53deb2/0000000000000000000134f8/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3"
+        />
+        <link
+          rel="prefetch"
+          as="font"
+          href="https://use.typekit.net/af/78b949/0000000000000000000134f9/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3"
+        />
       </Head>
       <>
         <style global jsx>{`
@@ -56,28 +81,13 @@ export default ({ children }: { children: ReactNode }) => {
 
           @font-face {
             font-family: 'courier-prime';
-            src: url('https://use.typekit.net/af/78b949/0000000000000000000134f9/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3')
+            src: url('https://use.typekit.net/af/3538fb/0000000000000000000134f6/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3')
                 format('woff2'),
-              url('https://use.typekit.net/af/78b949/0000000000000000000134f9/23/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3')
-                format('woff'),
-              url('https://use.typekit.net/af/78b949/0000000000000000000134f9/23/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3')
-                format('opentype');
-            font-display: fallback;
-            font-style: italic;
-            font-weight: 700;
-          }
-
-          @font-face {
-            font-family: 'courier-prime';
-            src: url('https://use.typekit.net/af/53deb2/0000000000000000000134f8/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3')
-                format('woff2'),
-              url('https://use.typekit.net/af/53deb2/0000000000000000000134f8/23/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3')
-                format('woff'),
-              url('https://use.typekit.net/af/53deb2/0000000000000000000134f8/23/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3')
-                format('opentype');
+              url('https://use.typekit.net/af/3538fb/0000000000000000000134f6/23/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3')
+                format('woff');
             font-display: fallback;
             font-style: normal;
-            font-weight: 700;
+            font-weight: 400;
           }
 
           @font-face {
@@ -85,9 +95,7 @@ export default ({ children }: { children: ReactNode }) => {
             src: url('https://use.typekit.net/af/8caa58/0000000000000000000134f7/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3')
                 format('woff2'),
               url('https://use.typekit.net/af/8caa58/0000000000000000000134f7/23/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3')
-                format('woff'),
-              url('https://use.typekit.net/af/8caa58/0000000000000000000134f7/23/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3')
-                format('opentype');
+                format('woff');
             font-display: fallback;
             font-style: italic;
             font-weight: 400;
@@ -95,15 +103,24 @@ export default ({ children }: { children: ReactNode }) => {
 
           @font-face {
             font-family: 'courier-prime';
-            src: url('https://use.typekit.net/af/3538fb/0000000000000000000134f6/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3')
+            src: url('https://use.typekit.net/af/53deb2/0000000000000000000134f8/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3')
                 format('woff2'),
-              url('https://use.typekit.net/af/3538fb/0000000000000000000134f6/23/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3')
-                format('woff'),
-              url('https://use.typekit.net/af/3538fb/0000000000000000000134f6/23/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3')
-                format('opentype');
+              url('https://use.typekit.net/af/53deb2/0000000000000000000134f8/23/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3')
+                format('woff');
             font-display: fallback;
             font-style: normal;
-            font-weight: 400;
+            font-weight: 700;
+          }
+
+          @font-face {
+            font-family: 'courier-prime';
+            src: url('https://use.typekit.net/af/78b949/0000000000000000000134f9/23/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3')
+                format('woff2'),
+              url('https://use.typekit.net/af/78b949/0000000000000000000134f9/23/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3')
+                format('woff');
+            font-display: fallback;
+            font-style: italic;
+            font-weight: 700;
           }
 
           html,
