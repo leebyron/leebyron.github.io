@@ -1,0 +1,19 @@
+name: Build and Run Lighthouse CI
+on: [push]
+jobs:
+  lhci:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: Build
+      run: |
+        yarn install
+        yarn build
+        yarn export
+    - name: Run Lighthouse CI
+      run: |
+        npm install -g @lhci/cli@0.3.x
+        lhci autorun --collect.staticDistDir=./out --upload.target=temporary-public-storage || echo "LHCI failed!"
