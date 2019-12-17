@@ -82,7 +82,7 @@ export default ({ children }: { children: ReactNode }) => {
             font-family: 'Inter';
             font-style: italic;
             font-weight: 100;
-            font-display: swap;
+            font-display: fallback;
             src: url('https://rsms.me/inter/font-files/Inter-ThinItalic.woff2')
                 format('woff2'),
               url('https://rsms.me/inter/font-files/Inter-ThinItalic.woff')

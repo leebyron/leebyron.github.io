@@ -82,7 +82,7 @@ export default (frontMatter: FrontMatter) => ({
                 '@type': 'ImageObject',
                 url: ogImage.src,
                 width: ogImage.width,
-                height: ogImage.height,
+                height: ogImage.height
               },
               author: {
                 '@type': 'Person',
@@ -96,7 +96,7 @@ export default (frontMatter: FrontMatter) => ({
                   '@type': 'ImageObject',
                   url: headshot.src,
                   width: headshot.width,
-                  height: headshot.height,
+                  height: headshot.height
                 }
               },
               keywords: frontMatter.tags
@@ -372,7 +372,7 @@ function Heading({ children }: { children: string }) {
       <style jsx>{`
         h1 {
           color: black;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Inter', -apple-system, "Segoe UI", Roboto, ui-system, sans-serif;
           font-size: 3rem;
           font-style: italic;
           font-weight: 100;
