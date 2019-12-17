@@ -147,7 +147,7 @@ export const Feedback = memo(({ article }: Props) => {
   return (
     <div className="feedback">
       <Head>
-        <link rel="preconnect" href={API_HOST} />
+        {API_HOST && <link rel="preconnect" href={API_HOST} />}
         <link
           rel="preload"
           as="fetch"
