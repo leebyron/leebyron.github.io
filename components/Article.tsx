@@ -332,7 +332,17 @@ function AuthorInfo() {
       `}</style>
       <Link href="/">
         <a tabIndex={-1}>
-          <img alt="Headshot" {...headshot} />
+          <img
+            alt="Headshot"
+            {...headshot}
+            {...srcset(
+              require('../assets/me-96.jpg'),
+              require('../assets/me-144.jpg'),
+              require('../assets/me-224.jpg'),
+              headshot
+            )}
+            sizes="(max-width: 600px) 3rem, 7rem"
+          />
         </a>
       </Link>
       <h3>
@@ -346,6 +356,12 @@ function AuthorInfo() {
       </p>
     </div>
   )
+}
+
+function srcset(...sources: any[]): { srcSet: string } {
+  return {
+    srcSet: sources.map(source => `${source.src} ${source.width}w`).join()
+  }
 }
 
 function Heading({ children }: { children: string }) {
@@ -372,7 +388,8 @@ function Heading({ children }: { children: string }) {
       <style jsx>{`
         h1 {
           color: black;
-          font-family: 'Inter', -apple-system, "Segoe UI", Roboto, ui-system, sans-serif;
+          font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, ui-system,
+            sans-serif;
           font-size: 3rem;
           font-style: italic;
           font-weight: 100;
