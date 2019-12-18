@@ -151,7 +151,6 @@ export const Feedback = memo(({ article }: Props) => {
         <link
           rel="preload"
           as="fetch"
-          type="application/json"
           crossOrigin="anonymous"
           href={getFeedbackURL(article)}
         />
@@ -841,7 +840,6 @@ async function fetchFeedback(
 ): Promise<FeedbackResponse> {
   const response = await fetch(getFeedbackURL(article), {
     mode: 'cors',
-    headers: { Accept: 'application/json' },
     signal
   })
   if (response.ok) {
@@ -876,7 +874,6 @@ async function postFeedback(
     method: 'POST',
     mode: 'cors',
     headers: {
-      Accept: 'application/json',
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ nonce, count, client: getClientUUID() }),
