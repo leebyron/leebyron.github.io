@@ -11,7 +11,6 @@ import {
   NativeFeedback,
   MediumPostFeedback
 } from '../../../../components/article/Feedback'
-import { CANONICAL_HOST } from '../../../../components/article/shareUtil'
 
 const ALLOWED_HEADERS = [
   'X-Requested-With',
@@ -27,13 +26,7 @@ export default async (
   res: NextApiResponse<FeedbackResponse>
 ) => {
   try {
-    if (
-      typeof req.headers.origin === 'string' &&
-      req.headers.origin === CANONICAL_HOST
-    ) {
-      res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
-    }
-    res.setHeader('Vary', 'Origin')
+    res.setHeader('Access-Control-Allow-Origin', '*')
 
     if (req.method === 'GET' || req.method === 'OPTIONS') {
       res.setHeader(
