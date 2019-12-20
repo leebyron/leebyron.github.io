@@ -5,7 +5,10 @@ import Document, {
   NextScript,
   DocumentContext
 } from 'next/document'
-import { CANONICAL_HOST, SHARE_HOST } from '../components/article/shareUtil'
+import {
+  CANONICAL_HOST,
+  PRODUCTION_SHARE_HOST
+} from '../components/article/shareUtil'
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: DocumentContext) {
@@ -22,9 +25,9 @@ export default class MyDocument extends Document {
           <script
             dangerouslySetInnerHTML={{
               __html:
-                `if (window.location.href.indexOf('${SHARE_HOST}') === 0) {` +
+                `if (window.location.href.indexOf('${PRODUCTION_SHARE_HOST}') === 0) {` +
                 'window.location.href = ' +
-                `window.location.href.replace('${SHARE_HOST}', '${CANONICAL_HOST}')` +
+                `window.location.href.replace('${PRODUCTION_SHARE_HOST}', '${CANONICAL_HOST}')` +
                 '}'
             }}
           />

@@ -156,7 +156,7 @@ export default ({ children }: { children: ReactNode }) => {
             font-size: 1rem;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            line-height: 1.3125;
+            line-height: 1.5;
             text-rendering: optimizeLegibility;
             text-size-adjust: none;
           }
@@ -235,6 +235,10 @@ export default ({ children }: { children: ReactNode }) => {
             font-weight: normal;
             font-style: italic;
             margin: 2rem 0 1rem;
+          }
+
+          p {
+            margin: 1.5rem 0;
           }
 
           blockquote {

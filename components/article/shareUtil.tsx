@@ -1,14 +1,18 @@
 import { Children, isValidElement, ReactNode } from 'react'
 
 export const CANONICAL_HOST = 'https://leebyron.com'
-export const SHARE_HOST = 'https://lwb.io'
+export const PRODUCTION_SHARE_HOST = 'https://lwb.io'
+export const SHARE_HOST =
+  process.env.NODE_ENV === 'production'
+    ? PRODUCTION_SHARE_HOST
+    : 'http://localhost:3000'
 export const API_HOST =
   typeof window === 'object'
     ? window.location.href.indexOf(CANONICAL_HOST) === 0
-      ? 'https://lwb.io'
+      ? PRODUCTION_SHARE_HOST
       : ''
     : process.env.NODE_ENV === 'production'
-    ? 'https://lwb.io'
+    ? PRODUCTION_SHARE_HOST
     : 'http://localhost:3000'
 
 export function canonicalURL(articleSlug: string): string {

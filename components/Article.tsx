@@ -130,12 +130,14 @@ export default (frontMatter: FrontMatter) => ({
           }
 
           :global(blockquote > p) {
-            background: url(${require('../assets/bg-highlight.svg')}) space,
+            background: url(${require('../assets/bg-highlight.svg')}) top center /
+                auto 1.5rem padding-box space no-repeat,
               #fff181 content-box;
             box-decoration-break: clone;
             color: black;
             display: inline;
-            padding: 0 1ch;
+            padding: 0 2ch 0 1ch;
+            margin-right: -1ch;
           }
 
           article {
@@ -367,11 +369,13 @@ function srcset(...sources: any[]): { srcSet: string } {
 function Heading({ children }: { children: string }) {
   const h1 = useRef<HTMLHeadingElement | null>(null)
   const [isOverflowing, setOverflowing] = useState<boolean>(false)
-  const noWidow = children.replace(/\s+(\S+)$/, (_, end) => `\u00A0${end}`)
+  const noWidow = children.replace(/\s+(\S+)$/, (match, lastWord, position) =>
+    lastWord.length < position * 0.75 ? `\u00A0${lastWord}` : match
+  )
   const title = isOverflowing ? children : noWidow
   const { width } = useWindowSize()
   useEffect(() => {
-    if (h1.current) {
+    if (h1.current && noWidow !== children) {
       const span = h1.current.lastElementChild
       if (span) {
         h1.current.style.overflow = 'hidden'
@@ -396,11 +400,12 @@ function Heading({ children }: { children: string }) {
           letter-spacing: -0.03em;
           line-height: 1.1;
           margin-left: calc(1em / -16 - 0.25em);
+          margin-right: -0.75em;
           position: relative;
         }
 
         h1 span {
-          padding: 0 0.3em 0 0.25em;
+          padding: 0 1em 0 0.25em;
           box-decoration-break: clone;
         }
 
