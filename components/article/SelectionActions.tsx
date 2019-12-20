@@ -90,6 +90,7 @@ export function SelectionActions({
           margin-top: -2.7em;
           position: absolute;
           transform: translateX(-50%);
+          z-index: 1;
         }
         .rangeActions.popUnder {
           margin-top: 1.65em;

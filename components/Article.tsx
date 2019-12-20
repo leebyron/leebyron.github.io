@@ -185,7 +185,7 @@ export default (frontMatter: FrontMatter) => ({
             <MDXProvider
               components={{
                 a: Anchor,
-                img: Image,
+                img: BlockImage,
                 p: P
               }}
             >
@@ -448,7 +448,25 @@ function Anchor({ href, children }: { href?: string; children?: ReactNode }) {
   )
 }
 
-function Image({
+function P({ children }: { children?: ReactNode }) {
+  // A block consisting of only an image should render as a block element,
+  // so do not render a wrapping p tag around it.
+  if (isValidElement(children) && children.props.mdxType === 'img') {
+    return children
+  }
+  // Otherwise all images found inside the paragraph should be inline.
+  return (
+    <p>
+      <MDXProvider components={{ img: InlineImage }}>{children}</MDXProvider>
+    </p>
+  )
+}
+
+function InlineImage(props: { src?: string; alt?: string; title?: string }) {
+  return <img {...props} />
+}
+
+function BlockImage({
   src,
   alt,
   title,
@@ -518,15 +536,6 @@ function Image({
       {alt && <figcaption aria-hidden="true">{alt}</figcaption>}
     </figure>
   )
-}
-
-function P({ children }: { children?: ReactNode }) {
-  // A block consisting of only an image will render as a block element,
-  // so do not render a wrapping p tag around it.
-  if (isValidElement(children) && children.props.mdxType === 'img') {
-    return children
-  }
-  return <p>{children}</p>
 }
 
 // TODO: Generic or merge into above?
