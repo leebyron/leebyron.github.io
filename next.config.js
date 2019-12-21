@@ -1,9 +1,11 @@
 const withMDX = require('next-mdx-enhanced')
 const remark = require('remark-parse')
 const visitRemark = require('unist-util-visit')
+const smartQuotes = require('./src/smartQuotes')
 
 module.exports = withMDX({
   layoutPath: 'components',
+  remarkPlugins: [smartQuotes],
   extendFrontMatter: {
     process: (mdxContent, frontMatter) => {
       const sansFrontMatter = mdxContent.replace(/^(---\n.+?\n---\n)?/s, '')
@@ -41,7 +43,7 @@ module.exports = withMDX({
       test: /\.(jpe?g|png|svg|gif|ico|webp|woff2?)$/,
       use: [
         {
-          loader: require.resolve('./imageLoader'),
+          loader: require.resolve('./src/imageLoader'),
           options: {
             limit: 1024,
             publicPath: `/_next/static/images/`,

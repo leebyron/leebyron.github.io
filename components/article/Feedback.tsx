@@ -441,8 +441,8 @@ function FeedbackPhrase({ response }: { response: AsyncFeedback }) {
             </>
           ) : (
             <>
-              {totalFeedbackCount(response.value)} snacks
-              <span> left by {totalClients(response.value)} people</span>
+              {snackCountPhrase(response.value)}
+              <span> {leftByPhrase(response.value)}</span>
             </>
           )}
           {response.state === 'loaded' ? '.' : ''}
@@ -450,6 +450,23 @@ function FeedbackPhrase({ response }: { response: AsyncFeedback }) {
       )}
     </div>
   )
+}
+
+function snackCountPhrase(feedback: FeedbackResponse): string {
+  const total = totalFeedbackCount(feedback)
+  return `${total} ${total === 1 ? 'snack' : 'snacks'}`
+}
+
+function leftByPhrase(feedback: FeedbackResponse): string {
+  const clientFeedback = feedback.nativeFeedback.clientFeedbackCount
+  const total = totalClients(feedback)
+  if (clientFeedback === 0) {
+    return `left by ${total} ${total === 1 ? 'person' : 'people'}`
+  }
+  if (total === 1) {
+    return 'left by you'
+  }
+  return `left by you and ${total - 1} ${total === 0 ? 'other' : 'others'}`
 }
 
 function touchDistance(element: Element, touch: Touch): number {
