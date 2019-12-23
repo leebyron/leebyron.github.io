@@ -1,4 +1,5 @@
-import { frontMatter } from './allFrontMatter'
+// @ts-ignore
+import { frontMatter } from '../../pages/**/*.mdx'
 
 export type FrontMatter = {
   __resourcePath: string
@@ -13,17 +14,19 @@ export type FrontMatter = {
   medium?: string
 }
 
-export function allFrontMatter(): FrontMatter[] {
-  return (frontMatter as FrontMatter[])
-    .slice()
+const allFrontMatter = frontMatter as FrontMatter[]
+
+export function publishedFrontMatter(): FrontMatter[] {
+  return allFrontMatter
+    .filter(fm => fm.published)
     .sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
 let _bySlug: { [slug: string]: FrontMatter } | undefined
-export function allBySlug(): { [slug: string]: FrontMatter } {
+function allBySlug(): { [slug: string]: FrontMatter } {
   if (!_bySlug) {
     _bySlug = {}
-    for (const matter of frontMatter as FrontMatter[]) {
+    for (const matter of allFrontMatter) {
       _bySlug[matter.slug] = matter
     }
   }

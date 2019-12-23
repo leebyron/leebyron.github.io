@@ -1,4 +1,11 @@
-import { ReactNode, useEffect, useRef, useState, isValidElement } from 'react'
+import {
+  createElement,
+  isValidElement,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -10,7 +17,7 @@ import { ExplodingLogo } from './ExplodingLogo'
 import { useWindowSize } from './useWindowSize'
 import { AllArticlesList } from './article/AllArticlesList'
 import { isoDate, shortDate, longDate } from './article/dateUtil'
-import { Feedback } from './article/Feedback'
+import { FeedbackProvider, Feedback } from './article/Feedback'
 import { FrontMatter } from './article/frontMatter'
 import { SelectionAnchor } from './article/SelectionAnchor'
 import { SelectionActions } from './article/SelectionActions'
@@ -34,6 +41,7 @@ export default (frontMatter: FrontMatter) => ({
       <Head>
         <title>{frontMatter.title}</title>
         <link rel="canonical" href={canonicalURL(frontMatter.slug)} />
+        {!frontMatter.published && <meta name="robots" content="noindex" />}
         <meta
           property="og:url"
           content={shareURL(frontMatter.slug, initialSelection)}
@@ -109,102 +117,112 @@ export default (frontMatter: FrontMatter) => ({
           }}
         />
       </Head>
-      <Page>
-        <style jsx>{`
-          .articleLogo {
-            display: block;
-            display: table;
-            margin: -0.5em;
-            padding: 0.5em;
-          }
-
-          .articleLogo :global(svg) {
-            display: block;
-            height: 24px;
-          }
-
-          @media screen and (max-width: 600px) {
-            .articleLogo :global(svg) {
-              height: 18px;
+      <FeedbackProvider article={frontMatter.slug}>
+        <Page>
+          <style jsx>{`
+            .articleLogo {
+              display: block;
+              display: table;
+              margin: -0.5em;
+              padding: 0.5em;
             }
-          }
 
-          :global(blockquote > p) {
-            background: url(${require('../assets/bg-highlight.svg')}) top center /
-                auto 1.5rem padding-box space no-repeat,
-              #fff181 content-box;
-            box-decoration-break: clone;
-            color: black;
-            display: inline;
-            padding: 0 2ch 0 1ch;
-            margin-right: -1ch;
-          }
+            .articleLogo :global(svg) {
+              display: block;
+              height: 24px;
+            }
 
-          article {
-            hanging-punctuation: first allow-end last;
-            overflow-wrap: break-word;
-            overflow-wrap: anywhere;
-          }
+            @media screen and (max-width: 600px) {
+              .articleLogo :global(svg) {
+                height: 18px;
+              }
+            }
 
-          article > :global(:first-child) {
-            margin-top: 0;
-          }
+            :global(blockquote > p) {
+              background: url(${require('../assets/bg-highlight.svg')}) top
+                  center / auto 1.5rem padding-box space no-repeat,
+                #fff181 content-box;
+              box-decoration-break: clone;
+              color: black;
+              display: inline;
+              padding: 0 2ch 0 1ch;
+              margin-right: -1ch;
+            }
 
-          header {
-            position: relative;
-            z-index: 1;
-          }
+            article {
+              hanging-punctuation: first allow-end last;
+              overflow-wrap: break-word;
+              overflow-wrap: anywhere;
+            }
 
-          .footerActions {
-            align-items: center;
-            display: flex;
-            justify-content: space-between;
-            margin: 2rem 0;
-          }
-        `}</style>
-        <header>
-          <Link href="/">
-            <a className="articleLogo" aria-label="homepage">
-              <ExplodingLogo offset={isMobile() ? 10 : 50} />
-            </a>
-          </Link>
-          <Heading>{frontMatter.title}</Heading>
-          {!router.query.screenshot && <HeaderMeta frontMatter={frontMatter} />}
-        </header>
-        <SelectionAnchor
-          initialSelection={initialSelection}
-          actions={({ encoded, decoded }) =>
-            !router.query.screenshot && (
-              <SelectionActions
-                frontMatter={frontMatter}
-                encoded={encoded}
-                decoded={decoded}
-              />
-            )
-          }
-        >
-          <article>
-            <MDXProvider
-              components={{
-                a: Anchor,
-                img: BlockImage,
-                p: P
-              }}
-            >
-              {children}
-            </MDXProvider>
-          </article>
-        </SelectionAnchor>
-        <footer>
-          <div className="footerActions">
-            <Feedback article={frontMatter.slug} />
-            <ShareActions frontMatter={frontMatter} />
-          </div>
-          <AuthorInfo />
-          <h2>Additional Reading</h2>
-          <AllArticlesList exclude={frontMatter.slug} />
-        </footer>
-      </Page>
+            article > :global(:first-child) {
+              margin-top: 0;
+            }
+
+            header {
+              position: relative;
+              z-index: 1;
+            }
+
+            .footerActions {
+              align-items: center;
+              display: flex;
+              justify-content: space-between;
+              margin: 2rem 0;
+            }
+          `}</style>
+          <header>
+            <Link href="/">
+              <a className="articleLogo" aria-label="homepage">
+                <ExplodingLogo offset={isMobile() ? 10 : 50} />
+              </a>
+            </Link>
+            <TitleHeading>{frontMatter.title}</TitleHeading>
+            {!router.query.screenshot && (
+              <HeaderMeta frontMatter={frontMatter} />
+            )}
+          </header>
+          <SelectionAnchor
+            initialSelection={initialSelection}
+            actions={({ encoded, decoded }) =>
+              !router.query.screenshot && (
+                <SelectionActions
+                  frontMatter={frontMatter}
+                  encoded={encoded}
+                  decoded={decoded}
+                />
+              )
+            }
+          >
+            <article>
+              <MDXProvider
+                components={{
+                  a: Anchor,
+                  img: BlockImage,
+                  p: P,
+                  h1: Heading('h1'),
+                  h2: Heading('h2'),
+                  h3: Heading('h3'),
+                  h4: Heading('h4'),
+                  h5: Heading('h5'),
+                  h6: Heading('h6')
+                }}
+              >
+                {children}
+              </MDXProvider>
+            </article>
+          </SelectionAnchor>
+          <footer>
+            <div className="footerActions">
+              <Feedback />
+              <ShareActions frontMatter={frontMatter} />
+            </div>
+            <AuthorInfo />
+            <h2>Additional Reading</h2>
+            <AllArticlesList exclude={frontMatter.slug} />
+          </footer>
+        </Page>
+      </FeedbackProvider>
     </Body>
   )
 }
@@ -366,7 +384,7 @@ function srcset(...sources: any[]): { srcSet: string } {
   }
 }
 
-function Heading({ children }: { children: string }) {
+function TitleHeading({ children }: { children: string }) {
   const h1 = useRef<HTMLHeadingElement | null>(null)
   const [isOverflowing, setOverflowing] = useState<boolean>(false)
   const noWidow = children.replace(/\s+(\S+)$/, (match, lastWord, position) =>
@@ -439,6 +457,87 @@ function Heading({ children }: { children: string }) {
       <span>{title}</span>
     </h1>
   )
+}
+
+function Heading(level: string) {
+  return function Heading({ children }: { children?: ReactNode }) {
+    const stringChildren = reactToString(children)
+    const id =
+      stringChildren && stringChildren.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    return (
+      <>
+        <style jsx global>{`
+          .heading > a:last-child {
+            display: none;
+          }
+          @media screen and (min-width: 600px) {
+            .heading {
+              position: relative;
+            }
+            .heading > a:last-child {
+              display: inline;
+              font-style: normal;
+              font-weight: normal;
+              left: -2ch;
+              margin: -1ch;
+              opacity: 0;
+              padding: 1ch;
+              position: absolute;
+              text-decoration: none;
+              top: -0.08rem;
+              transition: opacity 0.3s ease-out;
+            }
+            .heading:hover > a:last-child,
+            .heading:focus > a:last-child,
+            .heading > a:last-child:focus {
+              opacity: 0.6;
+              transition: opacity 0.1s ease-in;
+            }
+            .heading:hover > a:last-child:hover,
+            .heading:focus > a:last-child:hover,
+            .heading > a:last-child:hover {
+              opacity: 1;
+            }
+          }
+        `}</style>
+        {createElement(
+          level,
+          { id, className: 'heading' },
+          <>
+            {children}
+            {id && (
+              <a href={`#${id}`} tabIndex={-1}>
+                §
+              </a>
+            )}
+          </>
+        )}
+      </>
+    )
+  }
+}
+
+function reactToString(node: ReactNode): string | null {
+  if (
+    typeof node === 'string' ||
+    typeof node === 'number' ||
+    typeof node === 'boolean'
+  ) {
+    return String(node)
+  }
+  if (Array.isArray(node)) {
+    return node.map(reactToString).join('')
+  }
+  if (isValidElement(node)) {
+    if (typeof node.type === 'function') {
+      // @ts-ignore
+      return reactToString(node.type(node.props))
+    }
+    if (typeof node.type === 'string') {
+      return reactToString(node.props.children)
+    }
+  }
+  return null
 }
 
 function Anchor({ href, children }: { href?: string; children?: ReactNode }) {
@@ -537,7 +636,14 @@ function BlockImage({
           }
         }
       `}</style>
-      <img alt={alt} src={src} {...rest} />
+      <img
+        alt=""
+        src={src}
+        {...rest}
+        decoding="async"
+        // @ts-ignore
+        importance="low"
+      />
       {alt && <figcaption aria-hidden="true">{alt}</figcaption>}
     </figure>
   )

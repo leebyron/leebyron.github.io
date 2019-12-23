@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { allFrontMatter } from './frontMatter'
+import { publishedFrontMatter } from './frontMatter'
 import { shortDate } from './dateUtil'
 
 export function AllArticlesList({ exclude }: { exclude?: string }) {
@@ -37,7 +37,7 @@ export function AllArticlesList({ exclude }: { exclude?: string }) {
           display: block;
         }
       `}</style>
-      {allFrontMatter().map(
+      {publishedFrontMatter().map(
         frontMatter =>
           frontMatter.slug !== exclude && (
             <li key={frontMatter.slug}>

@@ -1,16 +1,45 @@
 import Head from 'next/head'
-import { useState, useEffect, useRef, RefObject, memo } from 'react'
+import {
+  createContext,
+  memo,
+  ReactNode,
+  RefObject,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 import { API_HOST } from './shareUtil'
 import { supportsPassiveEvents } from '../supportsPassiveEvents'
 
 export const MAX_FEEDBACK_COUNT = 50
 
-type Props = {
+export function FeedbackProvider({
+  article,
+  children
+}: {
   article: string
+  children: ReactNode
+}) {
+  return (
+    <FeedbackContext.Provider value={useFeedbackLoader(article)}>
+      <Head>
+        {API_HOST && <link rel="preconnect" href={API_HOST} />}
+        <link
+          rel="preload"
+          as="fetch"
+          crossOrigin="anonymous"
+          href={getFeedbackURL(article)}
+        />
+      </Head>
+      {children}
+    </FeedbackContext.Provider>
+  )
 }
 
-export const Feedback = memo(({ article }: Props) => {
-  const [response, updateCount] = useFeedback(article)
+export const Feedback = memo(() => {
+  const [response, updateCount] = useContext(FeedbackContext)
   const [isActive, setActive] = useState<{
     fromCount: number
     mode: 'mouse' | 'touch'
@@ -146,15 +175,6 @@ export const Feedback = memo(({ article }: Props) => {
 
   return (
     <div className="feedback">
-      <Head>
-        {API_HOST && <link rel="preconnect" href={API_HOST} />}
-        <link
-          rel="preload"
-          as="fetch"
-          crossOrigin="anonymous"
-          href={getFeedbackURL(article)}
-        />
-      </Head>
       <style jsx>{`
         .feedback {
           align-items: center;
@@ -679,7 +699,16 @@ export type MediumPostFeedback = {
   voterCount: number
 }
 
-function useFeedback(
+type FeedbackUpdater = (updater: (prevCount: number) => number) => void
+
+const FeedbackContext = createContext<[AsyncFeedback, FeedbackUpdater]>([
+  { state: 'error', error: new Error('Missing Provider') },
+  () => {
+    throw new Error('Missing Provider')
+  }
+])
+
+function useFeedbackLoader(
   article: string
 ): [AsyncFeedback, (updater: (prevCount: number) => number) => void] {
   const cacheKey = `feedback:${article}`
@@ -780,7 +809,7 @@ function useFeedback(
     )
   }
 
-  return [response, updateCount]
+  return useMemo(() => [response, updateCount], [response])
 }
 
 function localStorageSet(key: string, value: any) {
