@@ -17,7 +17,7 @@ import { ExplodingLogo } from './ExplodingLogo'
 import { useWindowSize } from './useWindowSize'
 import { AllArticlesList } from './article/AllArticlesList'
 import { isoDate, shortDate, longDate } from './article/dateUtil'
-import { FeedbackProvider, Feedback } from './article/Feedback'
+import { Feedback } from './article/Feedback'
 import { FrontMatter } from './article/frontMatter'
 import { SelectionAnchor } from './article/SelectionAnchor'
 import { SelectionActions } from './article/SelectionActions'
@@ -117,112 +117,108 @@ export default (frontMatter: FrontMatter) => ({
           }}
         />
       </Head>
-      <FeedbackProvider article={frontMatter.slug}>
-        <Page>
-          <style jsx>{`
-            .articleLogo {
-              display: block;
-              display: table;
-              margin: -0.5em;
-              padding: 0.5em;
-            }
+      <Page>
+        <style jsx>{`
+          .articleLogo {
+            display: block;
+            display: table;
+            margin: -0.5em;
+            padding: 0.5em;
+          }
 
+          .articleLogo :global(svg) {
+            display: block;
+            height: 24px;
+          }
+
+          @media screen and (max-width: 600px) {
             .articleLogo :global(svg) {
-              display: block;
-              height: 24px;
+              height: 18px;
             }
+          }
 
-            @media screen and (max-width: 600px) {
-              .articleLogo :global(svg) {
-                height: 18px;
-              }
-            }
+          :global(blockquote > p) {
+            background: url(${require('../assets/bg-highlight.svg')}) top center /
+                auto 1.5rem padding-box space no-repeat,
+              #fff181 content-box;
+            box-decoration-break: clone;
+            color: black;
+            display: inline;
+            padding: 0 2ch 0 1ch;
+            margin-right: -1ch;
+          }
 
-            :global(blockquote > p) {
-              background: url(${require('../assets/bg-highlight.svg')}) top
-                  center / auto 1.5rem padding-box space no-repeat,
-                #fff181 content-box;
-              box-decoration-break: clone;
-              color: black;
-              display: inline;
-              padding: 0 2ch 0 1ch;
-              margin-right: -1ch;
-            }
+          article {
+            hanging-punctuation: first allow-end last;
+            overflow-wrap: break-word;
+            overflow-wrap: anywhere;
+          }
 
-            article {
-              hanging-punctuation: first allow-end last;
-              overflow-wrap: break-word;
-              overflow-wrap: anywhere;
-            }
+          article > :global(:first-child) {
+            margin-top: 0;
+          }
 
-            article > :global(:first-child) {
-              margin-top: 0;
-            }
+          header {
+            position: relative;
+            z-index: 1;
+          }
 
-            header {
-              position: relative;
-              z-index: 1;
-            }
-
-            .footerActions {
-              align-items: center;
-              display: flex;
-              justify-content: space-between;
-              margin: 2rem 0;
-            }
-          `}</style>
-          <header>
-            <Link href="/">
-              <a className="articleLogo" aria-label="homepage">
-                <ExplodingLogo offset={isMobile() ? 10 : 50} />
-              </a>
-            </Link>
-            <TitleHeading>{frontMatter.title}</TitleHeading>
-            {!router.query.screenshot && (
-              <HeaderMeta frontMatter={frontMatter} />
-            )}
-          </header>
-          <SelectionAnchor
-            initialSelection={initialSelection}
-            actions={({ encoded, decoded }) =>
-              !router.query.screenshot && (
-                <SelectionActions
-                  frontMatter={frontMatter}
-                  encoded={encoded}
-                  decoded={decoded}
-                />
-              )
-            }
-          >
-            <article>
-              <MDXProvider
-                components={{
-                  a: Anchor,
-                  img: BlockImage,
-                  p: P,
-                  h1: Heading('h1'),
-                  h2: Heading('h2'),
-                  h3: Heading('h3'),
-                  h4: Heading('h4'),
-                  h5: Heading('h5'),
-                  h6: Heading('h6')
-                }}
-              >
-                {children}
-              </MDXProvider>
-            </article>
-          </SelectionAnchor>
-          <footer>
-            <div className="footerActions">
-              <Feedback />
-              <ShareActions frontMatter={frontMatter} />
-            </div>
-            <AuthorInfo />
-            <h2>Additional Reading</h2>
-            <AllArticlesList exclude={frontMatter.slug} />
-          </footer>
-        </Page>
-      </FeedbackProvider>
+          .footerActions {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+          }
+        `}</style>
+        <header>
+          <Link href="/">
+            <a className="articleLogo" aria-label="homepage">
+              <ExplodingLogo offset={isMobile() ? 10 : 50} />
+            </a>
+          </Link>
+          <TitleHeading>{frontMatter.title}</TitleHeading>
+          {!router.query.screenshot && <HeaderMeta frontMatter={frontMatter} />}
+        </header>
+        <SelectionAnchor
+          initialSelection={initialSelection}
+          actions={({ encoded, decoded }) =>
+            !router.query.screenshot && (
+              <SelectionActions
+                frontMatter={frontMatter}
+                encoded={encoded}
+                decoded={decoded}
+              />
+            )
+          }
+        >
+          <article>
+            <MDXProvider
+              components={{
+                a: Anchor,
+                img: BlockImage,
+                p: P,
+                h1: Heading('h1'),
+                h2: Heading('h2'),
+                h3: Heading('h3'),
+                h4: Heading('h4'),
+                h5: Heading('h5'),
+                h6: Heading('h6')
+              }}
+            >
+              {children}
+            </MDXProvider>
+          </article>
+        </SelectionAnchor>
+        <footer>
+          <div className="footerActions">
+            <Feedback article={frontMatter.slug} />
+            <ShareActions frontMatter={frontMatter} />
+          </div>
+          <AuthorInfo />
+          <h2>Additional Reading</h2>
+          <AllArticlesList exclude={frontMatter.slug} />
+        </footer>
+      </Page>
     </Body>
   )
 }

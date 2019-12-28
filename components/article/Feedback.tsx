@@ -1,45 +1,15 @@
 import Head from 'next/head'
-import {
-  createContext,
-  memo,
-  ReactNode,
-  RefObject,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from 'react'
+import { memo, RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import { API_HOST } from './shareUtil'
 import { supportsPassiveEvents } from '../supportsPassiveEvents'
+import { useShared } from '../useShared/useShared'
 
 export const MAX_FEEDBACK_COUNT = 50
 
-export function FeedbackProvider({
-  article,
-  children
-}: {
-  article: string
-  children: ReactNode
-}) {
-  return (
-    <FeedbackContext.Provider value={useFeedbackLoader(article)}>
-      <Head>
-        {API_HOST && <link rel="preconnect" href={API_HOST} />}
-        <link
-          rel="preload"
-          as="fetch"
-          crossOrigin="anonymous"
-          href={getFeedbackURL(article)}
-        />
-      </Head>
-      {children}
-    </FeedbackContext.Provider>
+export const Feedback = memo(({ article }: { article: string }) => {
+  const [response, updateCount] = useShared(article, () =>
+    useFeedbackLoader(article)
   )
-}
-
-export const Feedback = memo(() => {
-  const [response, updateCount] = useContext(FeedbackContext)
   const [isActive, setActive] = useState<{
     fromCount: number
     mode: 'mouse' | 'touch'
@@ -175,6 +145,15 @@ export const Feedback = memo(() => {
 
   return (
     <div className="feedback">
+      <Head>
+        <link
+          rel="preload"
+          as="fetch"
+          crossOrigin="anonymous"
+          href={getFeedbackURL(article)}
+          key={`preload:${article}`}
+        />
+      </Head>
       <style jsx>{`
         .feedback {
           align-items: center;
@@ -701,13 +680,6 @@ export type MediumPostFeedback = {
 
 type FeedbackUpdater = (updater: (prevCount: number) => number) => void
 
-const FeedbackContext = createContext<[AsyncFeedback, FeedbackUpdater]>([
-  { state: 'error', error: new Error('Missing Provider') },
-  () => {
-    throw new Error('Missing Provider')
-  }
-])
-
 function useFeedbackLoader(
   article: string
 ): [AsyncFeedback, (updater: (prevCount: number) => number) => void] {
@@ -750,66 +722,68 @@ function useFeedbackLoader(
     )
   }, [article])
 
-  const updateCount = (updater: (prevCount: number) => number) => {
-    const nonce = makeUUID()
-    const prevCount = clientFeedbackCount(response)
-    const count = Math.min(MAX_FEEDBACK_COUNT, updater(prevCount))
-    if (count === prevCount) {
-      return
-    }
-    let optimisticValue: FeedbackResponse | undefined
-    if ('value' in response) {
-      // Compute an optimistic value based on merging in the new count
-      const {
-        totalClients,
-        totalFeedbackCount,
-        clientFeedbackCount
-      } = response.value.nativeFeedback
-      optimisticValue = mergeDeep(response.value, {
-        nativeFeedback: {
-          now: { '@ts': new Date().toISOString() },
-          totalClients:
-            totalClients -
-            (count === 0 ? 1 : 0) +
-            (clientFeedbackCount ? 0 : 1),
-          totalFeedbackCount:
-            totalFeedbackCount + count - (clientFeedbackCount || 0),
-          clientFeedbackCount: count
-        }
-      })
-      setResponse({ state: 'optimistic', nonce, value: optimisticValue })
-    } else {
-      setResponse({ state: 'loading', nonce })
-    }
+  return useMemo(() => {
+    const updateCount = (updater: (prevCount: number) => number) => {
+      const nonce = makeUUID()
+      const prevCount = clientFeedbackCount(response)
+      const count = Math.min(MAX_FEEDBACK_COUNT, updater(prevCount))
+      if (count === prevCount) {
+        return
+      }
+      let optimisticValue: FeedbackResponse | undefined
+      if ('value' in response) {
+        // Compute an optimistic value based on merging in the new count
+        const {
+          totalClients,
+          totalFeedbackCount,
+          clientFeedbackCount
+        } = response.value.nativeFeedback
+        optimisticValue = mergeDeep(response.value, {
+          nativeFeedback: {
+            now: { '@ts': new Date().toISOString() },
+            totalClients:
+              totalClients -
+              (count === 0 ? 1 : 0) +
+              (clientFeedbackCount ? 0 : 1),
+            totalFeedbackCount:
+              totalFeedbackCount + count - (clientFeedbackCount || 0),
+            clientFeedbackCount: count
+          }
+        })
+        setResponse({ state: 'optimistic', nonce, value: optimisticValue })
+      } else {
+        setResponse({ state: 'loading', nonce })
+      }
 
-    debouncedPostFeedback(article, count, nonce, signalRef.current).then(
-      value => {
-        // Merge post feedback into the optimistic value
-        const mergedValue = optimisticValue
-          ? mergeDeep(optimisticValue, value)
-          : value
-        localStorageSet(cacheKey, mergedValue)
-        setResponse(prev =>
-          // Check nonce before setting state in case this request is old
-          prev && 'nonce' in prev && prev.nonce !== nonce
-            ? prev
-            : { state: 'loaded', value: mergedValue }
-        )
-      },
-      error => {
-        if (error.name !== 'AbortError') {
+      debouncedPostFeedback(article, count, nonce, signalRef.current).then(
+        value => {
+          // Merge post feedback into the optimistic value
+          const mergedValue = optimisticValue
+            ? mergeDeep(optimisticValue, value)
+            : value
+          localStorageSet(cacheKey, mergedValue)
           setResponse(prev =>
             // Check nonce before setting state in case this request is old
             prev && 'nonce' in prev && prev.nonce !== nonce
               ? prev
-              : { state: 'error', error }
+              : { state: 'loaded', value: mergedValue }
           )
+        },
+        error => {
+          if (error.name !== 'AbortError') {
+            setResponse(prev =>
+              // Check nonce before setting state in case this request is old
+              prev && 'nonce' in prev && prev.nonce !== nonce
+                ? prev
+                : { state: 'error', error }
+            )
+          }
         }
-      }
-    )
-  }
+      )
+    }
 
-  return useMemo(() => [response, updateCount], [response])
+    return [response, updateCount]
+  }, [response])
 }
 
 function localStorageSet(key: string, value: any) {
@@ -886,6 +860,7 @@ async function fetchFeedback(
 ): Promise<FeedbackResponse> {
   const response = await fetch(getFeedbackURL(article), {
     mode: 'cors',
+    credentials: 'omit',
     signal
   })
   if (response.ok) {
@@ -919,6 +894,7 @@ async function postFeedback(
   const response = await fetch(getFeedbackURL(article), {
     method: 'POST',
     mode: 'cors',
+    credentials: 'omit',
     headers: {
       'Content-Type': 'application/json'
     },
