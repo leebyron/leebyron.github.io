@@ -1,12 +1,12 @@
 import Head from 'next/head'
-import { memo, RefObject, useEffect, useMemo, useRef, useState } from 'react'
+import { RefObject, useEffect, useMemo, useRef, useState, useReducer } from 'react'
 import { API_HOST } from './shareUtil'
 import { supportsPassiveEvents } from '../supportsPassiveEvents'
 import { useShared } from '../useShared/useShared'
 
 export const MAX_FEEDBACK_COUNT = 50
 
-export const Feedback = memo(({ article }: { article: string }) => {
+export function Feedback({ article }: { article: string }) {
   const [response, updateCount] = useShared(article, () =>
     useFeedbackLoader(article)
   )
@@ -408,7 +408,7 @@ export const Feedback = memo(({ article }: { article: string }) => {
       <FeedbackPhrase response={response} />
     </div>
   )
-})
+}
 
 function FeedbackPhrase({ response }: { response: AsyncFeedback }) {
   return (
@@ -677,8 +677,6 @@ export type MediumPostFeedback = {
   clapCount: number
   voterCount: number
 }
-
-type FeedbackUpdater = (updater: (prevCount: number) => number) => void
 
 function useFeedbackLoader(
   article: string

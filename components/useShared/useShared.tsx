@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { forEach } from 'iterall'
 
 /////////////////////
 
@@ -13,9 +14,7 @@ Proper types for all exported bits
 Devtools help?
 */
 
-type SharedHooksByKey = {
-  [key: string]: SharedHooks | undefined
-}
+type SharedHooksByKey = Map<string, SharedHooks>
 
 type SharedHooks = {
   numMounted: number
@@ -45,19 +44,21 @@ const ReactSharedInternals =
 const ReactCurrentDispatcher: { current: HooksDispatcher } =
   ReactSharedInternals.ReactCurrentDispatcher
 
+let LocalHooks: HooksDispatcher | undefined
+let sharedHooks: SharedHooks | undefined
+let currentCleanups: Array<() => void> | undefined
+
 const SharedHooksContext = React.createContext<SharedHooksByKey | null>(null)
 
 export function SharedHooksProvider(props: {
   children?: React.ReactNode
 }): React.ReactElement {
+  // @ts-ignore
   return React.createElement(SharedHooksContext.Provider, {
-    value: Object.create(null),
+    value: new Map(),
     children: props.children
   })
 }
-
-let LocalHooks: HooksDispatcher | undefined
-let sharedHooks: SharedHooks | undefined
 
 export function useLocal<T>(builder: () => T): T {
   const prevDispatcher = ReactCurrentDispatcher.current
@@ -65,6 +66,8 @@ export function useLocal<T>(builder: () => T): T {
     if (LocalHooks) {
       ReactCurrentDispatcher.current = LocalHooks
     }
+    // @ts-ignore Show clearer name in Dev Tools
+    builder.displayName = 'Local Hooks'
     return builder()
   } finally {
     ReactCurrentDispatcher.current = prevDispatcher
@@ -72,76 +75,113 @@ export function useLocal<T>(builder: () => T): T {
 }
 
 export function useShared<T>(key: string, builder: () => T): T {
+  // Get current thread-local variables so they can be reset in the
+  // finally block below.
+  const prevSharedHooks = sharedHooks
+  const prevCleanups = currentCleanups
+  const prevDispatcher = ReactCurrentDispatcher.current
+
+  try {
+    React.useDebugValue(key)
+
+    if (process.env.NODE_ENV !== 'production') {
+      // @ts-ignore Show a clearer name for dev tools
+      setupSharedHooks.displayName = '(Internal)'
+    }
+    setupSharedHooks(key)
+
+    // @ts-ignore Show clearer name in Dev Tools
+    builder.displayName = 'Shared Hooks'
+    const returnVal = builder()
+
+    if (process.env.NODE_ENV !== 'production') {
+      // Detect different call orders and warn
+      if (sharedHooks) {
+        if (sharedHooks.currentHook === undefined) {
+          sharedHooks.firstHook = null
+          console.warn('useShared: No hooks used inside')
+        } else if (sharedHooks.currentHook) {
+          if (sharedHooks.currentHook.next === undefined) {
+            sharedHooks.currentHook.next = null
+          } else if (sharedHooks.currentHook.next !== null) {
+            console.warn(
+              'useShared: a different number of hooks used (too few)'
+            )
+          }
+        }
+      }
+    }
+    return returnVal
+  } finally {
+    if (sharedHooks) {
+      // Reset current shared hooks to default state
+      sharedHooks.currentHook = undefined
+    }
+    // TODO: do hooks get discarded if a render throws?
+    sharedHooks = prevSharedHooks
+    currentCleanups = prevCleanups
+    ReactCurrentDispatcher.current = prevDispatcher
+  }
+}
+
+function setupSharedHooks(key: string) {
   const hooksByKey = React.useContext(SharedHooksContext)
   if (!hooksByKey) {
     throw new Error('Missing SharedProvider')
   }
 
   // Get the shared hooks by cached key or create a new one.
-  const hooksForKey =
-    hooksByKey[key] ||
-    (hooksByKey[key] = {
-      numMounted: 0,
-      firstHook: undefined,
-      currentHook: undefined
-    })
-
-  // Cleanup hooks after last component sharing this is unmounted.
-  React.useEffect(() => {
-    ++hooksForKey.numMounted
-    return () => {
-      if (--hooksForKey.numMounted === 0) {
-        delete hooksByKey[key]
-      }
-    }
-  }, [])
+  const cachedHooksForKey = hooksByKey.get(key)
+  const hooksForKey = cachedHooksForKey || {
+    numMounted: 0,
+    firstHook: undefined,
+    currentHook: undefined
+  }
+  if (!cachedHooksForKey) {
+    hooksByKey.set(key, hooksForKey)
+  }
 
   // The current hook should be unset when starting
   if (hooksForKey.currentHook) {
     throw new Error('useShared: the same key cannot be nested')
   }
 
-  // Keep track of previous hooks and dispatchers
-  const prevSharedHooks = sharedHooks
-  sharedHooks = hooksForKey
-  const prevDispatcher = ReactCurrentDispatcher.current
-  if (!prevDispatcher.isSharedDispatcher) {
-    LocalHooks = prevDispatcher
-  }
+  const cleanups: React.MutableRefObject<
+    Array<() => void> | undefined
+  > = React.useRef([])
 
-  try {
-    ReactCurrentDispatcher.current = {
-      ...prevDispatcher,
-      isSharedDispatcher: true,
-      useState: $useSharedState,
-      useReducer: $useSharedReducer,
-      useEffect: $useSharedEffect.bind(null, false),
-      useLayoutEffect: $useSharedEffect.bind(null, true),
-      useCallback: $useSharedCallback,
-      useMemo: $useSharedMemo,
-      useRef: $useSharedRef
-    }
-    const returnVal = builder()
-
-    // Detect different call orders
-    if (process.env.NODE_ENV !== 'production') {
-      if (sharedHooks.currentHook === undefined) {
-        sharedHooks.firstHook = null
-        console.warn('useShared: No hooks used inside')
-      } else if (sharedHooks.currentHook) {
-        if (sharedHooks.currentHook.next === undefined) {
-          sharedHooks.currentHook.next = null
-        } else if (sharedHooks.currentHook.next !== null) {
-          console.warn('useShared: a different number of hooks used (too few)')
-        }
+  // Cleanup hooks after last component sharing this is unmounted.
+  React.useEffect(function cleanup() {
+    ++hooksForKey.numMounted
+    return () => {
+      if (cleanups.current) {
+        cleanups.current.forEach(cleanupFn => cleanupFn())
+        cleanups.current = undefined
+      }
+      if (--hooksForKey.numMounted === 0) {
+        hooksByKey.delete(key)
       }
     }
-    return returnVal
-  } finally {
-    // TODO: do hooks get discarded if a render throws?
-    sharedHooks.currentHook = undefined
-    sharedHooks = prevSharedHooks
-    ReactCurrentDispatcher.current = prevDispatcher
+  }, [])
+
+  // Keep track of previous hooks and dispatchers
+  if (!ReactCurrentDispatcher.current.isSharedDispatcher) {
+    LocalHooks = ReactCurrentDispatcher.current
+  }
+
+  // Update thread-locals
+  sharedHooks = hooksForKey
+  currentCleanups = cleanups.current
+  ReactCurrentDispatcher.current = {
+    ...ReactCurrentDispatcher.current,
+    isSharedDispatcher: true,
+    useState: useState,
+    useReducer: useReducer,
+    useEffect: useEffect.bind(null, false),
+    useLayoutEffect: useEffect.bind(null, true),
+    useCallback: useCallback,
+    useMemo: useMemo,
+    useRef: useRef
   }
 }
 
@@ -203,31 +243,53 @@ export function useSharedState<S = undefined>(
   return useShared(key, () => React.useState<S>(initialState))
 }
 
-function $useSharedState<S = undefined>(
+type SharedStateHook<S> = {
+  state: S
+  dispatch: React.Dispatch<React.SetStateAction<S>>
+  subscribers: Set<(value: S) => void>
+}
+
+function useState<S = undefined>(
   initialState?: S | (() => S)
 ): [S, React.Dispatch<React.SetStateAction<S>>] {
-  return $useSharedReducer<typeof stateReducer, S | (() => S)>(
-    stateReducer,
-    // @ts-ignore
-    initialState,
-    stateInitializer
-  )
-}
-
-function stateReducer<S>(state: S, action: React.SetStateAction<S>): S {
-  if (typeof action === 'function') {
-    // @ts-ignore
-    return action(state)
+  if (!LocalHooks) {
+    throw new Error('Must be called within useShared()')
   }
-  return action
-}
 
-function stateInitializer<S>(initialState: S | (() => S)): S {
-  if (typeof initialState === 'function') {
+  const hook = getNextHook<SharedStateHook<S>>(() => ({
     // @ts-ignore
-    return initialState()
+    state: typeof initialState === 'function' ? initialState() : initialState,
+    dispatch(action) {
+      const newState =
+        // @ts-ignore
+        typeof action === 'function' ? action(hook.state) : action
+      if (!Object.is(newState, hook.state)) {
+        hook.state = newState
+        // NOTE: iterall types should really handle this without annotation
+        forEach(hook.subscribers, (subscriber: (value: S) => void) => {
+          subscriber(newState)
+        })
+      }
+    },
+    subscribers: new Set()
+  }))
+
+  let isInitial = false
+  const [state, setState] = LocalHooks.useState<S>(() => {
+    // TODO: could this be called more than once?
+    isInitial = true
+    return hook.state
+  })
+  if (isInitial) {
+    hook.subscribers.add(setState)
+
+    // Unsubscribe on unmount
+    currentCleanups?.push(function unsubscribe() {
+      hook.subscribers.delete(setState)
+    })
   }
-  return initialState
+
+  return [state, hook.dispatch]
 }
 
 // useSharedReducer
@@ -247,10 +309,10 @@ type SharedReducerHook<R extends React.Reducer<any, any>> = {
   reducer: R
   state: React.ReducerState<R>
   dispatch: React.Dispatch<React.ReducerAction<R>>
-  subscribers: Array<(value: React.ReducerState<R>) => void>
+  subscribers: Set<(value: React.ReducerState<R>) => void>
 }
 
-function $useSharedReducer<R extends React.Reducer<any, any>, I>(
+function useReducer<R extends React.Reducer<any, any>, I>(
   reducer: R,
   initializerArg: I & React.ReducerState<R>,
   initializer?: (arg: I) => React.ReducerState<R>
@@ -267,40 +329,39 @@ function $useSharedReducer<R extends React.Reducer<any, any>, I>(
       const newState = hook.reducer.call(null, hook.state, action)
       if (!Object.is(newState, hook.state)) {
         hook.state = newState
-        for (const subscriber of hook.subscribers) {
-          subscriber(newState)
-        }
+        // NOTE: iterall types should really handle this without annotation
+        forEach(
+          hook.subscribers,
+          (subscriber: (value: React.ReducerState<R>) => void) => {
+            subscriber(newState)
+          }
+        )
       }
     },
-    subscribers: []
+    subscribers: new Set()
   }))
 
   // Always use the latest reducer, in case of closed-over variables.
   hook.reducer = reducer
 
+  // Use simple reducer as state to ensure local hook is same as shared hook.
   let isInitial = false
-  const [state, setState] = LocalHooks.useState<React.ReducerState<R>>(() => {
-    // TODO: could this be called more than once?
-    isInitial = true
-    return hook.state
-  })
-  if (isInitial) {
-    hook.subscribers.push(setState)
-  }
-
-  // Unsubscribe on unmount
-  LocalHooks.useEffect(
-    () => () => {
-      const index = hook.subscribers.indexOf(setState)
-      if (index >= 0) {
-        const last = hook.subscribers[hook.subscribers.length - 1]
-        if (--hook.subscribers.length > 0) {
-          hook.subscribers[index] = last
-        }
-      }
-    },
-    []
+  const [state, setState] = LocalHooks.useReducer(
+    (_: any, next: React.ReducerState<R>) => next,
+    hook.state,
+    init => {
+      isInitial = true
+      return init
+    }
   )
+  if (isInitial) {
+    hook.subscribers.add(setState)
+
+    // Unsubscribe on unmount
+    currentCleanups?.push(function unsubscribe() {
+      hook.subscribers.delete(setState)
+    })
+  }
 
   return [state, hook.dispatch]
 }
@@ -329,7 +390,7 @@ type SharedEffectHook = {
   counter: number
 }
 
-function $useSharedEffect(
+function useEffect(
   isLayoutEffect: boolean,
   effect: React.EffectCallback,
   deps?: React.DependencyList
@@ -360,13 +421,22 @@ function $useSharedEffect(
   */
   const effectCallback = () => {
     if (hook.counter++ === 0) {
-      hook.cleanup = hook.effect()
+      const effectFn = hook.effect
+      hook.cleanup = effectFn()
     }
     return () => {
       if (--hook.counter === 0 && hook.cleanup) {
-        hook.cleanup()
+        const cleanupFn = hook.cleanup
+        cleanupFn()
       }
     }
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    Object.defineProperty(effectCallback, 'name', {
+      // @ts-ignore improve legibility in dev tools
+      value: effect.name || effect.displayName
+    })
   }
 
   if (isLayoutEffect) {
@@ -386,11 +456,19 @@ export function useSharedCallback<T extends (...args: any[]) => any>(
   return useShared(key, () => React.useCallback(callback, deps))
 }
 
-function $useSharedCallback<T extends (...args: any[]) => any>(
+function useCallback<T extends (...args: any[]) => any>(
   callback: T,
   deps: React.DependencyList
 ): T {
-  return $useSharedMemo(() => callback, deps)
+  const hook = getNextHook<SharedMemoHook<T>>(() => ({
+    value: callback,
+    deps
+  }))
+  if (!isSameDeps(deps, hook.deps)) {
+    hook.value = callback
+    hook.deps = deps
+  }
+  return hook.value
 }
 
 export function useSharedMemo<T>(
@@ -406,7 +484,7 @@ type SharedMemoHook<T> = {
   deps: React.DependencyList | undefined
 }
 
-function $useSharedMemo<T>(
+function useMemo<T>(
   factory: () => T,
   deps: React.DependencyList | undefined
 ): T {
@@ -430,12 +508,43 @@ export function useSharedRef<T>(
   return useShared(key, () => React.useRef(initialValue))
 }
 
-function $useSharedRef<T>(initialValue?: T): React.MutableRefObject<T> {
-  return getNextHook(() => {
-    const ref = { current: initialValue as T }
-    if (process.env.NODE_ENV !== 'production') {
-      Object.seal(ref)
+type SharedRefHook<T> = {
+  current: T | undefined
+  ref: React.MutableRefObject<T>
+  subscribers: Set<React.MutableRefObject<T>>
+}
+
+function useRef<T>(initialValue?: T): React.MutableRefObject<T> {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!LocalHooks) {
+      throw new Error('Must be called within useShared()')
     }
-    return ref
-  })
+    const hook: SharedRefHook<T> = getNextHook(() => ({
+      current: initialValue,
+      ref: Object.seal(
+        Object.defineProperty({}, 'current', {
+          get() {
+            return hook.current
+          },
+          set(value: T) {
+            console.log('updating ref', value)
+            forEach(hook.subscribers, (localRef: React.MutableRefObject<T>) => {
+              localRef.current = value
+            })
+            hook.current = value
+          }
+        })
+      ),
+      subscribers: new Set()
+    }))
+    const localRef = LocalHooks.useRef<any>(Symbol.for('unset'))
+    if (localRef.current === Symbol.for('unset')) {
+      hook.subscribers.add(localRef)
+      currentCleanups?.push(function unsubscribe() {
+        hook.subscribers.delete(localRef)
+      })
+    }
+    return hook.ref
+  }
+  return getNextHook(() => ({ current: initialValue as T }))
 }
