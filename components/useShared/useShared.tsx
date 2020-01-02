@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { forEach } from 'iterall'
+import { warn } from './warn'
 
 /////////////////////
 
@@ -40,7 +41,7 @@ const ReactSharedInternals =
 const ReactCurrentDispatcher: { current: HooksDispatcher } =
   ReactSharedInternals.ReactCurrentDispatcher
 
-let LocalHooks: HooksDispatcher | undefined
+let LocalHooks: HooksDispatcher
 let currentSharedHooks: SharedHooks | undefined
 let currentCleanups: Array<() => void> | undefined
 
@@ -78,6 +79,17 @@ export function useShared<T, A extends any[]>(
   hook: (...args: A) => T,
   ...args: A
 ): T {
+  if (process.env.NODE_ENV !== 'production') {
+    if (typeof hook !== 'function') {
+      throw new TypeError('useShared: Second argument must be a hook function')
+    }
+    if (hook.name && hook.name.slice(0, 3) !== 'use') {
+      warn(
+        `useShared: Second argument expected to be a hook function, but got a function named "${hook.name}"`
+      )
+    }
+  }
+
   // Get current thread-local variables so they can be reset in the
   // finally block below.
   const prevDispatcher = ReactCurrentDispatcher.current
@@ -99,14 +111,12 @@ export function useShared<T, A extends any[]>(
       if (currentSharedHooks) {
         if (currentSharedHooks.currentHook === undefined) {
           currentSharedHooks.firstHook = null
-          console.warn('useShared: No hooks used inside')
+          warn('useShared: No hooks used inside')
         } else if (currentSharedHooks.currentHook) {
           if (currentSharedHooks.currentHook.next === undefined) {
             currentSharedHooks.currentHook.next = null
           } else if (currentSharedHooks.currentHook.next !== null) {
-            console.warn(
-              'useShared: a different number of hooks used (too few)'
-            )
+            warn('useShared: Used fewer hooks than the last render')
           }
         }
       }
@@ -127,7 +137,7 @@ export function useShared<T, A extends any[]>(
 function useSharedHooksDispatcher(key: string) {
   const hooksByKey = React.useContext(SharedHooksContext)
   if (!hooksByKey) {
-    throw new Error('Missing SharedProvider')
+    throw new Error('useShared: Missing SharedHooksProvider')
   }
 
   // Get the shared hooks by cached key or create a new one.
@@ -207,7 +217,7 @@ function getNextHook<H>(initial: () => H): H {
       (currentSharedHooks.currentHook &&
         currentSharedHooks.currentHook.next === null)
     ) {
-      console.warn('useShared: a different number of hooks used (too many)')
+      warn('useShared: Used more hooks than the last render')
     }
   }
   if (!currentSharedHooks.currentHook) {
@@ -273,10 +283,6 @@ type SharedStateHook<S> = {
 function useState<S = undefined>(
   initialState?: S | (() => S)
 ): [S, React.Dispatch<React.SetStateAction<S>>] {
-  if (!LocalHooks) {
-    throw new Error('Must be called within useShared()')
-  }
-
   const hook = getNextHook<SharedStateHook<S>>(() => ({
     // @ts-ignore S cannot be a function
     state: typeof initialState === 'function' ? initialState() : initialState,
@@ -355,10 +361,6 @@ function useReducer<R extends React.Reducer<any, any>, I>(
   initializerArg: I & React.ReducerState<R>,
   initializer?: (arg: I) => React.ReducerState<R>
 ): [React.ReducerState<R>, React.Dispatch<React.ReducerAction<R>>] {
-  if (!LocalHooks) {
-    throw new Error('Must be called within useShared()')
-  }
-
   const hook = getNextHook<SharedReducerHook<R>>(() => ({
     reducer,
     state:
@@ -433,10 +435,6 @@ function useEffect(
   effect: React.EffectCallback,
   deps?: React.DependencyList
 ): void {
-  if (!LocalHooks) {
-    throw new Error('Must be called within useShared()')
-  }
-
   const hook: SharedEffectHook = getNextHook(() => ({
     effect,
     cleanup: undefined,
@@ -566,9 +564,6 @@ type SharedRefHook<T> = {
 
 function useRef<T>(initialValue?: T): React.MutableRefObject<T> {
   if (process.env.NODE_ENV !== 'production') {
-    if (!LocalHooks) {
-      throw new Error('Must be called within useShared()')
-    }
     const hook: SharedRefHook<T> = getNextHook(() => ({
       current: initialValue,
       ref: Object.seal(
