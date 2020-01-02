@@ -152,18 +152,10 @@ function setupSharedHooks(key: string) {
   > = React.useRef([])
 
   // Cleanup hooks after last component sharing this is unmounted.
-  React.useEffect(function cleanup() {
-    ++hooksForKey.numMounted
-    return () => {
-      if (cleanups.current) {
-        cleanups.current.forEach(cleanupFn => cleanupFn())
-        cleanups.current = undefined
-      }
-      if (--hooksForKey.numMounted === 0) {
-        hooksByKey.delete(key)
-      }
-    }
-  }, [])
+  React.useEffect(
+    sharedHooksCleanupEffect(hooksByKey, hooksForKey, key, cleanups),
+    []
+  )
 
   // Keep track of previous hooks and dispatchers
   if (!ReactCurrentDispatcher.current.isSharedDispatcher) {
@@ -183,6 +175,26 @@ function setupSharedHooks(key: string) {
     useCallback: useCallback,
     useMemo: useMemo,
     useRef: useRef
+  }
+}
+
+function sharedHooksCleanupEffect(
+  hooksByKey: SharedHooksByKey,
+  hooksForKey: SharedHooks,
+  key: string,
+  cleanups: React.MutableRefObject<Array<() => void> | undefined>
+) {
+  return function cleanup() {
+    ++hooksForKey.numMounted
+    return () => {
+      if (cleanups.current) {
+        cleanups.current.forEach(cleanupFn => cleanupFn())
+        cleanups.current = undefined
+      }
+      if (--hooksForKey.numMounted === 0) {
+        hooksByKey.delete(key)
+      }
+    }
   }
 }
 

@@ -1,5 +1,12 @@
 import Head from 'next/head'
-import { RefObject, useEffect, useMemo, useRef, useState, useReducer } from 'react'
+import {
+  RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useReducer
+} from 'react'
 import { API_HOST } from './shareUtil'
 import { supportsPassiveEvents } from '../supportsPassiveEvents'
 import { useShared } from '../useShared/useShared'
@@ -558,7 +565,7 @@ function useTouchActions(
     })
 
     return () => offs.forEach(off => off())
-  }, [])
+  }, [ref])
 }
 
 function clientFeedbackCount(feedback: AsyncFeedback): number {
@@ -684,13 +691,15 @@ function useFeedbackLoader(
   const cacheKey = `feedback:${article}`
   const [response, setResponse] = useState<AsyncFeedback>({ state: 'loading' })
   const signalRef = useRef<AbortSignal | undefined>()
-  useEffect(() => {
-    const controller = new AbortController()
-    signalRef.current = controller.signal
-    return () => {
-      controller.abort()
-    }
-  }, [article])
+  for (let i = 0; i < 1; i++) {
+    useEffect(() => {
+      const controller = new AbortController()
+      signalRef.current = controller.signal
+      return () => {
+        controller.abort()
+      }
+    }, [article])
+  }
 
   useEffect(() => {
     const cacheValue = localStorageGet(cacheKey)
@@ -718,7 +727,7 @@ function useFeedbackLoader(
         }
       }
     )
-  }, [article])
+  }, [article, cacheKey])
 
   return useMemo(() => {
     const updateCount = (updater: (prevCount: number) => number) => {
@@ -781,7 +790,7 @@ function useFeedbackLoader(
     }
 
     return [response, updateCount]
-  }, [response])
+  }, [response, article, cacheKey])
 }
 
 function localStorageSet(key: string, value: any) {

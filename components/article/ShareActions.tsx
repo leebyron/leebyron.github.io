@@ -17,22 +17,25 @@ import { isAlternateClick } from './isAlterateClick'
 
 export function ShareActions({ frontMatter }: { frontMatter: FrontMatter }) {
   const toaster = useRef<ToastRef>()
-  const onClickShareLink = useCallback(event => {
-    // Allow right-click and command-click to behave as normal.
-    if (isAlternateClick(event)) {
-      return
-    }
-    event.preventDefault()
-    if (canNativeShare()) {
-      nativeShare({
-        title: frontMatter.title,
-        url: canonicalURL(frontMatter.slug)
-      })
-    } else {
-      copyToClipboard(canonicalURL(frontMatter.slug))
-      toaster.current && toaster.current.toast('Link Copied')
-    }
-  }, [])
+  const onClickShareLink = useCallback(
+    event => {
+      // Allow right-click and command-click to behave as normal.
+      if (isAlternateClick(event)) {
+        return
+      }
+      event.preventDefault()
+      if (canNativeShare()) {
+        nativeShare({
+          title: frontMatter.title,
+          url: canonicalURL(frontMatter.slug)
+        })
+      } else {
+        copyToClipboard(canonicalURL(frontMatter.slug))
+        toaster.current && toaster.current.toast('Link Copied')
+      }
+    },
+    [frontMatter]
+  )
 
   return (
     <div className="share">

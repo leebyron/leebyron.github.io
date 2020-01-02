@@ -400,7 +400,7 @@ function TitleHeading({ children }: { children: string }) {
         h1.current.style.overflow = ''
       }
     }
-  }, [width])
+  }, [children, noWidow, width])
   return (
     <h1 ref={h1}>
       <style jsx>{`

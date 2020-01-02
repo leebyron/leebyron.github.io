@@ -57,7 +57,7 @@ export function SelectionActions({
       }
       elem.style.left = `${window.scrollX + (left + right) / 2}px`
     }
-  }, [encoded, width, height])
+  }, [popUnder, decoded, width, height])
 
   const shareSelection = (linkOnly: boolean) => {
     if (canNativeShare()) {

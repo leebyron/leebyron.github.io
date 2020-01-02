@@ -63,6 +63,6 @@ export function useScrollAndHeight(
     update({ scroll: window.scrollY, height: window.innerHeight })
     addListener(update)
     return () => removeListener(update)
-  }, [])
+  }, [limit])
   return state
 }
