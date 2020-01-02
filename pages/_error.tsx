@@ -104,7 +104,7 @@ function GHIssueLink({ children }: { children: ReactNode }) {
     <a
       href={`https://github.com/leebyron/leebyron.com/issues/new${query}`}
       target="_blank"
-      rel="noopener"
+      rel="noopener noreferrer"
     >
       {children}
     </a>

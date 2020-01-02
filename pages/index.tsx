@@ -26,14 +26,8 @@ export default () => (
       <meta property="og:image" content={headshot.src} />
       <meta property="og:image:secure_url" content={headshot.src} />
       <meta property="og:image:alt" content="Headshot of Lee Byron" />
-      <meta
-        property="og:image:width"
-        content={headshot.width}
-      />
-      <meta
-        property="og:image:height"
-        content={headshot.height}
-      />
+      <meta property="og:image:width" content={headshot.width} />
+      <meta property="og:image:height" content={headshot.height} />
       <meta property="og:type" content="profile" />
       <meta property="og:profile:first_name" content="Lee" />
       <meta property="og:profile:last_name" content="Byron" />
@@ -115,27 +109,51 @@ function Talks() {
           }
         }
       `}</style>
-      <a href="https://youtu.be/vG8WpLr6y_U" target="_blank" rel="noopener">
+      <a
+        href="https://youtu.be/vG8WpLr6y_U"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <img alt="" {...require('../assets/talks/1999.jpg')} />
-        Program like it's 1999
+        Program like it&#x02BC;s 1999
       </a>
-      <a href="https://youtu.be/VjHWkBr3tjI" target="_blank" rel="noopener">
+      <a
+        href="https://youtu.be/VjHWkBr3tjI"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <img alt="" {...require('../assets/talks/graphql-history.jpg')} />
         Brief history of GraphQL
       </a>
-      <a href="https://youtu.be/oTcDmnAXZ4E" target="_blank" rel="noopener">
+      <a
+        href="https://youtu.be/oTcDmnAXZ4E"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <img alt="" {...require('../assets/talks/idea-architecture.jpg')} />
         The IDEA Architecture
       </a>
-      <a href="https://youtu.be/Oh5oC98ztvI" target="_blank" rel="noopener">
+      <a
+        href="https://youtu.be/Oh5oC98ztvI"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <img alt="" {...require('../assets/talks/data-language.jpg')} />
         Designing a data language
       </a>
-      <a href="https://youtu.be/WQLzZf34FJ8" target="_blank" rel="noopener">
+      <a
+        href="https://youtu.be/WQLzZf34FJ8"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <img alt="" {...require('../assets/talks/exploring-graphql.jpg')} />
         Exploring GraphQL
       </a>
-      <a href="https://youtu.be/I7IdS-PbEgI" target="_blank" rel="noopener">
+      <a
+        href="https://youtu.be/I7IdS-PbEgI"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <img alt="" {...require('../assets/talks/immutable-data.jpg')} />
         Immutable data in React
       </a>
@@ -357,16 +375,28 @@ function Header() {
 
         <div className="cardBack" style={cardMoveBack(ms, hei)}>
           <em>Design Technologist</em>
-          <a href="https://twitter.com/leeb" target="_blank" rel="noopener">
+          <a
+            href="https://twitter.com/leeb"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             @leeb
           </a>
           <a href="mailto&#58;&#108;&#37;65e&#64;leebyron&#46;c&#111;&#109;">
             l&#101;e&#64;&#108;e&#101;&#98;&#121;&#114;on&#46;&#99;om
           </a>
-          <a href="https://github.com/leebyron" target="_blank" rel="noopener">
+          <a
+            href="https://github.com/leebyron"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             github.com/leebyron
           </a>
-          <a href="https://keybase.io/leeb" target="_blank" rel="noopener">
+          <a
+            href="https://keybase.io/leeb"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             keybase.io/leeb
           </a>
         </div>

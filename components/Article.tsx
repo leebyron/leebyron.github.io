@@ -538,7 +538,7 @@ function reactToString(node: ReactNode): string | null {
 
 function Anchor({ href, children }: { href?: string; children?: ReactNode }) {
   return !href || /^https?:\/\//.test(href) ? (
-    <a href={href} target="_blank" rel="noopener">
+    <a href={href} target="_blank" rel="noopener noreferrer">
       {children}
     </a>
   ) : (

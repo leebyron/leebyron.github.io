@@ -54,10 +54,11 @@ export function SharedHooksProvider(props: {
   children?: React.ReactNode
 }): React.ReactElement {
   // @ts-ignore
-  return React.createElement(SharedHooksContext.Provider, {
-    value: new Map(),
-    children: props.children
-  })
+  return React.createElement(
+    SharedHooksContext.Provider,
+    { value: new Map() },
+    props.children
+  )
 }
 
 export function useLocal<T>(builder: () => T): T {
@@ -527,7 +528,6 @@ function useRef<T>(initialValue?: T): React.MutableRefObject<T> {
             return hook.current
           },
           set(value: T) {
-            console.log('updating ref', value)
             forEach(hook.subscribers, (localRef: React.MutableRefObject<T>) => {
               localRef.current = value
             })

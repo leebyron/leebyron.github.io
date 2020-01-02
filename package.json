@@ -3,6 +3,8 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "test": "yarn lint",
+    "lint": "eslint --ignore-path .gitignore '**/*.@(tsx|js)'",
     "dev": "env $(cat .env | xargs) next",
     "build": "next build",
     "start": "next start",
@@ -42,7 +44,11 @@
     "@types/node-fetch": "2.5.4",
     "@types/puppeteer": "2.0.0",
     "@types/react": "16.9.16",
+    "@typescript-eslint/eslint-plugin": "2.14.0",
+    "@typescript-eslint/parser": "2.14.0",
     "babel-plugin-import-glob-array": "0.2.0",
+    "eslint": "6.8.0",
+    "eslint-plugin-react": "7.17.0",
     "prettier": "1.19.1",
     "typescript": "3.7.3"
   }

@@ -79,7 +79,7 @@ export function ShareActions({ frontMatter }: { frontMatter: FrontMatter }) {
             twitterTitleTweet(frontMatter.slug, frontMatter.title)
           )}
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
         >
           <TwitterSVG />
         </a>
@@ -87,7 +87,7 @@ export function ShareActions({ frontMatter }: { frontMatter: FrontMatter }) {
           aria-label="share to Facebook"
           href={facebookShareURL(frontMatter.slug)}
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
         >
           <FacebookSVG />
         </a>

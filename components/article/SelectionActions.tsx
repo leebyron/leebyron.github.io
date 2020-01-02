@@ -155,7 +155,7 @@ export function SelectionActions({
             twitterQuoteTweet(article, encoded, decoded.range.toString())
           )}
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
         >
           <TwitterSVG />
         </a>
@@ -163,7 +163,7 @@ export function SelectionActions({
           aria-label="share quote to Facebook"
           href={facebookShareURL(article, encoded)}
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
         >
           <FacebookSVG />
         </a>

@@ -14,7 +14,9 @@ export function supportsPassiveEvents(): boolean {
       window.addEventListener('testPassive', null, opts)
       // @ts-ignore fake event
       window.removeEventListener('testPassive', null, opts)
-    } catch (e) {}
+    } catch {
+      // Ignore error
+    }
   }
   return supportsPassive
 }

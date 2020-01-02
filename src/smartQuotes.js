@@ -17,7 +17,7 @@ const apostrophe = '\u02BC'
 
 function smartify(text) {
   const isOpen = { "'": 0, '"': 0 }
-  return text.replace(/["']/g, (quote, i) => {
+  const smartText = text.replace(/["']/g, (quote, i) => {
     const prev = text[i - 1]
     const next = text[i + 1]
 
@@ -26,7 +26,7 @@ function smartify(text) {
       prev &&
       next &&
       wordRx.test(prev) &&
-      (wordRx.test(next) || prev === 's' && whitespaceRx.test(next))
+      (wordRx.test(next) || (prev === 's' && whitespaceRx.test(next)))
     ) {
       return apostrophe
     }
@@ -46,4 +46,6 @@ function smartify(text) {
   if (isOpen["'"] > 0) {
     console.error("unbalanced '")
   }
+
+  return smartText
 }
