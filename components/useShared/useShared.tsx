@@ -10,11 +10,7 @@ Unit tests!
   - setState during render?
   - throw/suspend during render?
   - concurrent mode support?
-Proper types for all exported bits
-Devtools help?
 */
-
-type SharedHooksByKey = Map<string, SharedHooks>
 
 type SharedHooks = {
   numMounted: number
@@ -45,15 +41,16 @@ const ReactCurrentDispatcher: { current: HooksDispatcher } =
   ReactSharedInternals.ReactCurrentDispatcher
 
 let LocalHooks: HooksDispatcher | undefined
-let sharedHooks: SharedHooks | undefined
+let currentSharedHooks: SharedHooks | undefined
 let currentCleanups: Array<() => void> | undefined
 
-const SharedHooksContext = React.createContext<SharedHooksByKey | null>(null)
+const SharedHooksContext = React.createContext<Map<any, SharedHooks> | null>(
+  null
+)
 
 export function SharedHooksProvider(props: {
   children?: React.ReactNode
 }): React.ReactElement {
-  // @ts-ignore
   return React.createElement(
     SharedHooksContext.Provider,
     { value: new Map() },
@@ -61,50 +58,52 @@ export function SharedHooksProvider(props: {
   )
 }
 
-export function useLocal<T>(builder: () => T): T {
+export function useLocal<T, A extends any[]>(
+  hook: (...args: A) => T,
+  ...args: A
+): T {
   const prevDispatcher = ReactCurrentDispatcher.current
   try {
     if (LocalHooks) {
       ReactCurrentDispatcher.current = LocalHooks
     }
-    // @ts-ignore Show clearer name in Dev Tools
-    builder.displayName = 'Local Hooks'
-    return builder()
+    return hook.apply(null, args)
   } finally {
     ReactCurrentDispatcher.current = prevDispatcher
   }
 }
 
-export function useShared<T>(key: string, builder: () => T): T {
+export function useShared<T, A extends any[]>(
+  key: any,
+  hook: (...args: A) => T,
+  ...args: A
+): T {
   // Get current thread-local variables so they can be reset in the
   // finally block below.
-  const prevSharedHooks = sharedHooks
-  const prevCleanups = currentCleanups
   const prevDispatcher = ReactCurrentDispatcher.current
+  const prevSharedHooks = currentSharedHooks
+  const prevCleanups = currentCleanups
 
   try {
-    React.useDebugValue(key)
-
     if (process.env.NODE_ENV !== 'production') {
+      React.useDebugValue(key)
       // @ts-ignore Show a clearer name for dev tools
-      setupSharedHooks.displayName = '(Internal)'
+      useSharedHooksDispatcher.displayName = '(Internal)'
     }
-    setupSharedHooks(key)
+    useSharedHooksDispatcher(key)
 
-    // @ts-ignore Show clearer name in Dev Tools
-    builder.displayName = 'Shared Hooks'
-    const returnVal = builder()
+    const returnVal = hook.apply(null, args)
 
     if (process.env.NODE_ENV !== 'production') {
       // Detect different call orders and warn
-      if (sharedHooks) {
-        if (sharedHooks.currentHook === undefined) {
-          sharedHooks.firstHook = null
+      if (currentSharedHooks) {
+        if (currentSharedHooks.currentHook === undefined) {
+          currentSharedHooks.firstHook = null
           console.warn('useShared: No hooks used inside')
-        } else if (sharedHooks.currentHook) {
-          if (sharedHooks.currentHook.next === undefined) {
-            sharedHooks.currentHook.next = null
-          } else if (sharedHooks.currentHook.next !== null) {
+        } else if (currentSharedHooks.currentHook) {
+          if (currentSharedHooks.currentHook.next === undefined) {
+            currentSharedHooks.currentHook.next = null
+          } else if (currentSharedHooks.currentHook.next !== null) {
             console.warn(
               'useShared: a different number of hooks used (too few)'
             )
@@ -114,18 +113,18 @@ export function useShared<T>(key: string, builder: () => T): T {
     }
     return returnVal
   } finally {
-    if (sharedHooks) {
+    if (currentSharedHooks) {
       // Reset current shared hooks to default state
-      sharedHooks.currentHook = undefined
+      currentSharedHooks.currentHook = undefined
     }
     // TODO: do hooks get discarded if a render throws?
-    sharedHooks = prevSharedHooks
-    currentCleanups = prevCleanups
     ReactCurrentDispatcher.current = prevDispatcher
+    currentSharedHooks = prevSharedHooks
+    currentCleanups = prevCleanups
   }
 }
 
-function setupSharedHooks(key: string) {
+function useSharedHooksDispatcher(key: string) {
   const hooksByKey = React.useContext(SharedHooksContext)
   if (!hooksByKey) {
     throw new Error('Missing SharedProvider')
@@ -163,7 +162,7 @@ function setupSharedHooks(key: string) {
   }
 
   // Update thread-locals
-  sharedHooks = hooksForKey
+  currentSharedHooks = hooksForKey
   currentCleanups = cleanups.current
   ReactCurrentDispatcher.current = {
     ...ReactCurrentDispatcher.current,
@@ -179,9 +178,9 @@ function setupSharedHooks(key: string) {
 }
 
 function sharedHooksCleanupEffect(
-  hooksByKey: SharedHooksByKey,
+  hooksByKey: Map<any, SharedHooks>,
   hooksForKey: SharedHooks,
-  key: string,
+  key: any,
   cleanups: React.MutableRefObject<Array<() => void> | undefined>
 ) {
   return function cleanup() {
@@ -199,35 +198,36 @@ function sharedHooksCleanupEffect(
 }
 
 function getNextHook<H>(initial: () => H): H {
-  if (!sharedHooks) {
+  if (!currentSharedHooks) {
     throw new Error('useShared: Called a shared hook outside of useShared?')
   }
   if (process.env.NODE_ENV !== 'production') {
     if (
-      sharedHooks.currentHook === null ||
-      (sharedHooks.currentHook && sharedHooks.currentHook.next === null)
+      currentSharedHooks.currentHook === null ||
+      (currentSharedHooks.currentHook &&
+        currentSharedHooks.currentHook.next === null)
     ) {
       console.warn('useShared: a different number of hooks used (too many)')
     }
   }
-  if (!sharedHooks.currentHook) {
-    if (!sharedHooks.firstHook) {
-      sharedHooks.firstHook = {
+  if (!currentSharedHooks.currentHook) {
+    if (!currentSharedHooks.firstHook) {
+      currentSharedHooks.firstHook = {
         value: initial(),
         next: undefined
       }
     }
-    sharedHooks.currentHook = sharedHooks.firstHook
+    currentSharedHooks.currentHook = currentSharedHooks.firstHook
   } else {
-    if (!sharedHooks.currentHook.next) {
-      sharedHooks.currentHook.next = {
+    if (!currentSharedHooks.currentHook.next) {
+      currentSharedHooks.currentHook.next = {
         value: initial(),
         next: undefined
       }
     }
-    sharedHooks.currentHook = sharedHooks.currentHook.next
+    currentSharedHooks.currentHook = currentSharedHooks.currentHook.next
   }
-  return sharedHooks.currentHook.value
+  return currentSharedHooks.currentHook.value
 }
 
 function isSameDeps(
@@ -249,11 +249,19 @@ function isSameDeps(
 
 // useSharedState
 
-export function useSharedState<S = undefined>(
-  key: string,
+export function useSharedState<S>(
+  key: any,
   initialState: S | (() => S)
+): [S, React.Dispatch<React.SetStateAction<S>>]
+export function useSharedState<S = undefined>(
+  key: any
+): [S | undefined, React.Dispatch<React.SetStateAction<S | undefined>>]
+export function useSharedState<S>(
+  key: any,
+  initialState?: S | (() => S)
 ): [S, React.Dispatch<React.SetStateAction<S>>] {
-  return useShared(key, () => React.useState<S>(initialState))
+  // @ts-ignore Not all React.useState signatures can be satisfied
+  return useShared(key, React.useState, initialState)
 }
 
 type SharedStateHook<S> = {
@@ -270,11 +278,11 @@ function useState<S = undefined>(
   }
 
   const hook = getNextHook<SharedStateHook<S>>(() => ({
-    // @ts-ignore
+    // @ts-ignore S cannot be a function
     state: typeof initialState === 'function' ? initialState() : initialState,
     dispatch(action) {
       const newState =
-        // @ts-ignore
+        // @ts-ignore S cannot be a function
         typeof action === 'function' ? action(hook.state) : action
       if (!Object.is(newState, hook.state)) {
         hook.state = newState
@@ -289,7 +297,7 @@ function useState<S = undefined>(
 
   let isInitial = false
   const [state, setState] = LocalHooks.useState<S>(() => {
-    // TODO: could this be called more than once?
+    // TODO: could this be called more than once? maybe if suspended?
     isInitial = true
     return hook.state
   })
@@ -308,14 +316,31 @@ function useState<S = undefined>(
 // useSharedReducer
 
 export function useSharedReducer<R extends React.Reducer<any, any>, I>(
-  key: string,
+  key: any,
   reducer: R,
   initializerArg: I & React.ReducerState<R>,
+  initializer: (arg: I & React.ReducerState<R>) => React.ReducerState<R>
+): [React.ReducerState<R>, React.Dispatch<React.ReducerAction<R>>]
+export function useSharedReducer<R extends React.Reducer<any, any>, I>(
+  key: any,
+  reducer: R,
+  initializerArg: I,
   initializer: (arg: I) => React.ReducerState<R>
+): [React.ReducerState<R>, React.Dispatch<React.ReducerAction<R>>]
+export function useSharedReducer<R extends React.Reducer<any, any>>(
+  key: any,
+  reducer: R,
+  initialState: React.ReducerState<R>,
+  initializer?: undefined
+): [React.ReducerState<R>, React.Dispatch<React.ReducerAction<R>>]
+export function useSharedReducer<R extends React.Reducer<any, any>, I>(
+  key: any,
+  reducer: R,
+  initializerArg: I & React.ReducerState<R>,
+  initializer?: (arg: I) => React.ReducerState<R>
 ): [React.ReducerState<R>, React.Dispatch<React.ReducerAction<R>>] {
-  return useShared(key, () =>
-    React.useReducer<R, I>(reducer, initializerArg, initializer)
-  )
+  // @ts-ignore Not all React.useReducer signatures can be satisfied
+  return useShared(key, React.useReducer, reducer, initializerArg, initializer)
 }
 
 type SharedReducerHook<R extends React.Reducer<any, any>> = {
@@ -382,19 +407,19 @@ function useReducer<R extends React.Reducer<any, any>, I>(
 // useSharedEffect / useSharedLayoutEffect
 
 export function useSharedEffect(
-  key: string,
+  key: any,
   effect: React.EffectCallback,
   deps?: React.DependencyList
 ): void {
-  return useShared(key, () => React.useEffect(effect, deps))
+  return useShared(key, React.useEffect, effect, deps)
 }
 
 export function useSharedLayoutEffect(
-  key: string,
+  key: any,
   effect: React.EffectCallback,
   deps?: React.DependencyList
 ): void {
-  return useShared(key, () => React.useLayoutEffect(effect, deps))
+  return useShared(key, React.useLayoutEffect, effect, deps)
 }
 
 type SharedEffectHook = {
@@ -412,7 +437,7 @@ function useEffect(
     throw new Error('Must be called within useShared()')
   }
 
-  const hook = getNextHook<SharedEffectHook>(() => ({
+  const hook: SharedEffectHook = getNextHook(() => ({
     effect,
     cleanup: undefined,
     counter: 0
@@ -448,7 +473,7 @@ function useEffect(
   if (process.env.NODE_ENV !== 'production') {
     Object.defineProperty(effectCallback, 'name', {
       // @ts-ignore improve legibility in dev tools
-      value: effect.name || effect.displayName
+      value: effect.displayName || effect.name
     })
   }
 
@@ -462,11 +487,11 @@ function useEffect(
 // useCallback / useMemo
 
 export function useSharedCallback<T extends (...args: any[]) => any>(
-  key: string,
+  key: any,
   callback: T,
   deps: React.DependencyList
 ): T {
-  return useShared(key, () => React.useCallback(callback, deps))
+  return useShared(key, React.useCallback, callback, deps)
 }
 
 function useCallback<T extends (...args: any[]) => any>(
@@ -485,11 +510,11 @@ function useCallback<T extends (...args: any[]) => any>(
 }
 
 export function useSharedMemo<T>(
-  key: string,
+  key: any,
   factory: () => T,
   deps: React.DependencyList | undefined
 ): T {
-  return useShared(key, () => React.useMemo(factory, deps))
+  return useShared(key, React.useMemo, factory, deps)
 }
 
 type SharedMemoHook<T> = {
@@ -515,10 +540,22 @@ function useMemo<T>(
 // useRef
 
 export function useSharedRef<T>(
-  key: string,
+  key: any,
   initialValue: T
+): React.MutableRefObject<T>
+export function useSharedRef<T>(
+  key: any,
+  initialValue: T | null
+): React.RefObject<T>
+export function useSharedRef<T = undefined>(
+  key: any
+): React.MutableRefObject<T | undefined>
+export function useSharedRef<T>(
+  key: any,
+  initialValue?: T
 ): React.MutableRefObject<T> {
-  return useShared(key, () => React.useRef(initialValue))
+  // @ts-ignore Not all React.useRef signatures can be satisfied
+  return useShared(key, React.useRef, initialValue)
 }
 
 type SharedRefHook<T> = {

@@ -1,12 +1,5 @@
 import Head from 'next/head'
-import {
-  RefObject,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useReducer
-} from 'react'
+import { RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import { API_HOST } from './shareUtil'
 import { supportsPassiveEvents } from '../supportsPassiveEvents'
 import { useShared } from '../useShared/useShared'
@@ -14,9 +7,7 @@ import { useShared } from '../useShared/useShared'
 export const MAX_FEEDBACK_COUNT = 50
 
 export function Feedback({ article }: { article: string }) {
-  const [response, updateCount] = useShared(article, () =>
-    useFeedbackLoader(article)
-  )
+  const [response, updateCount] = useShared(article, useFeedbackLoader, article)
   const [isActive, setActive] = useState<{
     fromCount: number
     mode: 'mouse' | 'touch'
@@ -691,15 +682,13 @@ function useFeedbackLoader(
   const cacheKey = `feedback:${article}`
   const [response, setResponse] = useState<AsyncFeedback>({ state: 'loading' })
   const signalRef = useRef<AbortSignal | undefined>()
-  for (let i = 0; i < 1; i++) {
-    useEffect(() => {
-      const controller = new AbortController()
-      signalRef.current = controller.signal
-      return () => {
-        controller.abort()
-      }
-    }, [article])
-  }
+  useEffect(() => {
+    const controller = new AbortController()
+    signalRef.current = controller.signal
+    return () => {
+      controller.abort()
+    }
+  }, [article])
 
   useEffect(() => {
     const cacheValue = localStorageGet(cacheKey)
