@@ -144,4 +144,27 @@ describe('useSharedState', () => {
     click(container.firstElementChild)
     expect(container.textContent).toEqual('1-1')
   })
+
+  it('supports update-in-render', () => {
+    function Counter() {
+      const [state, setState] = useSharedState('key', 0)
+      const ref = React.useRef(false)
+      if (!ref.current) {
+        ref.current = true
+        setState(i => i + 1)
+      }
+      return <div>{state}</div>
+    }
+    function Component() {
+      return (
+        <>
+          <Counter />
+          {'-'}
+          <Counter />
+        </>
+      )
+    }
+    render(Component)
+    expect(container.textContent).toEqual('2-2')
+  })
 })

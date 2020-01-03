@@ -7,7 +7,6 @@ import { forEach } from 'iterall'
 TODO:
 Unit tests!
   - nested useShared?
-  - setState during render?
   - throw/suspend during render?
   - concurrent mode support?
 */
@@ -44,7 +43,7 @@ const ReactCurrentDispatcher: { current: HooksDispatcher } =
 
 let LocalHooks: HooksDispatcher
 let currentSharedHooks: SharedHooks
-let currentCleanups: Array<() => void> | undefined
+let currentCleanups: Array<() => void>
 
 const SharedHooksContext = React.createContext<Map<any, SharedHooks>>(
   null as any
@@ -143,9 +142,7 @@ function useSharedHooksDispatcher(key: string) {
   hooksForKey.isRendering = true
   hooksForKey.currentHook = null
 
-  const cleanups: React.MutableRefObject<
-    Array<() => void> | undefined
-  > = React.useRef([])
+  const cleanups: React.MutableRefObject<Array<() => void>> = React.useRef([])
 
   // Cleanup hooks after last component sharing this is unmounted.
   React.useEffect(
@@ -178,14 +175,14 @@ function sharedHooksCleanupEffect(
   hooksByKey: Map<any, SharedHooks>,
   hooksForKey: SharedHooks,
   key: any,
-  cleanups: React.MutableRefObject<Array<() => void> | undefined>
+  cleanups: React.MutableRefObject<Array<() => void>>
 ) {
   return function cleanup() {
     ++hooksForKey.numMounted
     return () => {
       if (cleanups.current) {
         cleanups.current.forEach(cleanupFn => cleanupFn())
-        cleanups.current = undefined
+        cleanups.current.length = 0
       }
       if (--hooksForKey.numMounted === 0) {
         hooksByKey.delete(key)
@@ -252,8 +249,7 @@ function useState<S = undefined>(
         typeof action === 'function' ? action(hook.state) : action
       if (!Object.is(newState, hook.state)) {
         hook.state = newState
-        // NOTE: iterall types should really handle this without annotation
-        forEach(hook.subscribers, (subscriber: (value: S) => void) => {
+        forEach(hook.subscribers, subscriber => {
           subscriber(newState)
         })
       }
@@ -269,9 +265,7 @@ function useState<S = undefined>(
   })
   if (isInitial) {
     hook.subscribers.add(setState)
-
-    // Unsubscribe on unmount
-    currentCleanups?.push(function unsubscribe() {
+    currentCleanups.push(function unsubscribe() {
       hook.subscribers.delete(setState)
     })
   }
@@ -301,13 +295,9 @@ function useReducer<R extends React.Reducer<any, any>, I>(
       const newState = hook.reducer.call(null, hook.state, action)
       if (!Object.is(newState, hook.state)) {
         hook.state = newState
-        // NOTE: iterall types should really handle this without annotation
-        forEach(
-          hook.subscribers,
-          (subscriber: (value: React.ReducerState<R>) => void) => {
-            subscriber(newState)
-          }
-        )
+        forEach(hook.subscribers, subscriber => {
+          subscriber(newState)
+        })
       }
     },
     subscribers: new Set()
@@ -328,9 +318,7 @@ function useReducer<R extends React.Reducer<any, any>, I>(
   )
   if (isInitial) {
     hook.subscribers.add(setState)
-
-    // Unsubscribe on unmount
-    currentCleanups?.push(function unsubscribe() {
+    currentCleanups.push(function unsubscribe() {
       hook.subscribers.delete(setState)
     })
   }
@@ -453,7 +441,7 @@ function useRef<T>(initialValue?: T): React.MutableRefObject<T> {
             return hook.current
           },
           set(value: T) {
-            forEach(hook.subscribers, (localRef: React.MutableRefObject<T>) => {
+            forEach(hook.subscribers, localRef => {
               localRef.current = value
             })
             hook.current = value
@@ -465,7 +453,7 @@ function useRef<T>(initialValue?: T): React.MutableRefObject<T> {
     const localRef = LocalHooks.useRef<any>(Symbol.for('unset'))
     if (localRef.current === Symbol.for('unset')) {
       hook.subscribers.add(localRef)
-      currentCleanups?.push(function unsubscribe() {
+      currentCleanups.push(function unsubscribe() {
         hook.subscribers.delete(localRef)
       })
     }
