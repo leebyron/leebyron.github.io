@@ -11,6 +11,18 @@ Unit tests!
   - concurrent mode support?
 */
 
+type HooksDispatcher = {
+  isSharedDispatcher?: boolean
+  useContext: typeof React.useContext
+  useState: typeof React.useState
+  useReducer: typeof React.useReducer
+  useEffect: typeof React.useEffect
+  useLayoutEffect: typeof React.useLayoutEffect
+  useCallback: typeof React.useCallback
+  useMemo: typeof React.useMemo
+  useRef: typeof React.useRef
+}
+
 type SharedHooks = {
   isRendering: boolean
   numMounted: number
@@ -23,17 +35,6 @@ type SharedHook<H> = {
   next: SharedHook<any> | null
 }
 
-type HooksDispatcher = {
-  isSharedDispatcher?: boolean
-  useState: typeof React.useState
-  useReducer: typeof React.useReducer
-  useEffect: typeof React.useEffect
-  useLayoutEffect: typeof React.useLayoutEffect
-  useCallback: typeof React.useCallback
-  useMemo: typeof React.useMemo
-  useRef: typeof React.useRef
-}
-
 const ReactSharedInternals =
   // @ts-ignore Can't fire me I already quit.
   React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
@@ -43,7 +44,7 @@ const ReactCurrentDispatcher: { current: HooksDispatcher } =
 
 let LocalHooks: HooksDispatcher
 let currentSharedHooks: SharedHooks
-let currentCleanups: Array<() => void>
+let currentMountEffects: Array<React.EffectCallback>
 
 const SharedHooksContext = React.createContext<Map<any, SharedHooks>>(
   null as any
@@ -89,7 +90,7 @@ export function useShared<T, A extends any[]>(
   // finally block below.
   const prevDispatcher = ReactCurrentDispatcher.current
   const prevSharedHooks = currentSharedHooks
-  const prevCleanups = currentCleanups
+  const prevMountEffects = currentMountEffects
 
   try {
     if (process.env.NODE_ENV !== 'production') {
@@ -107,12 +108,17 @@ export function useShared<T, A extends any[]>(
     // TODO: do hooks get discarded if a render throws?
     ReactCurrentDispatcher.current = prevDispatcher
     currentSharedHooks = prevSharedHooks
-    currentCleanups = prevCleanups
+    currentMountEffects = prevMountEffects
   }
 }
 
 function useSharedHooksDispatcher(key: string) {
-  const hooksByKey = React.useContext(SharedHooksContext)
+  // Keep track of previous hooks and dispatchers
+  if (!ReactCurrentDispatcher.current.isSharedDispatcher) {
+    LocalHooks = ReactCurrentDispatcher.current
+  }
+
+  const hooksByKey = LocalHooks.useContext(SharedHooksContext)
   if (process.env.NODE_ENV !== 'production') {
     if (!hooksByKey) {
       throw new Error('useShared: Cannot use outside of <SharedHooksProvider>.')
@@ -142,22 +148,34 @@ function useSharedHooksDispatcher(key: string) {
   hooksForKey.isRendering = true
   hooksForKey.currentHook = null
 
-  const cleanups: React.MutableRefObject<Array<() => void>> = React.useRef([])
+  // Set of effects to call during mount of the component using the shared hook.
+  const mountEffects: Array<React.EffectCallback> = []
 
-  // Cleanup hooks after last component sharing this is unmounted.
-  React.useEffect(
-    sharedHooksCleanupEffect(hooksByKey, hooksForKey, key, cleanups),
-    []
-  )
+  // Avoid SSR warning by using useEffect. Use useLayoutEffect in the browser
+  // to avoid painting an inconsistent state. Note that this means SSR may
+  // render an inconsistent state in cases where shared state is updated during
+  // rendering.
+  const useIsomorphicLayoutEffect =
+    typeof window === 'undefined'
+      ? LocalHooks.useEffect
+      : LocalHooks.useLayoutEffect
 
-  // Keep track of previous hooks and dispatchers
-  if (!ReactCurrentDispatcher.current.isSharedDispatcher) {
-    LocalHooks = ReactCurrentDispatcher.current
-  }
+  useIsomorphicLayoutEffect(() => {
+    ++hooksForKey.numMounted
+    // Assign any subscribers
+    const unmounts = mountEffects.map(effect => effect())
+    return () => {
+      unmounts.forEach(uneffect => uneffect && uneffect())
+      if (--hooksForKey.numMounted === 0) {
+        // GC hooks after last component sharing this is unmounted.
+        hooksByKey.delete(key)
+      }
+    }
+  }, [])
 
   // Update thread-locals
   currentSharedHooks = hooksForKey
-  currentCleanups = cleanups.current
+  currentMountEffects = mountEffects
   ReactCurrentDispatcher.current = {
     ...ReactCurrentDispatcher.current,
     isSharedDispatcher: true,
@@ -168,26 +186,6 @@ function useSharedHooksDispatcher(key: string) {
     useCallback,
     useMemo,
     useRef
-  }
-}
-
-function sharedHooksCleanupEffect(
-  hooksByKey: Map<any, SharedHooks>,
-  hooksForKey: SharedHooks,
-  key: any,
-  cleanups: React.MutableRefObject<Array<() => void>>
-) {
-  return function cleanup() {
-    ++hooksForKey.numMounted
-    return () => {
-      if (cleanups.current) {
-        cleanups.current.forEach(cleanupFn => cleanupFn())
-        cleanups.current.length = 0
-      }
-      if (--hooksForKey.numMounted === 0) {
-        hooksByKey.delete(key)
-      }
-    }
   }
 }
 
@@ -233,44 +231,54 @@ function isSameDeps(
 
 type SharedStateHook<S> = {
   state: S
-  dispatch: React.Dispatch<React.SetStateAction<S>>
-  subscribers: Set<(value: S) => void>
+  dispatchers: Map<
+    React.Dispatch<React.SetStateAction<S>>,
+    React.Dispatch<React.SetStateAction<S>>
+  >
 }
 
 function useState<S = undefined>(
   initialState?: S | (() => S)
 ): [S, React.Dispatch<React.SetStateAction<S>>] {
-  const hook = getNextHook<SharedStateHook<S>>(() => ({
+  const hook: SharedStateHook<S> = getNextHook(() => ({
     // @ts-ignore S cannot be a function
     state: typeof initialState === 'function' ? initialState() : initialState,
-    dispatch(action) {
+    dispatchers: new Map()
+  }))
+
+  const [state, localSetState] = LocalHooks.useState<S>(hook.state)
+
+  let dispatch = hook.dispatchers.get(localSetState)
+  if (!dispatch) {
+    const dispatcher = (dispatch = action => {
       const newState =
         // @ts-ignore S cannot be a function
         typeof action === 'function' ? action(hook.state) : action
       if (!Object.is(newState, hook.state)) {
+        // Update shared state
         hook.state = newState
-        forEach(hook.subscribers, subscriber => {
-          subscriber(newState)
+        // Update this local state first
+        localSetState(newState)
+        // Update all other subscribers' local states
+        forEach(hook.dispatchers.keys(), subscriber => {
+          if (subscriber !== localSetState) {
+            subscriber(newState)
+          }
         })
       }
-    },
-    subscribers: new Set()
-  }))
+    })
 
-  let isInitial = false
-  const [state, setState] = LocalHooks.useState<S>(() => {
-    // TODO: could this be called more than once? maybe if suspended?
-    isInitial = true
-    return hook.state
-  })
-  if (isInitial) {
-    hook.subscribers.add(setState)
-    currentCleanups.push(function unsubscribe() {
-      hook.subscribers.delete(setState)
+    currentMountEffects.push(() => {
+      // Update in case shared state changed between render and mount
+      localSetState(hook.state)
+      hook.dispatchers.set(localSetState, dispatcher)
+      return () => {
+        hook.dispatchers.delete(localSetState)
+      }
     })
   }
 
-  return [state, hook.dispatch]
+  return [state, dispatch]
 }
 
 // useSharedReducer
@@ -278,8 +286,10 @@ function useState<S = undefined>(
 type SharedReducerHook<R extends React.Reducer<any, any>> = {
   reducer: R
   state: React.ReducerState<R>
-  dispatch: React.Dispatch<React.ReducerAction<R>>
-  subscribers: Set<(value: React.ReducerState<R>) => void>
+  dispatchers: Map<
+    React.Dispatch<React.ReducerState<R>>,
+    React.Dispatch<React.ReducerAction<R>>
+  >
 }
 
 function useReducer<R extends React.Reducer<any, any>, I>(
@@ -287,43 +297,60 @@ function useReducer<R extends React.Reducer<any, any>, I>(
   initializerArg: I & React.ReducerState<R>,
   initializer?: (arg: I) => React.ReducerState<R>
 ): [React.ReducerState<R>, React.Dispatch<React.ReducerAction<R>>] {
-  const hook = getNextHook<SharedReducerHook<R>>(() => ({
+  const hook: SharedReducerHook<R> = getNextHook(() => ({
     reducer,
     state:
       initializer !== undefined ? initializer(initializerArg) : initializerArg,
-    dispatch(action) {
-      const newState = hook.reducer.call(null, hook.state, action)
-      if (!Object.is(newState, hook.state)) {
-        hook.state = newState
-        forEach(hook.subscribers, subscriber => {
-          subscriber(newState)
-        })
-      }
-    },
-    subscribers: new Set()
+    dispatchers: new Map()
   }))
 
   // Always use the latest reducer, in case of closed-over variables.
   hook.reducer = reducer
 
   // Use simple reducer as state to ensure local hook is same as shared hook.
-  let isInitial = false
-  const [state, setState] = LocalHooks.useReducer(
-    (_: any, next: React.ReducerState<R>) => next,
-    hook.state,
-    init => {
-      isInitial = true
-      return init
-    }
+  const [state, localSetState] = LocalHooks.useReducer<SimpleReducer<R>>(
+    simpleReducer,
+    hook.state
   )
-  if (isInitial) {
-    hook.subscribers.add(setState)
-    currentCleanups.push(function unsubscribe() {
-      hook.subscribers.delete(setState)
+
+  let dispatch = hook.dispatchers.get(localSetState)
+  if (!dispatch) {
+    const dispatcher = (dispatch = action => {
+      const newState = hook.reducer.call(null, hook.state, action)
+      if (!Object.is(newState, hook.state)) {
+        // Update shared state
+        hook.state = newState
+        // Update this local state first
+        localSetState(newState)
+        // Update all other subscribers' local states
+        forEach(hook.dispatchers.keys(), subscriber => {
+          if (subscriber !== localSetState) {
+            subscriber(newState)
+          }
+        })
+      }
+    })
+
+    currentMountEffects.push(() => {
+      // Update in case shared state changed between render and mount
+      localSetState(hook.state)
+      hook.dispatchers.set(localSetState, dispatcher)
+      return () => {
+        hook.dispatchers.delete(localSetState)
+      }
     })
   }
 
-  return [state, hook.dispatch]
+  return [state, dispatch]
+}
+
+type SimpleReducer<R extends React.Reducer<any, any>> = React.Reducer<
+  React.ReducerState<R>,
+  React.ReducerState<R>
+>
+
+function simpleReducer<T>(_state: T, action: T): T {
+  return action
 }
 
 // useSharedEffect / useSharedLayoutEffect
@@ -386,22 +413,7 @@ function useEffect(
   }
 }
 
-// useCallback / useMemo
-
-function useCallback<T extends (...args: any[]) => any>(
-  callback: T,
-  deps: React.DependencyList
-): T {
-  const hook = getNextHook<SharedMemoHook<T>>(() => ({
-    value: callback,
-    deps
-  }))
-  if (!isSameDeps(deps, hook.deps)) {
-    hook.value = callback
-    hook.deps = deps
-  }
-  return hook.value
-}
+// useMemo / useCallback
 
 type SharedMemoHook<T> = {
   value: T
@@ -412,7 +424,7 @@ function useMemo<T>(
   factory: () => T,
   deps: React.DependencyList | undefined
 ): T {
-  const hook = getNextHook<SharedMemoHook<T>>(() => ({
+  const hook: SharedMemoHook<T> = getNextHook(() => ({
     value: factory(),
     deps
   }))
@@ -420,44 +432,79 @@ function useMemo<T>(
     hook.value = factory()
     hook.deps = deps
   }
+  if (process.env.NODE_ENV !== 'production') {
+    LocalHooks.useMemo(() => hook.value, hook.deps)
+  }
   return hook.value
+}
+
+type SharedCallbackHook<T> = {
+  callback: T
+  deps: React.DependencyList
+}
+
+function useCallback<T extends (...args: any[]) => any>(
+  callback: T,
+  deps: React.DependencyList
+): T {
+  const hook: SharedCallbackHook<T> = getNextHook(() => ({
+    callback,
+    deps
+  }))
+  if (!isSameDeps(deps, hook.deps)) {
+    hook.callback = callback
+    hook.deps = deps
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    LocalHooks.useCallback(hook.callback, hook.deps)
+  }
+  return hook.callback
 }
 
 // useRef
 
 type SharedRefHook<T> = {
-  current: T | undefined
+  current: T
   ref: React.MutableRefObject<T>
-  subscribers: Set<React.MutableRefObject<T>>
+  localRefs: Set<React.MutableRefObject<T>>
 }
 
 function useRef<T>(initialValue?: T): React.MutableRefObject<T> {
+  // In a dev environment, maintain parallel local hooks for improved
+  // dev tools legibility.
   if (process.env.NODE_ENV !== 'production') {
     const hook: SharedRefHook<T> = getNextHook(() => ({
-      current: initialValue,
+      current: initialValue as T,
       ref: Object.seal(
         Object.defineProperty({}, 'current', {
+          enumerable: true,
           get() {
             return hook.current
           },
           set(value: T) {
-            forEach(hook.subscribers, localRef => {
+            forEach(hook.localRefs, localRef => {
               localRef.current = value
             })
             hook.current = value
           }
         })
       ),
-      subscribers: new Set()
+      localRefs: new Set()
     }))
-    const localRef = LocalHooks.useRef<any>(Symbol.for('unset'))
-    if (localRef.current === Symbol.for('unset')) {
-      hook.subscribers.add(localRef)
-      currentCleanups.push(function unsubscribe() {
-        hook.subscribers.delete(localRef)
+
+    const localRef = LocalHooks.useRef<T>(hook.current)
+    if (!hook.localRefs.has(localRef)) {
+      currentMountEffects.push(() => {
+        localRef.current = hook.current
+        hook.localRefs.add(localRef)
+        return () => {
+          hook.localRefs.delete(localRef)
+        }
       })
     }
     return hook.ref
   }
+
+  // In production a simple object has the correct behavior.
   return getNextHook(() => ({ current: initialValue as T }))
 }
