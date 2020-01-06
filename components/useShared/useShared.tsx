@@ -1,12 +1,11 @@
-import * as React from 'react'
 import { forEach } from 'iterall'
+import * as React from 'react'
 
 /////////////////////
 
 /*
 TODO:
 Unit tests!
-  - nested useShared?
   - throw/suspend during render?
   - concurrent mode support?
 */
@@ -53,9 +52,13 @@ const SharedHooksContext = React.createContext<Map<any, SharedHooks>>(
 export function SharedHooksProvider(props: {
   children?: React.ReactNode
 }): React.ReactElement {
+  const sharedHooksMap = React.useRef<Map<any, SharedHooks>>()
+  if (!sharedHooksMap.current) {
+    sharedHooksMap.current = new Map()
+  }
   return React.createElement(
     SharedHooksContext.Provider,
-    { value: new Map() },
+    { value: sharedHooksMap.current },
     props.children
   )
 }
@@ -105,10 +108,16 @@ export function useShared<T, A extends any[]>(
       // Reset current shared hooks to default state
       currentSharedHooks.isRendering = false
     }
-    // TODO: do hooks get discarded if a render throws?
-    ReactCurrentDispatcher.current = prevDispatcher
     currentSharedHooks = prevSharedHooks
     currentMountEffects = prevMountEffects
+    ReactCurrentDispatcher.current = prevDispatcher
+    if (
+      !ReactCurrentDispatcher.current ||
+      !ReactCurrentDispatcher.current.isSharedDispatcher
+    ) {
+      // @ts-ignore
+      LocalHooks = undefined
+    }
   }
 }
 
@@ -160,14 +169,31 @@ function useSharedHooksDispatcher(key: string) {
       ? LocalHooks.useEffect
       : LocalHooks.useLayoutEffect
 
+  // TODO: a component which encounters an error or suspends may have created
+  // a shared hook without releasing it. There are two problems here. One is
+  // that if the error/suspended component never mounts this leads to a memory
+  // leak. Two is that if it does eventually mount, it could cause a store
+  // collision below.
+  // TODO: do hooks get discarded if a render throws?
   useIsomorphicLayoutEffect(() => {
-    ++hooksForKey.numMounted
-    // Assign any subscribers
-    const unmounts = mountEffects.map(effect => effect())
+    hooksForKey.numMounted += 1
+    if (hooksForKey.numMounted === 1) {
+      // If this appears to be the first component mounted using this shared
+      // hook, it could be immediately after another was unmounted. Because
+      // unmount effects are triggered before all others, that could have caused
+      // the hook to be removed from the shared store. To be safe, it is added
+      // back.
+      hooksByKey.set(key, hooksForKey)
+    }
+    const unmountEffects = mountEffects.map(effect => effect())
     return () => {
-      unmounts.forEach(uneffect => uneffect && uneffect())
-      if (--hooksForKey.numMounted === 0) {
-        // GC hooks after last component sharing this is unmounted.
+      unmountEffects.forEach(uneffect => uneffect && uneffect())
+      hooksForKey.numMounted -= 1
+      // Garbage collect shared hooks for this key after the last component
+      // using it is unmounted. If the count of components mounted drops to zero
+      // another component using it may be abount to be mounted in the same
+      // transation, which is handled above.
+      if (hooksForKey.numMounted === 0) {
         hooksByKey.delete(key)
       }
     }
@@ -210,7 +236,7 @@ function getNextHook<H>(initial: () => H): H {
   return currentSharedHooks.currentHook.value
 }
 
-function isSameDeps(
+function areDepsEqual(
   a: React.DependencyList | undefined,
   b: React.DependencyList | undefined
 ): boolean {
@@ -356,9 +382,10 @@ function simpleReducer<T>(_state: T, action: T): T {
 // useSharedEffect / useSharedLayoutEffect
 
 type SharedEffectHook = {
-  effect: React.EffectCallback
-  cleanup: (() => void | undefined) | void
   counter: number
+  effect: React.EffectCallback
+  deps: React.DependencyList | undefined
+  cleanup: (() => void | undefined) | void
 }
 
 function useEffect(
@@ -367,13 +394,17 @@ function useEffect(
   deps?: React.DependencyList
 ): void {
   const hook: SharedEffectHook = getNextHook(() => ({
+    counter: 0,
     effect,
-    cleanup: undefined,
-    counter: 0
+    deps,
+    cleanup: undefined
   }))
 
-  // Always use the latest effect callback, in case of closed-over variables.
-  hook.effect = effect
+  // If the deps have changed, update the effect callback.
+  if (!areDepsEqual(deps, hook.deps)) {
+    hook.effect = effect
+    hook.deps = deps
+  }
 
   /*
   TODO:
@@ -428,7 +459,7 @@ function useMemo<T>(
     value: factory(),
     deps
   }))
-  if (!isSameDeps(deps, hook.deps)) {
+  if (!areDepsEqual(deps, hook.deps)) {
     hook.value = factory()
     hook.deps = deps
   }
@@ -451,7 +482,7 @@ function useCallback<T extends (...args: any[]) => any>(
     callback,
     deps
   }))
-  if (!isSameDeps(deps, hook.deps)) {
+  if (!areDepsEqual(deps, hook.deps)) {
     hook.callback = callback
     hook.deps = deps
   }

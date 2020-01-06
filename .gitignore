@@ -4,3 +4,4 @@ out/
 .next/
 .mdx-data/
 .env
+coverage/
