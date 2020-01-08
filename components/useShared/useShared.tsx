@@ -23,6 +23,12 @@ type HooksDispatcher = {
   useRef: typeof React.useRef
 }
 
+type SharedHooksContext = {
+  hooksByKey: Map<any, SharedHooks>
+  cleanupKeys: Array<any> | null
+  enqueueCleanupKey: (task: any) => void
+}
+
 type SharedHooks = {
   isRendering: boolean
   numMounted: number
@@ -46,22 +52,90 @@ let LocalHooks: HooksDispatcher
 let currentSharedHooks: SharedHooks
 let currentMountEffects: Array<React.EffectCallback>
 
-const SharedHooksContext = React.createContext<Map<any, SharedHooks>>(
-  null as any
-)
+const SharedHooksContext = React.createContext<SharedHooksContext>(null as any)
 
 export function SharedHooksProvider(props: {
   children?: React.ReactNode
 }): React.ReactElement {
-  const sharedHooksMap = React.useRef<Map<any, SharedHooks>>()
-  if (!sharedHooksMap.current) {
-    sharedHooksMap.current = new Map()
+  const [, forceRender] = React.useReducer((_s: any, _a: void) => ({}), {})
+  const sharedHooks = React.useRef<SharedHooksContext>()
+  if (!sharedHooks.current) {
+    sharedHooks.current = {
+      hooksByKey: new Map(),
+      cleanupKeys: null,
+      enqueueCleanupKey(key) {
+        if (sharedHooks.current) {
+          if (sharedHooks.current.cleanupKeys) {
+            sharedHooks.current.cleanupKeys.push(key)
+          } else {
+            sharedHooks.current.cleanupKeys = [key]
+          }
+          forceRender()
+        }
+      }
+    }
   }
-  return React.createElement(
-    SharedHooksContext.Provider,
-    { value: sharedHooksMap.current },
-    props.children
+  React.useEffect(() => {
+    /* istanbul ignore else */
+    if (sharedHooks.current) {
+      const { hooksByKey, cleanupKeys } = sharedHooks.current
+      if (cleanupKeys) {
+        // If the last component using the shared hooks for a given key unmounts
+        // then it will enqueue that key to be checked and cleaned up.
+        sharedHooks.current.cleanupKeys = null
+        safelyCleanupKeys(hooksByKey, cleanupKeys, false)
+      }
+    }
+  })
+  React.useEffect(
+    () => () => {
+      /* istanbul ignore else */
+      if (sharedHooks.current) {
+        // When the provider unmounts, remove the shared hooks ref and cleanup
+        // all keys
+        const { hooksByKey } = sharedHooks.current
+        sharedHooks.current = undefined
+        safelyCleanupKeys(hooksByKey, hooksByKey.keys(), true)
+      }
+    },
+    []
   )
+  return React.createElement(SharedHooksContext.Provider, {
+    value: sharedHooks.current,
+    children: props.children
+  })
+}
+
+function safelyCleanupKeys(
+  hooksByKey: Map<any, SharedHooks>,
+  keys: Iterable<any>,
+  fromUnmount: boolean
+) {
+  let encounteredError
+  forEach(keys, key => {
+    const hooksForKey = hooksByKey.get(key)
+    if (hooksForKey && (fromUnmount || hooksForKey.numMounted === 0)) {
+      hooksByKey.delete(key)
+      let hook = hooksForKey.firstHook
+      while (hook) {
+        const cleanupFn = hook.value.cleanup
+        if (cleanupFn) {
+          hook.value.cleanup = null
+          try {
+            cleanupFn()
+          } catch (error) {
+            // Ensure all hooks are cleaned up by catching any errors thrown
+            // during effect cleanup and rethrowing them after the loop exits.
+            encounteredError = error
+          }
+        }
+        hook = hook.next
+      }
+    }
+  })
+  if (encounteredError) {
+    throw encounteredError
+  }
 }
 
 export function useLocal<T, A extends any[]>(
@@ -128,12 +202,13 @@ function useSharedHooksDispatcher(key: string) {
     LocalHooks = ReactCurrentDispatcher.current
   }
 
-  const hooksByKey = LocalHooks.useContext(SharedHooksContext)
+  const sharedHooks = LocalHooks.useContext(SharedHooksContext)
   if (process.env.NODE_ENV !== 'production') {
-    if (!hooksByKey) {
+    if (!sharedHooks) {
       throw new Error('useShared: Cannot use outside of <SharedHooksProvider>.')
     }
   }
+  const { hooksByKey, enqueueCleanupKey } = sharedHooks
 
   // Get the shared hooks by cached key or create a new one.
   const cachedHooksForKey = hooksByKey.get(key)
@@ -186,15 +261,9 @@ function useSharedHooksDispatcher(key: string) {
         // Garbage collect shared hooks for this key after the last component
         // using it is unmounted. If the count of mounted components using these
         // shared hooks drops to zero another component using it may be about to
-        // mounted in the same transation. Schedule a microtask to see if the
-        // count remains zero after the transaction has completed.
-        // Note: ideally this would complete in the same React transaction,
-        // however there is no way of scheduling such a task from an effect.
-        setMicrotask(() => {
-          if (hooksForKey.numMounted === 0) {
-            commitUnmountSharedHooks(hooksByKey, key)
-          }
-        })
+        // mounted in the same transation. Schedule a check to see if the count
+        // remains zero after other work in the React transaction has completed.
+        enqueueCleanupKey(key)
       }
     }
   }, [])
@@ -213,34 +282,6 @@ function useSharedHooksDispatcher(key: string) {
     useMemo,
     useRef
   }
-}
-
-function commitUnmountSharedHooks(hooksByKey: Map<any, SharedHooks>, key: any) {
-  const hooksForKey = hooksByKey.get(key)
-  if (hooksForKey) {
-    hooksByKey.delete(key)
-    let hook = hooksForKey.firstHook
-    while (hook) {
-      const cleanupFn = hook.value.cleanup
-      if (cleanupFn) {
-        hook.value.cleanup = null
-        try {
-          cleanupFn()
-        } catch (error) {
-          // Ensure all cleanup occurs before rethrowing any encountered errors.
-          setImmediate(() => {
-            throw error
-          })
-        }
-      }
-      hook = hook.next
-    }
-  }
-}
-
-let resolvedPromise: Promise<void>
-function setMicrotask(task: () => void): void {
-  ;(resolvedPromise || (resolvedPromise = Promise.resolve())).then(task)
 }
 
 function getNextHook<H>(initial: () => H, update?: (hook: H) => void): H {
