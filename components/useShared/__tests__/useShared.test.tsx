@@ -622,13 +622,14 @@ describe('useSharedState', () => {
           ref.current = true
           setState(i => i + 1)
         }
-        return <div>{state}</div>
+        return <div>(Counter:{state})</div>
       }
 
       function Component() {
         return (
           <>
-            <Counter /> <Counter />
+            <Counter />
+            <Counter />
           </>
         )
       }
@@ -639,7 +640,7 @@ describe('useSharedState', () => {
             <Component />
           </SharedHooksProvider>
         )
-        expect(container.innerText).toEqual('2 2')
+        expect(container.innerText).toEqual('(Counter:2)(Counter:2)')
       })
 
       it('SSR will not update previous elements after update-in-render', () => {
@@ -649,7 +650,7 @@ describe('useSharedState', () => {
           </SharedHooksProvider>
         )
         container.innerHTML = ssr
-        expect(container.innerText).toEqual('1 2')
+        expect(container.innerText).toEqual('(Counter:1)(Counter:2)')
 
         // A client-side hydration will apply effects to unify the state.
         act(() => {
@@ -660,7 +661,7 @@ describe('useSharedState', () => {
             container
           )
         })
-        expect(container.innerText).toEqual('2 2')
+        expect(container.innerText).toEqual('(Counter:2)(Counter:2)')
       })
     })
 
@@ -681,7 +682,7 @@ describe('useSharedState', () => {
         const [state, increment] = useShared(k, useCustom)
         return (
           <div id={id} onClick={() => increment()}>
-            {state}
+            (Counter:{state})
           </div>
         )
       }
@@ -689,8 +690,10 @@ describe('useSharedState', () => {
       function Component() {
         return (
           <>
-            <Counter k="a" id="a1" /> <Counter k="a" id="a2" />{' '}
-            <Counter k="b" id="b1" /> <Counter k="b" id="b2" />
+            <Counter k="a" id="a1" />
+            <Counter k="a" id="a2" />
+            <Counter k="b" id="b1" />
+            <Counter k="b" id="b2" />
           </>
         )
       }
@@ -700,9 +703,13 @@ describe('useSharedState', () => {
           <Component />
         </SharedHooksProvider>
       )
-      expect(container.innerText).toEqual('1-1-1 1-1-1 1-1-1 1-1-1')
+      expect(container.innerText).toEqual(
+        '(Counter:1-1-1)(Counter:1-1-1)(Counter:1-1-1)(Counter:1-1-1)'
+      )
       click(document.getElementById('a1'))
-      expect(container.innerText).toEqual('2-2-2 2-2-2 1-2-1 1-2-1')
+      expect(container.innerText).toEqual(
+        '(Counter:2-2-2)(Counter:2-2-2)(Counter:1-2-1)(Counter:1-2-1)'
+      )
     })
 
     it('supports nested useLocal', () => {
@@ -720,7 +727,7 @@ describe('useSharedState', () => {
         const [state, increment] = useShared('key', useCustom)
         return (
           <div id={id} onClick={() => increment()}>
-            {state}
+            (Counter:{state})
           </div>
         )
       }
@@ -728,7 +735,8 @@ describe('useSharedState', () => {
       function Component() {
         return (
           <>
-            <Counter id="a" /> <Counter id="b" />
+            <Counter id="a" />
+            <Counter id="b" />
           </>
         )
       }
@@ -738,9 +746,9 @@ describe('useSharedState', () => {
           <Component />
         </SharedHooksProvider>
       )
-      expect(container.innerText).toEqual('1-1 1-1')
+      expect(container.innerText).toEqual('(Counter:1-1)(Counter:1-1)')
       click(document.getElementById('a'))
-      expect(container.innerText).toEqual('2-2 2-1')
+      expect(container.innerText).toEqual('(Counter:2-2)(Counter:2-1)')
     })
 
     describe('cleanup', () => {
@@ -749,7 +757,7 @@ describe('useSharedState', () => {
       }
       function Thrower(): null {
         const [state] = useShared('key', useCounter)
-        throw new Error(`Thrower-${state}`)
+        throw new Error(`(Thrower:${state})`)
       }
       function Advancer() {
         const [state, setState] = useShared('key', useCounter)
@@ -758,7 +766,7 @@ describe('useSharedState', () => {
           ref.current = true
           setState(n => n + 1)
         }
-        return <div>Advancer-{state}</div>
+        return <div>(Advancer:{state})</div>
       }
       class Catcher extends React.Component {
         state: { error?: Error } = {}
@@ -781,13 +789,13 @@ describe('useSharedState', () => {
             </Catcher>
           </SharedHooksProvider>
         )
-        expect(container.innerText).toEqual('Thrower-1')
+        expect(container.innerText).toEqual('(Thrower:1)')
         render(
           <SharedHooksProvider>
             <Advancer />
           </SharedHooksProvider>
         )
-        expect(container.innerText).toEqual('Advancer-1')
+        expect(container.innerText).toEqual('(Advancer:1)')
       })
 
       it('cleans up if a sibling component throws during render', () => {
@@ -800,7 +808,7 @@ describe('useSharedState', () => {
             </Catcher>
           </SharedHooksProvider>
         )
-        expect(container.innerText).toEqual('Advancer-2Thrower-2')
+        expect(container.innerText).toEqual('(Advancer:2)(Thrower:2)')
 
         // Unmount and remount shows proper reset of state
         render(<SharedHooksProvider />)
@@ -813,7 +821,7 @@ describe('useSharedState', () => {
             </Catcher>
           </SharedHooksProvider>
         )
-        expect(container.innerText).toEqual('Advancer-2Thrower-2')
+        expect(container.innerText).toEqual('(Advancer:2)(Thrower:2)')
       })
     })
 
