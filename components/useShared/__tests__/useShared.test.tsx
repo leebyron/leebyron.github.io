@@ -69,11 +69,11 @@ function inDevAndProd(builder: () => void) {
   // @ts-ignore
   function itInDevAndProd(it, name, test) {
     it(name + ' [dev]', test)
-    it(name + ' [prod]', () => {
+    it(name + ' [prod]', async () => {
       const prevEnv = process.env
       try {
         process.env = { ...prevEnv, NODE_ENV: 'production' }
-        test()
+        await test()
       } finally {
         process.env = prevEnv
       }
@@ -817,89 +817,109 @@ describe('useSharedState', () => {
       })
     })
 
-    // describe('suspense', () => {
-    //   it('not sure what is being tested just yet', async () => {
-    //     console.log('suspense test from', process.env.NODE_ENV)
-    //     const [asyncVal, resolveVal] = createSuspender<string>()
-    //     function Suspender() {
-    //       const [state, setState] = useSharedState('key', () => {
-    //         console.log('init shared state')
-    //         return 0
-    //       })
-    //       React.useState(() => {
-    //         console.log('init local state')
-    //         return 0
-    //       })
-    //       console.log('rendering with asyncValue', asyncVal)
-    //       if (asyncVal.loading) {
-    //         throw asyncVal.promise
-    //       }
-    //       const r = React.useRef<boolean>(false)
-    //       if (!r.current) {
-    //         r.current = true
-    //         setState(n => n + 1)
-    //       }
-    //       return (
-    //         <div>
-    //           {asyncVal.value}-{state}
-    //         </div>
-    //       )
-    //     }
-    //     function Counter() {
-    //       const [state, setState] = useSharedState('key', 0)
-    //       return <div onClick={() => setState(n => n + 1)}>Counter-{state}</div>
-    //     }
-    //     function Unrelated() {
-    //       const [state, setState] = useSharedState('key2', () => {
-    //         //console.log('init unrelated shared state')
-    //         return 0
-    //       })
-    //       React.useState(() => {
-    //         //console.log('init unrelated local state')
-    //         return 0
-    //       })
-    //       const r = React.useRef<boolean>(false)
-    //       if (!r.current) {
-    //         r.current = true
-    //         setState(n => n + 1)
-    //       }
-    //       return <div>Unrelated-{state}</div>
-    //     }
-    //     function Component() {
-    //       return (<>
-    //         <Counter />{' '}
-    //         <React.Suspense fallback="loading...">
-    //           <Suspender /> <Unrelated /> <Counter />
-    //         </React.Suspense>
-    //         </>
-    //       )
-    //     }
-    //     //console.log('step 1')
-    //     render(
-    //       <SharedHooksProvider>
-    //         <Component />
-    //       </SharedHooksProvider>
-    //     )
-    //     console.log(container.innerHTML)
-    //     expect(container.innerText).toEqual('Counter-0 loading...')
+    describe('suspense', () => {
+      function useCounter() {
+        return React.useState(0)
+      }
+      it('gets new hook state after resuming', async () => {
+        function SuspendingAdvancer({
+          asyncVal
+        }: {
+          asyncVal: AsyncValue<string>
+        }) {
+          const [state, setState] = useShared('key', useCounter)
+          const ref = React.useRef(false)
+          if (!ref.current) {
+            ref.current = true
+            setState(n => n + 1)
+          }
+          React.useEffect(() => {
+            ref.current = false
+          })
+          if (asyncVal.loading) {
+            throw asyncVal.promise
+          }
+          return (
+            <div>
+              (SuspendingAdvancer:{asyncVal.value}:{state})
+            </div>
+          )
+        }
 
-    //     console.log('clicking')
-    //     click(container.firstElementChild)
-    //     expect(container.innerText).toEqual('Counter-1 loading...')
+        const [asyncVal, resolveVal] = createSuspender<string>()
+        render(
+          <SharedHooksProvider>
+            <React.Suspense fallback="loading">
+              <SuspendingAdvancer asyncVal={asyncVal} />
+            </React.Suspense>
+          </SharedHooksProvider>
+        )
+        expect(container.innerText).toEqual('loading')
 
-    //     //console.log('step 2')
-    //     console.log('...resolving...')
-    //     await act(async () => {
-    //       await resolveVal('loaded')
-    //     })
-    //     console.log(container.innerHTML)
-    //     expect(container.innerText).toEqual('Counter-2 loaded-2 Unrelated-1 Counter-2')
+        await act(async () => {
+          await resolveVal('Loaded')
+          await new Promise(setImmediate)
+        })
+        expect(container.innerText).toEqual('(SuspendingAdvancer:Loaded:1)')
 
-    //     await new Promise(setImmediate)
+        render(
+          <SharedHooksProvider>
+            <React.Suspense fallback="loading">
+              <SuspendingAdvancer asyncVal={asyncVal} />
+            </React.Suspense>
+          </SharedHooksProvider>
+        )
+        expect(container.innerText).toEqual('(SuspendingAdvancer:Loaded:2)')
+      })
 
-    //     //console.log('step 3')
-    //   })
-    // })
+      it('sibling retains hook state after resuming', async () => {
+        function Suspender({ asyncVal }: { asyncVal: AsyncValue<string> }) {
+          if (asyncVal.loading) {
+            throw asyncVal.promise
+          }
+          return <div>(Suspender:{asyncVal.value})</div>
+        }
+        function Advancer() {
+          const [state, setState] = useShared('key', useCounter)
+          const ref = React.useRef(false)
+          if (!ref.current) {
+            ref.current = true
+            setState(n => n + 1)
+          }
+          React.useEffect(() => {
+            ref.current = false
+          })
+          return <div>(Advancer:{state})</div>
+        }
+
+        const [asyncVal, resolveVal] = createSuspender<string>()
+        render(
+          <SharedHooksProvider>
+            <React.Suspense fallback="loading">
+              <Suspender asyncVal={asyncVal} />
+              <Advancer />
+            </React.Suspense>
+          </SharedHooksProvider>
+        )
+        expect(container.innerText).toEqual('loading')
+
+        await act(async () => {
+          await resolveVal('Loaded')
+          await new Promise(setImmediate)
+        })
+        expect(container.innerText).toEqual('(Suspender:Loaded)(Advancer:1)')
+
+        render(
+          <SharedHooksProvider>
+            <React.Suspense fallback="loading">
+              <Suspender asyncVal={asyncVal} />
+              <Advancer />
+            </React.Suspense>
+          </SharedHooksProvider>
+        )
+        expect(container.innerText).toEqual('(Suspender:Loaded)(Advancer:2)')
+      })
+    })
   })
 })
 

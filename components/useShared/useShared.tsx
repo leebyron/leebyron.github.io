@@ -241,12 +241,14 @@ function useSharedHooksDispatcher(key: string) {
       ? LocalHooks.useEffect
       : LocalHooks.useLayoutEffect
 
-  // TODO: a component which suspends may have created a shared hook which is
-  // releasing before mounting. There are two problems here. One is
-  // that if the suspended component eventually mounts and updates, it could get
-  // a new instance of the hooks if nothing else was using this. Two is that if
-  // it does eventually mount after a sibling using the state, it could cause a
-  // store collision. This needs some testing...
+  // TODO: a component which suspends in concurrent mode may have created a
+  // shared hook which is releasing before mounting. There are two problems here.
+  // One is that if the suspended component eventually mounts and updates, it
+  // could get a new instance of the hooks if nothing else was using this. Two
+  // is that if it does eventually mount after a sibling using the state, it
+  // could cause a store collision. In blocking mode a component always renders
+  // before calling effects, so this does not seem to be a problem.
+  // This needs some testing...
   useIsomorphicLayoutEffect(() => {
     hooksForKey.numMounted += 1
     const unmountEffects = mountEffects.map(effect => effect())
