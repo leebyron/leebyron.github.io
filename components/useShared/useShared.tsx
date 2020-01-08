@@ -6,6 +6,7 @@ import * as React from 'react'
 /*
 TODO:
 Unit tests!
+  - effects and cleanups that throw?
   - throw/suspend during render?
   - concurrent mode support?
 */
@@ -177,24 +178,23 @@ function useSharedHooksDispatcher(key: string) {
   // TODO: do hooks get discarded if a render throws?
   useIsomorphicLayoutEffect(() => {
     hooksForKey.numMounted += 1
-    if (hooksForKey.numMounted === 1) {
-      // If this appears to be the first component mounted using this shared
-      // hook, it could be immediately after another was unmounted. Because
-      // unmount effects are triggered before all others, that could have caused
-      // the hook to be removed from the shared store. To be safe, it is added
-      // back.
-      hooksByKey.set(key, hooksForKey)
-    }
     const unmountEffects = mountEffects.map(effect => effect())
     return () => {
       unmountEffects.forEach(uneffect => uneffect && uneffect())
       hooksForKey.numMounted -= 1
-      // Garbage collect shared hooks for this key after the last component
-      // using it is unmounted. If the count of components mounted drops to zero
-      // another component using it may be abount to be mounted in the same
-      // transation, which is handled above.
       if (hooksForKey.numMounted === 0) {
-        hooksByKey.delete(key)
+        // Garbage collect shared hooks for this key after the last component
+        // using it is unmounted. If the count of mounted components using these
+        // shared hooks drops to zero another component using it may be about to
+        // mounted in the same transation. Schedule a microtask to see if the
+        // count remains zero after the transaction has completed.
+        // Note: ideally this would complete in the same React transaction,
+        // however there is no way of scheduling such a task from an effect.
+        setMicrotask(() => {
+          if (hooksForKey.numMounted === 0) {
+            commitUnmountSharedHooks(hooksByKey, key)
+          }
+        })
       }
     }
   }, [])
@@ -207,17 +207,47 @@ function useSharedHooksDispatcher(key: string) {
     isSharedDispatcher: true,
     useState,
     useReducer,
-    useEffect: useEffect.bind(null, false),
-    useLayoutEffect: useEffect.bind(null, true),
+    useEffect,
+    useLayoutEffect,
     useCallback,
     useMemo,
     useRef
   }
 }
 
-function getNextHook<H>(initial: () => H): H {
+function commitUnmountSharedHooks(hooksByKey: Map<any, SharedHooks>, key: any) {
+  const hooksForKey = hooksByKey.get(key)
+  if (hooksForKey) {
+    hooksByKey.delete(key)
+    let hook = hooksForKey.firstHook
+    while (hook) {
+      const cleanupFn = hook.value.cleanup
+      if (cleanupFn) {
+        hook.value.cleanup = null
+        try {
+          cleanupFn()
+        } catch (error) {
+          // Ensure all cleanup occurs before rethrowing any encountered errors.
+          setImmediate(() => {
+            throw error
+          })
+        }
+      }
+      hook = hook.next
+    }
+  }
+}
+
+let resolvedPromise: Promise<void>
+function setMicrotask(task: () => void): void {
+  ;(resolvedPromise || (resolvedPromise = Promise.resolve())).then(task)
+}
+
+function getNextHook<H>(initial: () => H, update?: (hook: H) => void): H {
+  let didCreate = false
   if (!currentSharedHooks.currentHook) {
     if (!currentSharedHooks.firstHook) {
+      didCreate = true
       currentSharedHooks.firstHook = {
         value: initial(),
         next: null
@@ -226,6 +256,7 @@ function getNextHook<H>(initial: () => H): H {
     currentSharedHooks.currentHook = currentSharedHooks.firstHook
   } else {
     if (!currentSharedHooks.currentHook.next) {
+      didCreate = true
       currentSharedHooks.currentHook.next = {
         value: initial(),
         next: null
@@ -233,21 +264,42 @@ function getNextHook<H>(initial: () => H): H {
     }
     currentSharedHooks.currentHook = currentSharedHooks.currentHook.next
   }
+  if (!didCreate && update) {
+    update(currentSharedHooks.currentHook.value)
+  }
   return currentSharedHooks.currentHook.value
 }
 
 function areDepsEqual(
-  a: React.DependencyList | undefined,
-  b: React.DependencyList | undefined
+  next: React.DependencyList | undefined,
+  prev: React.DependencyList | undefined
 ): boolean {
-  if (a !== b) {
-    if (!a || !b || a.length !== b.length) {
-      return false
-    }
-    for (let i = 0; i < a.length; i++) {
-      if (!Object.is(a[i], b[i])) {
-        return false
+  if (!next || !prev) {
+    if (process.env.NODE_ENV !== 'production') {
+      if (next !== prev) {
+        throw new Error(
+          'useShared: The dependency list changed ' +
+            `from ${prev && `[${prev.join(', ')}]`} ` +
+            `to ${next && `[${next.join(', ')}]`}. ` +
+            'Even though it is optional the type cannot change between renders.'
+        )
       }
+    }
+    return false
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    if (next.length !== prev.length) {
+      throw new Error(
+        'useShared: The dependency list changed ' +
+          `from ${prev && `[${prev.join(', ')}]`} ` +
+          `to ${next && `[${next.join(', ')}]`}. ` +
+          'The order and size of this array must remain constant.'
+      )
+    }
+  }
+  for (let i = 0; i < next.length; i++) {
+    if (!Object.is(next[i], prev[i])) {
+      return false
     }
   }
   return true
@@ -382,65 +434,68 @@ function simpleReducer<T>(_state: T, action: T): T {
 // useSharedEffect / useSharedLayoutEffect
 
 type SharedEffectHook = {
-  counter: number
-  effect: React.EffectCallback
+  effect: React.EffectCallback | null
   deps: React.DependencyList | undefined
-  cleanup: (() => void | undefined) | void
+  cleanup: (() => void | undefined) | null
+  localEffect: React.EffectCallback
 }
 
 function useEffect(
-  isLayoutEffect: boolean,
   effect: React.EffectCallback,
   deps?: React.DependencyList
 ): void {
-  const hook: SharedEffectHook = getNextHook(() => ({
-    counter: 0,
+  const hook = getNextHook<SharedEffectHook>(
+    () => createEffectHook(effect, deps),
+    hook => updateEffectHook(hook, effect, deps)
+  )
+  LocalHooks.useEffect(hook.localEffect)
+}
+
+function useLayoutEffect(
+  effect: React.EffectCallback,
+  deps?: React.DependencyList
+): void {
+  const hook = getNextHook<SharedEffectHook>(
+    () => createEffectHook(effect, deps),
+    hook => updateEffectHook(hook, effect, deps)
+  )
+  LocalHooks.useLayoutEffect(hook.localEffect)
+}
+
+function createEffectHook(
+  effect: React.EffectCallback,
+  deps?: React.DependencyList
+) {
+  const hook: SharedEffectHook = {
     effect,
     deps,
-    cleanup: undefined
-  }))
-
-  // If the deps have changed, update the effect callback.
-  if (!areDepsEqual(deps, hook.deps)) {
-    hook.effect = effect
-    hook.deps = deps
-  }
-
-  /*
-  TODO:
-  Called once when the first component mounts. Not called when others mount (unless deps change).
-  Called once when deps change. Not called when others re-render with same deps.
-  Called once when last component unmounts. Not called when a component unmounts if others are mounted.
-  Should be called once if deps change between components in a single render pass. This is probably currently broken...
-      A->B->A :: no effect
-      A->A->B :: effect
-      Perhaps effect should *always* fire, and we compare the deps there in the limit
-      But then how do we know when all cleanups are actually all unmounts?
-  */
-  const effectCallback = () => {
-    if (hook.counter++ === 0) {
+    cleanup: null,
+    localEffect: () => {
       const effectFn = hook.effect
-      hook.cleanup = effectFn()
-    }
-    return () => {
-      if (--hook.counter === 0 && hook.cleanup) {
+      if (effectFn) {
+        hook.effect = null
+        hook.cleanup = effectFn() || null
+      }
+      return () => {
         const cleanupFn = hook.cleanup
-        cleanupFn()
+        if (hook.effect && cleanupFn) {
+          hook.cleanup = null
+          cleanupFn()
+        }
       }
     }
   }
+  return hook
+}
 
-  if (process.env.NODE_ENV !== 'production') {
-    Object.defineProperty(effectCallback, 'name', {
-      // @ts-ignore improve legibility in dev tools
-      value: effect.displayName || effect.name
-    })
-  }
-
-  if (isLayoutEffect) {
-    LocalHooks.useLayoutEffect(effectCallback, deps)
-  } else {
-    LocalHooks.useEffect(effectCallback, deps)
+function updateEffectHook(
+  hook: SharedEffectHook,
+  effect: React.EffectCallback,
+  deps: React.DependencyList | undefined
+) {
+  if (!areDepsEqual(deps, hook.deps)) {
+    hook.effect = effect
+    hook.deps = deps
   }
 }
 
@@ -455,41 +510,46 @@ function useMemo<T>(
   factory: () => T,
   deps: React.DependencyList | undefined
 ): T {
-  const hook: SharedMemoHook<T> = getNextHook(() => ({
-    value: factory(),
-    deps
-  }))
-  if (!areDepsEqual(deps, hook.deps)) {
-    hook.value = factory()
-    hook.deps = deps
-  }
+  const hook: SharedMemoHook<T> = getNextHook(
+    () => createMemoHook(factory, deps),
+    hook => updateMemoHook(hook, factory, deps)
+  )
   if (process.env.NODE_ENV !== 'production') {
-    LocalHooks.useMemo(() => hook.value, hook.deps)
+    LocalHooks.useMemo(() => hook.value, [hook.value])
   }
   return hook.value
-}
-
-type SharedCallbackHook<T> = {
-  callback: T
-  deps: React.DependencyList
 }
 
 function useCallback<T extends (...args: any[]) => any>(
   callback: T,
   deps: React.DependencyList
 ): T {
-  const hook: SharedCallbackHook<T> = getNextHook(() => ({
-    callback,
-    deps
-  }))
+  const hook: SharedMemoHook<T> = getNextHook(
+    () => createMemoHook(() => callback, deps),
+    hook => updateMemoHook(hook, () => callback, deps)
+  )
+  if (process.env.NODE_ENV !== 'production') {
+    LocalHooks.useCallback(hook.value, [hook.value])
+  }
+  return hook.value
+}
+
+function createMemoHook<T>(
+  factory: () => T,
+  deps: React.DependencyList | undefined
+) {
+  return { value: factory(), deps }
+}
+
+function updateMemoHook<T>(
+  hook: SharedMemoHook<T>,
+  factory: () => T,
+  deps: React.DependencyList | undefined
+) {
   if (!areDepsEqual(deps, hook.deps)) {
-    hook.callback = callback
+    hook.value = factory()
     hook.deps = deps
   }
-  if (process.env.NODE_ENV !== 'production') {
-    LocalHooks.useCallback(hook.callback, hook.deps)
-  }
-  return hook.callback
 }
 
 // useRef

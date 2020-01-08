@@ -13,41 +13,45 @@ import {
   useSharedRef
 } from '../sharedHooks'
 
-let container = document.createElement('div')
+function createContainer(): HTMLDivElement {
+  const container = document.createElement('div')
 
-// TODO: this should really be part of whatever DOM shim Jest uses
-const htmlProto = Object.getPrototypeOf(container)
-if (!Reflect.getOwnPropertyDescriptor(htmlProto, 'innerText')) {
-  const HIDDEN_TYPES = { style: true, script: true, head: true, link: true }
-  Object.defineProperty(htmlProto, 'innerText', {
-    configurable: true,
-    get() {
-      let innerText = ''
-      const stack: Array<Node> = [this]
-      let node
-      while ((node = stack.pop())) {
-        switch (node.nodeType) {
-          case Node.TEXT_NODE:
-            innerText += node.nodeValue
-            break
-          case Node.ELEMENT_NODE:
-            const style = (node as Element).getAttribute('style')
-            if (
-              !(node.nodeName in HIDDEN_TYPES) &&
-              (node as Element).getAttribute('hidden') === null &&
-              (!style || !/display: *none/.test(style))
-            ) {
-              const children = node.childNodes
-              for (let i = children.length - 1; i >= 0; i--) {
-                stack.push(children[i])
+  // TODO: this should really be part of whatever DOM shim Jest uses
+  const htmlProto = Object.getPrototypeOf(container)
+  if (!Reflect.getOwnPropertyDescriptor(htmlProto, 'innerText')) {
+    const HIDDEN_TYPES = { style: true, script: true, head: true, link: true }
+    Object.defineProperty(htmlProto, 'innerText', {
+      configurable: true,
+      get() {
+        let innerText = ''
+        const stack: Array<Node> = [this]
+        let node
+        while ((node = stack.pop())) {
+          switch (node.nodeType) {
+            case Node.TEXT_NODE:
+              innerText += node.nodeValue
+              break
+            case Node.ELEMENT_NODE:
+              const style = (node as Element).getAttribute('style')
+              if (
+                !(node.nodeName in HIDDEN_TYPES) &&
+                (node as Element).getAttribute('hidden') === null &&
+                (!style || !/display: *none/.test(style))
+              ) {
+                const children = node.childNodes
+                for (let i = children.length - 1; i >= 0; i--) {
+                  stack.push(children[i])
+                }
               }
-            }
-            break
+              break
+          }
         }
+        return innerText
       }
-      return innerText
-    }
-  })
+    })
+  }
+
+  return container
 }
 
 function inDevAndProd(builder: () => void) {
@@ -65,11 +69,11 @@ function inDevAndProd(builder: () => void) {
   // @ts-ignore
   function itInDevAndProd(it, name, test) {
     it(name + ' [dev]', test)
-    it(name + ' [prod]', () => {
+    it(name + ' [prod]', async () => {
       const prevEnv = process.env
       try {
         process.env = { ...prevEnv, NODE_ENV: 'production' }
-        test()
+        await test()
       } finally {
         process.env = prevEnv
       }
@@ -97,8 +101,10 @@ function trackHooksUsed<T>(into: Array<string>, builder: () => T): T {
   }
 }
 
+let container: HTMLDivElement
+
 beforeEach(() => {
-  container = document.createElement('div')
+  container = createContainer()
   document.body.appendChild(container)
   // Avoid repeated console spew from errors
   window.addEventListener('error', preventDefault)
@@ -110,11 +116,13 @@ beforeEach(() => {
   console.error = jest.fn()
 })
 
-afterEach(() => {
+afterEach(async () => {
   try {
     if (container) {
       unmountComponentAtNode(container)
       container.remove()
+      // Wait for any scheduled work after unmounting
+      await new Promise(setImmediate)
     }
     window.removeEventListener('error', preventDefault)
     expect(console.warn).not.toHaveBeenCalled()
@@ -148,7 +156,17 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-function render(element: React.ReactElement) {
+async function render(element: React.ReactElement) {
+  ErrorBoundary.caughtError = null
+  await act(async () => {
+    renderDOM(<ErrorBoundary>{element}</ErrorBoundary>, container)
+  })
+  if (ErrorBoundary.caughtError) {
+    throw ErrorBoundary.caughtError
+  }
+}
+
+function renderSync(element: React.ReactElement) {
   ErrorBoundary.caughtError = null
   act(() => {
     renderDOM(<ErrorBoundary>{element}</ErrorBoundary>, container)
@@ -224,7 +242,7 @@ describe('misuse', () => {
       useShared('key', React.useRef)
       return null
     }
-    expect(() => render(<Component />)).toThrow(
+    expect(() => renderSync(<Component />)).toThrow(
       'useShared: Cannot use outside of <SharedHooksProvider>.'
     )
   })
@@ -236,7 +254,7 @@ describe('misuse', () => {
       return null
     }
     expect(() =>
-      render(
+      renderSync(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -258,28 +276,28 @@ describe('misuse', () => {
       }
     }
 
-    render(
+    renderSync(
       <SharedHooksProvider>
         <Component />
       </SharedHooksProvider>
     )
     useSecondRef = true
     expect(() =>
-      render(
+      renderSync(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
       )
     ).toThrow('Rendered more hooks than during the previous render.')
     unmountComponentAtNode(container)
-    render(
+    renderSync(
       <SharedHooksProvider>
         <Component />
       </SharedHooksProvider>
     )
     useSecondRef = false
     expect(() =>
-      render(
+      renderSync(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -304,7 +322,7 @@ describe('misuse', () => {
       React.useRef()
     }
     expect(() =>
-      render(
+      renderSync(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -317,7 +335,7 @@ describe('misuse', () => {
 
 describe('useLocal', () => {
   inDevAndProd(() => {
-    it('can be used outside of a shared state', () => {
+    it('can be used outside of a shared state', async () => {
       function useCounter() {
         return useLocal(() => React.useState(0))
       }
@@ -335,7 +353,7 @@ describe('useLocal', () => {
 })
 
 describe('useSharedState', () => {
-  it('uses a single useState native hook after shared set (in dev)', () => {
+  it('uses a single useState native hook after shared set (in dev)', async () => {
     const used: Array<string> = []
     function Component() {
       const [state] = trackHooksUsed(used, () => useSharedState('key', 'X'))
@@ -355,7 +373,7 @@ describe('useSharedState', () => {
   })
 
   inDevAndProd(() => {
-    it('shares state across components', () => {
+    it('shares state across components', async () => {
       function Clicker({ id }: { id: string }) {
         const [state, setState] = useSharedState('key', 'X')
         return (
@@ -373,7 +391,7 @@ describe('useSharedState', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -387,7 +405,7 @@ describe('useSharedState', () => {
       expect(container.innerText).toEqual('B-B')
     })
 
-    it('allows for functions to update state', () => {
+    it('allows for functions to update state', async () => {
       function Counter({ id }: { id: string }) {
         const [state, setState] = useSharedState('key', 0)
         return (
@@ -405,7 +423,7 @@ describe('useSharedState', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -419,7 +437,7 @@ describe('useSharedState', () => {
       expect(container.innerText).toEqual('2-2')
     })
 
-    it('allows for functions to get initial state', () => {
+    it('allows for functions to get initial state', async () => {
       let initializerWasCalled: number = 0
       function Counter() {
         const [state] = useSharedState('key', () => {
@@ -437,7 +455,7 @@ describe('useSharedState', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -446,7 +464,7 @@ describe('useSharedState', () => {
       expect(initializerWasCalled).toEqual(1)
     })
 
-    it('update with same value does not cause re-render', () => {
+    it('update with same value does not cause re-render', async () => {
       let renderWasCalled = 0
       let setStateWasCalled = 0
       function Clicker({ id }: { id: string }) {
@@ -475,7 +493,7 @@ describe('useSharedState', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -497,7 +515,7 @@ describe('useSharedState', () => {
       expect(setStateWasCalled).toEqual(1)
     })
 
-    it('clears state when all unmount', () => {
+    it('clears state when all unmount', async () => {
       function Counter() {
         const [state, setState] = useSharedState('key', 0)
         return <div onClick={() => setState(i => i + 1)}>{state}</div>
@@ -515,7 +533,7 @@ describe('useSharedState', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={true} second={true} />
         </SharedHooksProvider>
@@ -526,42 +544,42 @@ describe('useSharedState', () => {
       click(container.firstElementChild)
       expect(container.innerText).toEqual('1 1')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={false} second={true} />
         </SharedHooksProvider>
       )
       expect(container.innerText).toEqual(' 1')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={true} second={false} />
         </SharedHooksProvider>
       )
       expect(container.innerText).toEqual('1 ')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={false} second={true} />
         </SharedHooksProvider>
       )
       expect(container.innerText).toEqual(' 1')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={true} second={true} />
         </SharedHooksProvider>
       )
       expect(container.innerText).toEqual('1 1')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={false} second={false} />
         </SharedHooksProvider>
       )
       expect(container.innerText).toEqual(' ')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={true} second={true} />
         </SharedHooksProvider>
@@ -569,12 +587,12 @@ describe('useSharedState', () => {
       expect(container.innerText).toEqual('0 0')
     })
 
-    it('does not clear state if remounted in same transaction', () => {
+    it('does not clear state if remounted in same transaction', async () => {
       function Counter() {
         const [state, setState] = useSharedState('key', 0)
         return <div onClick={() => setState(i => i + 1)}>{state}</div>
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Counter key="A" />
         </SharedHooksProvider>
@@ -585,7 +603,7 @@ describe('useSharedState', () => {
       click(container.firstElementChild)
       expect(container.innerText).toEqual('1')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Counter key="B" />
         </SharedHooksProvider>
@@ -612,8 +630,8 @@ describe('useSharedState', () => {
         )
       }
 
-      it('supports update-in-render', () => {
-        render(
+      it('supports update-in-render', async () => {
+        await render(
           <SharedHooksProvider>
             <Component />
           </SharedHooksProvider>
@@ -621,14 +639,14 @@ describe('useSharedState', () => {
         expect(container.innerText).toEqual('2 2')
       })
 
-      it('SSR will not update previous elements after update-in-render', () => {
+      it('SSR will not update previous elements after update-in-render', async () => {
         const ssr = ssrRender(<Component />)
         container.innerHTML = ssr
         expect(container.innerText).toEqual('1 2')
       })
     })
 
-    it('supports nested useShared', () => {
+    it('supports nested useShared', async () => {
       function useCustom(): [string, () => void] {
         const [stateA, setStateA] = React.useState(1)
         const [stateB, setStateB] = useSharedState('key', 1)
@@ -659,7 +677,7 @@ describe('useSharedState', () => {
         )
       }
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -669,7 +687,7 @@ describe('useSharedState', () => {
       expect(container.innerText).toEqual('2-2-2 2-2-2 1-2-1 1-2-1')
     })
 
-    it('supports nested useLocal', () => {
+    it('supports nested useLocal', async () => {
       function useCustom(): [string, () => void] {
         const [stateA, setStateA] = React.useState(1)
         const [stateB, setStateB] = useLocal(() => React.useState(1))
@@ -697,7 +715,7 @@ describe('useSharedState', () => {
         )
       }
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -768,7 +786,7 @@ describe('useSharedState', () => {
           )
         }
         //console.log('step 1')
-        render(
+        await render(
           <SharedHooksProvider>
             <Component />
           </SharedHooksProvider>
@@ -786,7 +804,7 @@ describe('useSharedState', () => {
 })
 
 describe('useSharedReducer', () => {
-  it('uses a single useReducer native hook after shared set (in dev)', () => {
+  it('uses a single useReducer native hook after shared set (in dev)', async () => {
     const used: Array<string> = []
     function Component() {
       const [state] = trackHooksUsed(used, () =>
@@ -794,7 +812,7 @@ describe('useSharedReducer', () => {
       )
       return <div>{state}</div>
     }
-    render(
+    await render(
       <SharedHooksProvider>
         <Component />
       </SharedHooksProvider>
@@ -812,7 +830,7 @@ describe('useSharedReducer', () => {
       return state + action
     }
 
-    it('shares state across components', () => {
+    it('shares state across components', async () => {
       function Counter() {
         const [state, addState] = useSharedReducer('key', sum, 0)
         return <div onClick={() => addState(1)}>{state}</div>
@@ -826,7 +844,7 @@ describe('useSharedReducer', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -838,7 +856,7 @@ describe('useSharedReducer', () => {
       expect(container.innerText).toEqual('1-1')
     })
 
-    it('calls initializer once', () => {
+    it('calls initializer once', async () => {
       function initializer(n: number): number {
         return n + 10
       }
@@ -855,7 +873,7 @@ describe('useSharedReducer', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -867,7 +885,46 @@ describe('useSharedReducer', () => {
       expect(container.innerText).toEqual('11-11')
     })
 
-    it('clears state when all unmount', () => {
+    it('update with same value does not cause re-render', async () => {
+      let renderWasCalled = 0
+      function Clicker({ id }: { id: string }) {
+        renderWasCalled++
+        const [state, setState] = useSharedReducer('key', (_, a) => a, 'X')
+        return (
+          <div id={id} onClick={() => setState(id)}>
+            {state}
+          </div>
+        )
+      }
+      function Component() {
+        return (
+          <>
+            <Clicker id="A" />
+            {'-'}
+            <Clicker id="B" />
+          </>
+        )
+      }
+      await render(
+        <SharedHooksProvider>
+          <Component />
+        </SharedHooksProvider>
+      )
+      expect(container.innerText).toEqual('X-X')
+      expect(renderWasCalled).toEqual(2)
+
+      renderWasCalled = 0
+      click(document.getElementById('A'))
+      expect(container.innerText).toEqual('A-A')
+      expect(renderWasCalled).toEqual(2)
+
+      renderWasCalled = 0
+      click(document.getElementById('A'))
+      expect(container.innerText).toEqual('A-A')
+      expect(renderWasCalled).toEqual(0)
+    })
+
+    it('clears state when all unmount', async () => {
       function Counter() {
         const [state, addState] = useSharedReducer('key', sum, 0)
         return <div onClick={() => addState(1)}>{state}</div>
@@ -885,7 +942,7 @@ describe('useSharedReducer', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={true} second={true} />
         </SharedHooksProvider>
@@ -896,35 +953,35 @@ describe('useSharedReducer', () => {
       click(container.firstElementChild)
       expect(container.innerText).toEqual('1 1')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={false} second={true} />
         </SharedHooksProvider>
       )
       expect(container.innerText).toEqual(' 1')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={true} second={false} />
         </SharedHooksProvider>
       )
       expect(container.innerText).toEqual('1 ')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={true} second={true} />
         </SharedHooksProvider>
       )
       expect(container.innerText).toEqual('1 1')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={false} second={false} />
         </SharedHooksProvider>
       )
       expect(container.innerText).toEqual(' ')
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component first={true} second={true} />
         </SharedHooksProvider>
@@ -951,8 +1008,8 @@ describe('useSharedReducer', () => {
         )
       }
 
-      it('supports update-in-render', () => {
-        render(
+      it('supports update-in-render', async () => {
+        await render(
           <SharedHooksProvider>
             <Component />
           </SharedHooksProvider>
@@ -960,14 +1017,14 @@ describe('useSharedReducer', () => {
         expect(container.innerText).toEqual('2 2')
       })
 
-      it('SSR will not update previous elements after update-in-render', () => {
+      it('SSR will not update previous elements after update-in-render', async () => {
         const ssr = ssrRender(<Component />)
         container.innerHTML = ssr
         expect(container.innerText).toEqual('1 2')
       })
     })
 
-    it('supports nested useShared', () => {
+    it('supports nested useShared', async () => {
       function useCustom(): [string, () => void] {
         const [stateA, addStateA] = React.useReducer(sum, 1)
         const [stateB, addStateB] = useSharedReducer('key', sum, 1)
@@ -998,7 +1055,7 @@ describe('useSharedReducer', () => {
         )
       }
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -1008,7 +1065,7 @@ describe('useSharedReducer', () => {
       expect(container.innerText).toEqual('2-2-2 2-2-2 1-2-1 1-2-1')
     })
 
-    it('supports nested useLocal', () => {
+    it('supports nested useLocal', async () => {
       function useCustom(): [string, () => void] {
         const [stateA, addStateA] = React.useReducer(sum, 1)
         const [stateB, addStateB] = useLocal(() => React.useReducer(sum, 1))
@@ -1036,7 +1093,7 @@ describe('useSharedReducer', () => {
         )
       }
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -1052,13 +1109,13 @@ for (const effectHook of ['useEffect', 'useLayoutEffect']) {
   const useSharedEffectHook =
     effectHook === 'useEffect' ? useSharedEffect : useSharedLayoutEffect
   describe(useSharedEffectHook.name, () => {
-    it(`uses a single ${effectHook} native hook after shared set (in dev)`, () => {
+    it(`uses a single ${effectHook} native hook after shared set (in dev)`, async () => {
       const used: Array<string> = []
       function Component() {
         trackHooksUsed(used, () => useSharedEffectHook('key', () => {}))
         return <div />
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -1071,9 +1128,82 @@ for (const effectHook of ['useEffect', 'useLayoutEffect']) {
       ])
     })
 
+    describe('misuse', () => {
+      it('throws if deps change type to undefined', () => {
+        let deps: any = ['oops']
+        function Component() {
+          useSharedEffectHook('key', () => {}, deps)
+          return <div />
+        }
+        renderSync(
+          <SharedHooksProvider>
+            <Component />
+          </SharedHooksProvider>
+        )
+        deps = undefined
+        expect(() =>
+          renderSync(
+            <SharedHooksProvider>
+              <Component />
+            </SharedHooksProvider>
+          )
+        ).toThrow(
+          'useShared: The dependency list changed from [oops] to undefined. ' +
+            'Even though it is optional the type cannot change between renders.'
+        )
+      })
+
+      it('throws if deps change type from undefined', () => {
+        let deps: any = undefined
+        function Component() {
+          useSharedEffectHook('key', () => {}, deps)
+          return <div />
+        }
+        renderSync(
+          <SharedHooksProvider>
+            <Component />
+          </SharedHooksProvider>
+        )
+        deps = ['oops']
+        expect(() =>
+          renderSync(
+            <SharedHooksProvider>
+              <Component />
+            </SharedHooksProvider>
+          )
+        ).toThrow(
+          'useShared: The dependency list changed from undefined to [oops]. ' +
+            'Even though it is optional the type cannot change between renders.'
+        )
+      })
+
+      it('throws if deps change size', () => {
+        let deps: any = [1]
+        function Component() {
+          useSharedEffectHook('key', () => {}, deps)
+          return <div />
+        }
+        renderSync(
+          <SharedHooksProvider>
+            <Component />
+          </SharedHooksProvider>
+        )
+        deps = [1, 2]
+        expect(() =>
+          renderSync(
+            <SharedHooksProvider>
+              <Component />
+            </SharedHooksProvider>
+          )
+        ).toThrow(
+          'useShared: The dependency list changed from [1] to [1, 2]. ' +
+            'The order and size of this array must remain constant.'
+        )
+      })
+    })
+
     inDevAndProd(() => {
-      // TODO: currently broken
-      xit('mount/unmount effect called once, capturing initial state', () => {
+      it('mount/unmount effect called once, capturing initial state', async () => {
         const effects: Array<string> = []
         function Effector({ id }: { id: string }) {
           useSharedEffectHook(
@@ -1102,54 +1232,116 @@ for (const effectHook of ['useEffect', 'useLayoutEffect']) {
             </>
           )
         }
-        console.log('render 1')
-        render(
+
+        await render(
           <SharedHooksProvider>
             <Component first={true} second={true} />
           </SharedHooksProvider>
         )
         expect(effects).toEqual(['mount from first'])
+        effects.length = 0
 
-        console.log('render 2')
-        render(
+        await render(
           <SharedHooksProvider>
             <Component first={true} second={false} />
           </SharedHooksProvider>
         )
-        expect(effects).toEqual(['mount from first'])
+        expect(effects).toEqual([])
 
-        console.log('render 3')
-        render(
+        await render(
           <SharedHooksProvider>
             <Component first={false} second={true} />
           </SharedHooksProvider>
         )
-        // TODO: this is incorrectly failing since the second unmounts before
-        // the first remounts?
-        expect(effects).toEqual(['mount from first'])
+        expect(effects).toEqual([])
 
-        console.log('render 4')
-        render(
+        await render(
           <SharedHooksProvider>
             <Component first={false} second={false} />
           </SharedHooksProvider>
         )
-        expect(effects).toEqual(['mount from first'])
+        expect(effects).toEqual(['unmount from first'])
+        effects.length = 0
 
-        console.log('render 5')
-        render(
+        await render(
           <SharedHooksProvider>
             <Component first={false} second={true} />
           </SharedHooksProvider>
         )
-        expect(effects).toEqual(['mount from first'])
+        expect(effects).toEqual(['mount from second'])
+      })
+
+      it('always effect called once per render', async () => {
+        const effects: Array<string> = []
+        function Effector({ id }: { id: string }) {
+          useSharedEffectHook('key', () => {
+            effects.push(`effect from ${id}`)
+            return () => {
+              effects.push(`cleanup from ${id}`)
+            }
+          })
+          return null
+        }
+        function Component({
+          first,
+          second
+        }: {
+          first: boolean
+          second: boolean
+        }) {
+          return (
+            <>
+              {first && <Effector id="first" />}
+              {second && <Effector id="second" />}
+            </>
+          )
+        }
+
+        await render(
+          <SharedHooksProvider>
+            <Component first={true} second={true} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['effect from second'])
+        effects.length = 0
+
+        await render(
+          <SharedHooksProvider>
+            <Component first={true} second={false} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['cleanup from second', 'effect from first'])
+        effects.length = 0
+
+        await render(
+          <SharedHooksProvider>
+            <Component first={false} second={true} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['cleanup from first', 'effect from second'])
+        effects.length = 0
+
+        await render(
+          <SharedHooksProvider>
+            <Component first={false} second={false} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['cleanup from second'])
+        effects.length = 0
+
+        await render(
+          <SharedHooksProvider>
+            <Component first={false} second={true} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['effect from second'])
       })
     })
   })
 }
 
 describe('useSharedMemo', () => {
-  it('uses a single useMemo native hook after shared set (in dev)', () => {
+  it('uses a single useMemo native hook after shared set (in dev)', async () => {
     const used: Array<string> = []
     function Component() {
       const memo: string = trackHooksUsed(used, () =>
@@ -1157,7 +1349,7 @@ describe('useSharedMemo', () => {
       )
       return <div>{memo}</div>
     }
-    render(
+    await render(
       <SharedHooksProvider>
         <Component />
       </SharedHooksProvider>
@@ -1171,7 +1363,7 @@ describe('useSharedMemo', () => {
   })
 
   inDevAndProd(() => {
-    it('memo created once per dep-list', () => {
+    it('memo created once per dep-list', async () => {
       let renderWasCalled = 0
       let memoWasCalled = 0
 
@@ -1194,7 +1386,7 @@ describe('useSharedMemo', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -1203,7 +1395,7 @@ describe('useSharedMemo', () => {
       expect(renderWasCalled).toBe(2)
       expect(memoWasCalled).toBe(1)
 
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -1212,11 +1404,62 @@ describe('useSharedMemo', () => {
       expect(renderWasCalled).toBe(4)
       expect(memoWasCalled).toBe(1)
     })
+
+    it('updated if dep-list changes', async () => {
+      let renderWasCalled = 0
+      let memoWasCalled = 0
+
+      function WithMemo({ n }: { n: number }) {
+        renderWasCalled++
+        const memo = useSharedMemo(
+          'key',
+          () => {
+            memoWasCalled++
+            return n * 10
+          },
+          [n]
+        )
+        return <>{memo}</>
+      }
+      function Component({ n }: { n: number }) {
+        return (
+          <>
+            <WithMemo n={n} /> <WithMemo n={n} />
+          </>
+        )
+      }
+      await render(
+        <SharedHooksProvider>
+          <Component n={1} />
+        </SharedHooksProvider>
+      )
+      expect(container.innerText).toEqual('10 10')
+      expect(renderWasCalled).toBe(2)
+      expect(memoWasCalled).toBe(1)
+
+      await render(
+        <SharedHooksProvider>
+          <Component n={1} />
+        </SharedHooksProvider>
+      )
+      expect(container.innerText).toEqual('10 10')
+      expect(renderWasCalled).toBe(4)
+      expect(memoWasCalled).toBe(1)
+
+      await render(
+        <SharedHooksProvider>
+          <Component n={2} />
+        </SharedHooksProvider>
+      )
+      expect(container.innerText).toEqual('20 20')
+      expect(renderWasCalled).toBe(6)
+      expect(memoWasCalled).toBe(2)
+    })
   })
 })
 
 describe('useSharedCallback', () => {
-  it('uses a single useCallback native hook after shared set (in dev)', () => {
+  it('uses a single useCallback native hook after shared set (in dev)', async () => {
     const used: Array<string> = []
     function Component() {
       const memo: () => string = trackHooksUsed(used, () =>
@@ -1224,7 +1467,7 @@ describe('useSharedCallback', () => {
       )
       return <div>{memo()}</div>
     }
-    render(
+    await render(
       <SharedHooksProvider>
         <Component />
       </SharedHooksProvider>
@@ -1237,17 +1480,93 @@ describe('useSharedCallback', () => {
     ])
   })
 
-  // TODO: tests!
+  inDevAndProd(() => {
+    it('callback created once per dep-list', async () => {
+      let renderWasCalled = 0
+      let uniqueCallbacks = new Set()
+
+      function WithCallback() {
+        renderWasCalled++
+        const callback = useSharedCallback('key', () => {}, [])
+        uniqueCallbacks.add(callback)
+        return <div onClick={callback} />
+      }
+      function Component() {
+        return (
+          <>
+            <WithCallback /> <WithCallback />
+          </>
+        )
+      }
+      await render(
+        <SharedHooksProvider>
+          <Component />
+        </SharedHooksProvider>
+      )
+      expect(renderWasCalled).toBe(2)
+      expect(uniqueCallbacks.size).toBe(1)
+
+      await render(
+        <SharedHooksProvider>
+          <Component />
+        </SharedHooksProvider>
+      )
+      expect(renderWasCalled).toBe(4)
+      expect(uniqueCallbacks.size).toBe(1)
+    })
+
+    it('updated if dep-list changes', async () => {
+      let renderWasCalled = 0
+      let uniqueCallbacks = new Set()
+
+      function WithCallback({ n }: { n: number }) {
+        renderWasCalled++
+        const callback = useSharedCallback('key', () => {}, [n])
+        uniqueCallbacks.add(callback)
+        return <div onClick={callback} />
+      }
+      function Component({ n }: { n: number }) {
+        return (
+          <>
+            <WithCallback n={n} /> <WithCallback n={n} />
+          </>
+        )
+      }
+      await render(
+        <SharedHooksProvider>
+          <Component n={1} />
+        </SharedHooksProvider>
+      )
+      expect(renderWasCalled).toBe(2)
+      expect(uniqueCallbacks.size).toBe(1)
+
+      await render(
+        <SharedHooksProvider>
+          <Component n={1} />
+        </SharedHooksProvider>
+      )
+      expect(renderWasCalled).toBe(4)
+      expect(uniqueCallbacks.size).toBe(1)
+
+      await render(
+        <SharedHooksProvider>
+          <Component n={2} />
+        </SharedHooksProvider>
+      )
+      expect(renderWasCalled).toBe(6)
+      expect(uniqueCallbacks.size).toBe(2)
+    })
+  })
 })
 
 describe('useSharedRef', () => {
-  it('uses a single useMemo native hook after shared set (in dev)', () => {
+  it('uses a single useMemo native hook after shared set (in dev)', async () => {
     const used: Array<string> = []
     function Component() {
       const ref = trackHooksUsed(used, () => useSharedRef('key', 'X'))
       return <div>{ref.current}</div>
     }
-    render(
+    await render(
       <SharedHooksProvider>
         <Component />
       </SharedHooksProvider>
@@ -1261,7 +1580,7 @@ describe('useSharedRef', () => {
   })
 
   inDevAndProd(() => {
-    it('ref created once, capturing initial state', () => {
+    it('ref created once, capturing initial state', async () => {
       let renderedRef: React.MutableRefObject<number> = { current: 0 }
 
       function WithRef() {
@@ -1277,7 +1596,7 @@ describe('useSharedRef', () => {
           </>
         )
       }
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
@@ -1291,7 +1610,7 @@ describe('useSharedRef', () => {
       expect(container.innerText).toEqual('11 12')
 
       // But subsequent render will pick up the value.
-      render(
+      await render(
         <SharedHooksProvider>
           <Component />
         </SharedHooksProvider>
