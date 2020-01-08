@@ -1,5 +1,5 @@
 import React from 'react'
-import { render as renderDOM, unmountComponentAtNode } from 'react-dom'
+import ReactDOM from 'react-dom'
 import { renderToString } from 'react-dom/server'
 import { act } from 'react-dom/test-utils'
 import { SharedHooksProvider, useShared, useLocal } from '../useShared'
@@ -119,7 +119,9 @@ beforeEach(() => {
 afterEach(() => {
   try {
     if (container) {
-      unmountComponentAtNode(container)
+      act(() => {
+        ReactDOM.unmountComponentAtNode(container)
+      })
       container.remove()
     }
     window.removeEventListener('error', preventDefault)
@@ -155,7 +157,7 @@ class ErrorBoundary extends React.Component {
 function render(element: React.ReactElement) {
   ErrorBoundary.caughtError = null
   act(() => {
-    renderDOM(<ErrorBoundary>{element}</ErrorBoundary>, container)
+    ReactDOM.render(<ErrorBoundary>{element}</ErrorBoundary>, container)
   })
   const caughtError = ErrorBoundary.caughtError
   if (caughtError) {
@@ -164,12 +166,12 @@ function render(element: React.ReactElement) {
   }
 }
 
-function ssrRender(element: React.ReactElement): string {
+function renderSSR(element: React.ReactElement): string {
   const globalWindow = Reflect.getOwnPropertyDescriptor(global, 'window')
   try {
     // @ts-ignore Remove window during SSR
     delete global.window
-    return renderToString(<SharedHooksProvider>{element}</SharedHooksProvider>)
+    return renderToString(element)
   } finally {
     if (globalWindow) {
       Object.defineProperty(global, 'window', globalWindow)
@@ -202,17 +204,16 @@ function createSuspender<T>(): [AsyncValue<T>, (value: T) => Promise<void>] {
       asyncValue.value = value
     })
   }
-  const resolveAct = (value: T) =>
-    act(async () => {
+  const resolveValue = (value: T) =>
+    new Promise<void>(resolveOuter => {
       const promise = asyncValue.promise
       if (promise) {
         resolve(value)
-        // Not sure why we need this. It seems like a bug in react-test-utils.
-        await new Promise(setImmediate)
       }
+      resolveOuter(promise)
     })
 
-  return [asyncValue, resolveAct]
+  return [asyncValue, resolveValue]
 }
 
 describe('misuse', () => {
@@ -277,7 +278,7 @@ describe('misuse', () => {
         </SharedHooksProvider>
       )
     ).toThrow('Rendered more hooks than during the previous render.')
-    unmountComponentAtNode(container)
+    ReactDOM.unmountComponentAtNode(container)
     render(
       <SharedHooksProvider>
         <Component />
@@ -642,9 +643,24 @@ describe('useSharedState', () => {
       })
 
       it('SSR will not update previous elements after update-in-render', () => {
-        const ssr = ssrRender(<Component />)
+        const ssr = renderSSR(
+          <SharedHooksProvider>
+            <Component />
+          </SharedHooksProvider>
+        )
         container.innerHTML = ssr
         expect(container.innerText).toEqual('1 2')
+
+        // A client-side hydration will apply effects to unify the state.
+        act(() => {
+          ReactDOM.hydrate(
+            <SharedHooksProvider>
+              <Component />
+            </SharedHooksProvider>,
+            container
+          )
+        })
+        expect(container.innerText).toEqual('2 2')
       })
     })
 
@@ -727,81 +743,163 @@ describe('useSharedState', () => {
       expect(container.innerText).toEqual('2-2 2-1')
     })
 
-    describe('suspense', () => {
-      xit('not sure what is being tested just yet', async () => {
-        const [asyncVal, resolve] = createSuspender<string>()
-        function Counter() {
-          const [state, setState] = useSharedState('key', () => {
-            console.log('init shared state')
-            return 0
-          })
-          React.useState(() => {
-            console.log('init local state')
-            return 0
-          })
-          console.log('rendering with asyncValue', asyncVal)
-          if (asyncVal.loading) {
-            throw asyncVal.promise
-          }
-          const r = React.useRef<boolean>(false)
-          if (!r.current) {
-            r.current = true
-            setState(n => n + 1)
-          }
-          return (
-            <div>
-              Counter-{asyncVal.value}-{state}
-            </div>
-          )
+    describe('cleanup', () => {
+      function useCounter() {
+        return React.useState(0)
+      }
+      function Thrower(): null {
+        const [state] = useShared('key', useCounter)
+        throw new Error(`Thrower-${state}`)
+      }
+      function Advancer() {
+        const [state, setState] = useShared('key', useCounter)
+        const ref = React.useRef(false)
+        if (!ref.current) {
+          ref.current = true
+          setState(n => n + 1)
         }
-        function Unrelated() {
-          const [state, setState] = useSharedState('key2', () => {
-            //console.log('init unrelated shared state')
-            return 0
-          })
-          React.useState(() => {
-            //console.log('init unrelated local state')
-            return 0
-          })
-          const r = React.useRef<boolean>(false)
-          if (!r.current) {
-            r.current = true
-            setState(n => n + 1)
-          }
-          return <div>Unrelated-{state}</div>
+        return <div>Advancer-{state}</div>
+      }
+      class Catcher extends React.Component {
+        state: { error?: Error } = {}
+        static getDerivedStateFromError(error: Error) {
+          return { error }
         }
-        function Component() {
-          return (
-            <div>
-              <React.Suspense fallback={<div>loading...</div>}>
-                ok
-                <div>
-                  no way
-                  <Counter />
-                </div>
-                <div>
-                  wow
-                  <Unrelated />
-                </div>
-              </React.Suspense>
-            </div>
-          )
+        render() {
+          return this.state.error
+            ? this.state.error.message
+            : this.props.children
         }
-        //console.log('step 1')
+      }
+
+      it('cleans up if a component fails to mount', () => {
         render(
           <SharedHooksProvider>
-            <Component />
+            <Catcher>
+              <Advancer />
+              <Thrower />
+            </Catcher>
           </SharedHooksProvider>
         )
-        expect(container.innerText).toEqual('loading...')
+        expect(container.innerText).toEqual('Thrower-1')
+        render(
+          <SharedHooksProvider>
+            <Advancer />
+          </SharedHooksProvider>
+        )
+        expect(container.innerText).toEqual('Advancer-1')
+      })
 
-        //console.log('step 2')
-        await resolve('loaded')
-        expect(container.innerText).toEqual('loaded-0')
+      it('cleans up if a sibling component throws during render', () => {
+        render(
+          <SharedHooksProvider>
+            <Advancer />
+            <Catcher>
+              <Advancer />
+              <Thrower />
+            </Catcher>
+          </SharedHooksProvider>
+        )
+        expect(container.innerText).toEqual('Advancer-2Thrower-2')
 
-        //console.log('step 3')
+        // Unmount and remount shows proper reset of state
+        render(<SharedHooksProvider />)
+        render(
+          <SharedHooksProvider>
+            <Advancer />
+            <Catcher>
+              <Advancer />
+              <Thrower />
+            </Catcher>
+          </SharedHooksProvider>
+        )
+        expect(container.innerText).toEqual('Advancer-2Thrower-2')
       })
     })
+
+    // describe('suspense', () => {
+    //   it('not sure what is being tested just yet', async () => {
+    //     console.log('suspense test from', process.env.NODE_ENV)
+    //     const [asyncVal, resolveVal] = createSuspender<string>()
+    //     function Suspender() {
+    //       const [state, setState] = useSharedState('key', () => {
+    //         console.log('init shared state')
+    //         return 0
+    //       })
+    //       React.useState(() => {
+    //         console.log('init local state')
+    //         return 0
+    //       })
+    //       console.log('rendering with asyncValue', asyncVal)
+    //       if (asyncVal.loading) {
+    //         throw asyncVal.promise
+    //       }
+    //       const r = React.useRef<boolean>(false)
+    //       if (!r.current) {
+    //         r.current = true
+    //         setState(n => n + 1)
+    //       }
+    //       return (
+    //         <div>
+    //           {asyncVal.value}-{state}
+    //         </div>
+    //       )
+    //     }
+    //     function Counter() {
+    //       const [state, setState] = useSharedState('key', 0)
+    //       return <div onClick={() => setState(n => n + 1)}>Counter-{state}</div>
+    //     }
+    //     function Unrelated() {
+    //       const [state, setState] = useSharedState('key2', () => {
+    //         //console.log('init unrelated shared state')
+    //         return 0
+    //       })
+    //       React.useState(() => {
+    //         //console.log('init unrelated local state')
+    //         return 0
+    //       })
+    //       const r = React.useRef<boolean>(false)
+    //       if (!r.current) {
+    //         r.current = true
+    //         setState(n => n + 1)
+    //       }
+    //       return <div>Unrelated-{state}</div>
+    //     }
+    //     function Component() {
+    //       return (<>
+    //         <Counter />{' '}
+    //         <React.Suspense fallback="loading...">
+    //           <Suspender /> <Unrelated /> <Counter />
+    //         </React.Suspense>
+    //         </>
+    //       )
+    //     }
+    //     //console.log('step 1')
+    //     render(
+    //       <SharedHooksProvider>
+    //         <Component />
+    //       </SharedHooksProvider>
+    //     )
+    //     console.log(container.innerHTML)
+    //     expect(container.innerText).toEqual('Counter-0 loading...')
+
+    //     console.log('clicking')
+    //     click(container.firstElementChild)
+    //     expect(container.innerText).toEqual('Counter-1 loading...')
+
+    //     //console.log('step 2')
+    //     console.log('...resolving...')
+    //     await act(async () => {
+    //       await resolveVal('loaded')
+    //     })
+    //     console.log(container.innerHTML)
+    //     expect(container.innerText).toEqual('Counter-2 loaded-2 Unrelated-1 Counter-2')
+
+    //     await new Promise(setImmediate)
+
+    //     //console.log('step 3')
+    //   })
+    // })
   })
 })
 
@@ -1034,9 +1132,24 @@ describe('useSharedReducer', () => {
       })
 
       it('SSR will not update previous elements after update-in-render', () => {
-        const ssr = ssrRender(<Component />)
+        const ssr = renderSSR(
+          <SharedHooksProvider>
+            <Component />
+          </SharedHooksProvider>
+        )
         container.innerHTML = ssr
         expect(container.innerText).toEqual('1 2')
+
+        // A client-side hydration will apply effects to unify the state.
+        act(() => {
+          ReactDOM.hydrate(
+            <SharedHooksProvider>
+              <Component />
+            </SharedHooksProvider>,
+            container
+          )
+        })
+        expect(container.innerText).toEqual('2 2')
       })
     })
 
@@ -1219,208 +1332,208 @@ for (const effectHook of ['useEffect', 'useLayoutEffect']) {
     })
 
     inDevAndProd(() => {
-    it('mount/unmount effect called once, capturing initial state', () => {
-      const effects: Array<string> = []
-      function Effector({ id }: { id: string }) {
-        useSharedEffectHook(
-          'key',
-          () => {
-            effects.push(`mount from ${id}`)
-            return () => {
-              effects.push(`unmount from ${id}`)
-            }
-          },
-          []
-        )
-        return null
-      }
-      function Component({
-        first,
-        second
-      }: {
-        first: boolean
-        second: boolean
-      }) {
-        return (
-          <>
-            {first && <Effector id="first" />}
-            {second && <Effector id="second" />}
-          </>
-        )
-      }
+      it('mount/unmount effect called once, capturing initial state', () => {
+        const effects: Array<string> = []
+        function Effector({ id }: { id: string }) {
+          useSharedEffectHook(
+            'key',
+            () => {
+              effects.push(`mount from ${id}`)
+              return () => {
+                effects.push(`unmount from ${id}`)
+              }
+            },
+            []
+          )
+          return null
+        }
+        function Component({
+          first,
+          second
+        }: {
+          first: boolean
+          second: boolean
+        }) {
+          return (
+            <>
+              {first && <Effector id="first" />}
+              {second && <Effector id="second" />}
+            </>
+          )
+        }
 
-      render(
-        <SharedHooksProvider>
-          <Component first={true} second={true} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['mount from first'])
-      effects.length = 0
-
-      render(
-        <SharedHooksProvider>
-          <Component first={true} second={false} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual([])
-
-      render(
-        <SharedHooksProvider>
-          <Component first={false} second={true} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual([])
-
-      render(
-        <SharedHooksProvider>
-          <Component first={false} second={false} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['unmount from first'])
-      effects.length = 0
-
-      render(
-        <SharedHooksProvider>
-          <Component first={false} second={true} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['mount from second'])
-      effects.length = 0
-
-      render(<div />)
-      expect(effects).toEqual(['unmount from second'])
-    })
-
-    it('always effect called once per render', () => {
-      const effects: Array<string> = []
-      function Effector({ id }: { id: string }) {
-        useSharedEffectHook('key', () => {
-          effects.push(`effect from ${id}`)
-          return () => {
-            effects.push(`cleanup from ${id}`)
-          }
-        })
-        return null
-      }
-      function Component({
-        first,
-        second
-      }: {
-        first: boolean
-        second: boolean
-      }) {
-        return (
-          <>
-            {first && <Effector id="first" />}
-            {second && <Effector id="second" />}
-          </>
-        )
-      }
-
-      render(
-        <SharedHooksProvider>
-          <Component first={true} second={true} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['effect from second'])
-      effects.length = 0
-
-      render(
-        <SharedHooksProvider>
-          <Component first={true} second={false} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['cleanup from second', 'effect from first'])
-      effects.length = 0
-
-      render(
-        <SharedHooksProvider>
-          <Component first={false} second={true} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['cleanup from first', 'effect from second'])
-      effects.length = 0
-
-      render(
-        <SharedHooksProvider>
-          <Component first={false} second={false} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['cleanup from second'])
-      effects.length = 0
-
-      render(
-        <SharedHooksProvider>
-          <Component first={false} second={true} />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['effect from second'])
-      effects.length = 0
-
-      render(<div />)
-      expect(effects).toEqual(['cleanup from second'])
-    })
-
-    it('calls all cleanups even if one throws', () => {
-      const effects: Array<string> = []
-      function Component() {
-        useSharedEffect(
-          'a',
-          () => {
-            effects.push('mount a')
-            return () => {
-              effects.push('unmount a')
-              throw new Error('thrown from unmount a')
-            }
-          },
-          []
-        )
-        useSharedEffect(
-          'b',
-          () => {
-            effects.push('mount b')
-            return () => {
-              effects.push('unmount b')
-            }
-          },
-          []
-        )
-        return <div />
-      }
-
-      render(
-        <SharedHooksProvider>
-          <Component />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['mount a', 'mount b'])
-      effects.length = 0
-
-      expect(() => {
         render(
           <SharedHooksProvider>
+            <Component first={true} second={true} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['mount from first'])
+        effects.length = 0
+
+        render(
+          <SharedHooksProvider>
+            <Component first={true} second={false} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual([])
+
+        render(
+          <SharedHooksProvider>
+            <Component first={false} second={true} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual([])
+
+        render(
+          <SharedHooksProvider>
+            <Component first={false} second={false} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['unmount from first'])
+        effects.length = 0
+
+        render(
+          <SharedHooksProvider>
+            <Component first={false} second={true} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['mount from second'])
+        effects.length = 0
+
+        render(<div />)
+        expect(effects).toEqual(['unmount from second'])
+      })
+
+      it('always effect called once per render', () => {
+        const effects: Array<string> = []
+        function Effector({ id }: { id: string }) {
+          useSharedEffectHook('key', () => {
+            effects.push(`effect from ${id}`)
+            return () => {
+              effects.push(`cleanup from ${id}`)
+            }
+          })
+          return null
+        }
+        function Component({
+          first,
+          second
+        }: {
+          first: boolean
+          second: boolean
+        }) {
+          return (
+            <>
+              {first && <Effector id="first" />}
+              {second && <Effector id="second" />}
+            </>
+          )
+        }
+
+        render(
+          <SharedHooksProvider>
+            <Component first={true} second={true} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['effect from second'])
+        effects.length = 0
+
+        render(
+          <SharedHooksProvider>
+            <Component first={true} second={false} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['cleanup from second', 'effect from first'])
+        effects.length = 0
+
+        render(
+          <SharedHooksProvider>
+            <Component first={false} second={true} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['cleanup from first', 'effect from second'])
+        effects.length = 0
+
+        render(
+          <SharedHooksProvider>
+            <Component first={false} second={false} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['cleanup from second'])
+        effects.length = 0
+
+        render(
+          <SharedHooksProvider>
+            <Component first={false} second={true} />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['effect from second'])
+        effects.length = 0
+
+        render(<div />)
+        expect(effects).toEqual(['cleanup from second'])
+      })
+
+      it('calls all cleanups even if one throws', () => {
+        const effects: Array<string> = []
+        function Component() {
+          useSharedEffect(
+            'a',
+            () => {
+              effects.push('mount a')
+              return () => {
+                effects.push('unmount a')
+                throw new Error('thrown from unmount a')
+              }
+            },
+            []
+          )
+          useSharedEffect(
+            'b',
+            () => {
+              effects.push('mount b')
+              return () => {
+                effects.push('unmount b')
+              }
+            },
+            []
+          )
+          return <div />
+        }
+
+        render(
+          <SharedHooksProvider>
+            <Component />
+          </SharedHooksProvider>
+        )
+        expect(effects).toEqual(['mount a', 'mount b'])
+        effects.length = 0
+
+        expect(() => {
+          render(
+            <SharedHooksProvider>
+              <div />
+            </SharedHooksProvider>
+          )
+        }).toThrow('thrown from unmount a')
+        expect(effects).toEqual(['unmount a', 'unmount b'])
+        effects.length = 0
+
+        render(
+          <SharedHooksProvider>
+            <Component />
             <div />
           </SharedHooksProvider>
         )
-      }).toThrow('thrown from unmount a')
-      expect(effects).toEqual(['unmount a', 'unmount b'])
-      effects.length = 0
+        expect(effects).toEqual(['mount a', 'mount b'])
+        effects.length = 0
 
-      render(
-        <SharedHooksProvider>
-          <Component />
-          <div />
-        </SharedHooksProvider>
-      )
-      expect(effects).toEqual(['mount a', 'mount b'])
-      effects.length = 0
-
-      expect(() => {
-        render(<div />)
-      }).toThrow('thrown from unmount a')
-      expect(effects).toEqual(['unmount a', 'unmount b'])
+        expect(() => {
+          render(<div />)
+        }).toThrow('thrown from unmount a')
+        expect(effects).toEqual(['unmount a', 'unmount b'])
+      })
     })
-  })
   })
 }
 

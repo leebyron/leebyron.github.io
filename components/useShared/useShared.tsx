@@ -1,15 +1,5 @@
 import { forEach } from 'iterall'
-import * as React from 'react'
-
-/////////////////////
-
-/*
-TODO:
-Unit tests!
-  - effects and cleanups that throw?
-  - throw/suspend during render?
-  - concurrent mode support?
-*/
+import React from 'react'
 
 type HooksDispatcher = {
   isSharedDispatcher?: boolean
@@ -219,7 +209,12 @@ function useSharedHooksDispatcher(key: string) {
     currentHook: null
   }
   if (!cachedHooksForKey) {
+    // If shared hooks for this key were not found in the cache, add them there
+    // so other hooks used during this same render will use the same hooks.
     hooksByKey.set(key, hooksForKey)
+    // Also schedule this key to be checked for cleanup, in case this component
+    // fails to mount later (due to error or suspense) to avoid a memory leak.
+    enqueueCleanupKey(key)
   }
 
   // The current hook should be unset when starting
@@ -236,21 +231,22 @@ function useSharedHooksDispatcher(key: string) {
   // Set of effects to call during mount of the component using the shared hook.
   const mountEffects: Array<React.EffectCallback> = []
 
-  // Avoid SSR warning by using useEffect. Use useLayoutEffect in the browser
-  // to avoid painting an inconsistent state. Note that this means SSR may
-  // render an inconsistent state in cases where shared state is updated during
-  // rendering.
+  // Avoid SSR warning by using useEffect on the server. However use
+  // useLayoutEffect in the browser to avoid painting an inconsistent state in
+  // the scenario that a component dispatches a state update during render.
+  // Note: This means SSR may render an inconsistent state in cases where shared
+  // state is updated during rendering.
   const useIsomorphicLayoutEffect =
     typeof window === 'undefined'
       ? LocalHooks.useEffect
       : LocalHooks.useLayoutEffect
 
-  // TODO: a component which encounters an error or suspends may have created
-  // a shared hook without releasing it. There are two problems here. One is
-  // that if the error/suspended component never mounts this leads to a memory
-  // leak. Two is that if it does eventually mount, it could cause a store
-  // collision below.
-  // TODO: do hooks get discarded if a render throws?
+  // TODO: a component which suspends may have created a shared hook which is
+  // releasing before mounting. There are two problems here. One is
+  // that if the suspended component eventually mounts and updates, it could get
+  // a new instance of the hooks if nothing else was using this. Two is that if
+  // it does eventually mount after a sibling using the state, it could cause a
+  // store collision. This needs some testing...
   useIsomorphicLayoutEffect(() => {
     hooksForKey.numMounted += 1
     const unmountEffects = mountEffects.map(effect => effect())
