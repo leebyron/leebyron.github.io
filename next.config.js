@@ -37,7 +37,7 @@ module.exports = withMDX({
     delete defaultPathMap['/index']
     return defaultPathMap
   },
-  exportTrailingSlash: true,
+  trailingSlash: true,
   webpack(config, options) {
     config.module.rules.push({
       test: /\.(jpe?g|png|svg|gif|ico|webp|woff2?)$/,
