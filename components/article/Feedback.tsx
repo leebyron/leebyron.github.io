@@ -847,7 +847,7 @@ function makeUUID(): string {
 }
 
 function getFeedbackURL(article: string): string {
-  return `${API_HOST}/api/article/${encodeURIComponent(article)}/feedback`
+  return `${API_HOST}/api/article/${encodeURIComponent(article)}/feedback/`
 }
 
 async function fetchFeedback(
