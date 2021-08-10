@@ -102,7 +102,7 @@ function GHIssueLink({ children }: { children: ReactNode }) {
   const query = path ? `?title=Broken+link:+${encodeURIComponent(path)}` : ''
   return (
     <a
-      href={`https://github.com/leebyron/leebyron.com/issues/new${query}`}
+      href={`https://github.com/leebyron/leebyron.github.io/issues/new${query}`}
       target="_blank"
       rel="noopener noreferrer"
     >
