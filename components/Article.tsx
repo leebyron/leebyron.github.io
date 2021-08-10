@@ -26,11 +26,13 @@ import { canonicalURL, shareURL, shareImage } from './article/shareUtil'
 
 const headshot = require('../assets/me.jpg')
 
-export default (frontMatter: FrontMatter) => ({
-  children
+export default function Article({
+  children,
+  frontMatter
 }: {
-  children: ReactNode
-}) => {
+  children: ReactNode,
+  frontMatter: FrontMatter,
+}) {
   const router = useRouter()
   const initialSelection =
     typeof router.query.$ === 'string' ? router.query.$ : undefined

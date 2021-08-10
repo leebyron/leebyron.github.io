@@ -16,61 +16,63 @@ const bio =
   'libraries used by millions of developers worldwide including GraphQL, ' +
   'React, Immutable.js, Flow, Relay, Dataloader, and more.'
 
-export default () => (
-  <Body>
-    <Head>
-      <meta property="og:title" content="Lee Byron" />
-      <meta property="og:url" content="https://leebyron.com/" />
-      <meta property="og:description" content={bio} />
-      <meta name="description" content={bio} />
-      <meta property="og:image" content={headshot.src} />
-      <meta property="og:image:secure_url" content={headshot.src} />
-      <meta property="og:image:alt" content="Headshot of Lee Byron" />
-      <meta property="og:image:width" content={headshot.width} />
-      <meta property="og:image:height" content={headshot.height} />
-      <meta property="og:type" content="profile" />
-      <meta property="og:profile:first_name" content="Lee" />
-      <meta property="og:profile:last_name" content="Byron" />
-      <meta property="og:profile:username" content="leebyron" />
-      <meta property="og:profile:gender" content="male" />
-      <meta name="twitter:card" content="summary" />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org/',
-            '@type': 'Person',
-            name: 'Lee Byron',
-            image: headshot.src,
-            gender: 'https://schema.org/Male'
-          })
-        }}
-      />
-    </Head>
-    <Header />
-    <Page>
-      <style jsx>{`
-        @media screen and (min-width: 768px) {
-          p {
-            max-width: 55ch;
+export default function Index() {
+  return (
+    <Body>
+      <Head>
+        <meta property="og:title" content="Lee Byron" />
+        <meta property="og:url" content="https://leebyron.com/" />
+        <meta property="og:description" content={bio} />
+        <meta name="description" content={bio} />
+        <meta property="og:image" content={headshot.src} />
+        <meta property="og:image:secure_url" content={headshot.src} />
+        <meta property="og:image:alt" content="Headshot of Lee Byron" />
+        <meta property="og:image:width" content={headshot.width} />
+        <meta property="og:image:height" content={headshot.height} />
+        <meta property="og:type" content="profile" />
+        <meta property="og:profile:first_name" content="Lee" />
+        <meta property="og:profile:last_name" content="Byron" />
+        <meta property="og:profile:username" content="leebyron" />
+        <meta property="og:profile:gender" content="male" />
+        <meta name="twitter:card" content="summary" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org/',
+              '@type': 'Person',
+              name: 'Lee Byron',
+              image: headshot.src,
+              gender: 'https://schema.org/Male'
+            })
+          }}
+        />
+      </Head>
+      <Header />
+      <Page>
+        <style jsx>{`
+          @media screen and (min-width: 768px) {
+            p {
+              max-width: 55ch;
+            }
           }
-        }
 
-        @media not screen and (min-width: 768px) and (min-height: 500px) {
-          .logo {
-            display: none;
+          @media not screen and (min-width: 768px) and (min-height: 500px) {
+            .logo {
+              display: none;
+            }
           }
-        }
-      `}</style>
-      <img className="logo" src={require('../assets/logo.svg')} width="200" />
-      <p>{bio}</p>
-      <h2>Speaking</h2>
-      <Talks />
-      <h2>Articles & Essays</h2>
-      <AllArticlesList />
-    </Page>
-  </Body>
-)
+        `}</style>
+        <img className="logo" src={require('../assets/logo.svg')} width="200" />
+        <p>{bio}</p>
+        <h2>Speaking</h2>
+        <Talks />
+        <h2>Articles & Essays</h2>
+        <AllArticlesList />
+      </Page>
+    </Body>
+  )
+}
 
 function Talks() {
   return (

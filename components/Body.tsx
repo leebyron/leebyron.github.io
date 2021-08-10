@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import Head from 'next/head'
 
-export default ({ children }: { children: ReactNode }) => {
+export default function Body({ children }: { children: ReactNode }) {
   return (
     <>
       <Head>
