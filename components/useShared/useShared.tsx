@@ -344,7 +344,7 @@ function areDepsEqual(
   return true
 }
 
-// useSharedState
+// useState
 
 type SharedStateHook<S> = {
   state: S
