@@ -2,7 +2,7 @@
 title: Snack Driven Development
 date: 2019-12-18T22:00:00Z
 layout: Article
-published: false
+published: true
 # medium: https://medium.com/@leeb/why-invest-in-tools-3240ce289930
 tags:
   - JavaScript
@@ -10,18 +10,18 @@ tags:
   - Creativity
 ---
 
-There comes a time in most developers' lives when they think to themselves: "I should rebuild my personal website and start a new blog." As far as I can tell this is a symptom of some kind of minor mental illness, delusion, or narcisistic tendency. It's almost always a bad idea, a distraction from more important work, and most likely to be doomed to stagnate. _I don't expect this time to end up any different but I had fun dammit and want to share what I learned._
+There comes a time in most developers' lives when they think to themselves: "I should rebuild my personal website and start a new blog." As far as I can tell this is a symptom of some kind of minor mental illness, delusion, or narcisistic tendency. It's almost always a bad idea, a distraction from more important work, and most likely to be doomed to stagnate. _I don't expect this time to end up any different but I had fun dammit and want to share a little bit about what I learned._
 
 A couple weeks ago while on parental leave I felt the itch to step beyond Medium, use the opportunity to pick up some new technologies I've been meaning to learn, and try to make something delightful. I definitely had better things to do, so this was a bit of [active procrastination](http://www.motivationalmagic.com/library/ebooks/motivation/motivation%20-%20An%20article%20on%20procrastination.pdf). But you know what? I don't feel bad about that at all. Only working on what's important is like only eating your vegetables and keeping to your daily exercise. A break from routine or an indulgent snack can light up the mind and spark creative inspiration. As I'm wrapping this up and returning to more important projects I have renewed energy and new ideas.
 
 > Feeding your creativity requires occasionally giving in to scratch the itch; to eat your snacks. Practice snack driven development.
 
-This particular snack was a filling one. I learned a lot I could talk about including [JAMStack][], [serverless][], [Next.js][], [Zeit Now][], [Fauna DB][], [Lighthouse][], [Puppeteer][], and more. As an even clearer sign of delusion, if I was going to give up Medium then I was determined to make something even better. So I'd love to talk about one particular detail where I think I came close to that unreasonable goal: _giving feedback_.
+This particular snack was a filling one. I learned a lot I could talk about including [JAMStack][], [serverless][], [Next.js][], [Vercel][], [Fauna DB][], [Lighthouse][], [Puppeteer][], and more. As an even clearer sign of delusion, if I was going to give up Medium then I was determined to make something even better. So I'd love to talk about one particular detail where I think I came close to that unreasonable goal: _giving feedback_.
 
 [jamstack]: https://jamstack.org
 [serverless]: https://en.wikipedia.org/wiki/Serverless_computing
 [next.js]: https://nextjs.org
-[zeit now]: https://zeit.co
+[vercel]: https://vercel.com
 [fauna db]: https://fauna.com
 [lighthouse]: https://developers.google.com/web/tools/lighthouse
 [puppeteer]: https://developers.google.com/web/tools/puppeteer
@@ -43,6 +43,8 @@ import { Feedback } from '../../components/article/Feedback'
 ### A universe of feedback interfaces
 
 I've always been fascinated by feedback interfaces. In 2008 I joined Facebook as a Product Designer while the Like button was under development. At the time it wasn't clear how social feedback should work. Lots of wild prototypes and internal debate over _years_ finally led to the ["Awesome" button](https://www.quora.com/Whats-the-history-of-the-Awesome-Button-that-eventually-became-the-Like-button-on-Facebook) launching renamed "Like." It was enlightening to watch that design process and the following ten years have seen even more experimentation and innovation in giving feedback and appreciation.
+
+While thinking about how I wanted to approach feedback for my own blog, I decided to take a look at some of the wide variation in feedback interfaces and figure out how I could borrow ideas and try to make something novel, fun, and that felt right for the content and audience of a personal blog.
 
 ##### Emoji Reactions
 
@@ -96,10 +98,18 @@ Credit to Medium's product designers for a number of accomplishments with their 
 
 While probably my favorite of the bunch, Medium's feedback interface still has its drawbacks. While applause is fitting for articles its also impersonal. Giving more than one clap isn't very discoverable, requiring you to click and hold which is not something the webfaring mouse finds itself doing regularly and can fight with native behavior, especially on Mobile devices.
 
-##### Snacks
+### Introducing Snacks!
 
 <img {...require('./snacks.gif')} />
 
-Throw it all in the cauldron! I hoped to take the best of this evolution, inject a little personality, and deliver something delightful and subjectively appropriate for my own personal blog.
+So how should I go about feedback? Throw a bit of all of these ideas into the idea cauldron! I hoped to take the best of this evolution of feedback interfaces, inject a little personality, and deliver something delightful and subjectively appropriate for my own personal blog.
+
+Like Slack and other Emoji interfaces, there's a sense of leaving something specific behind. Rather than just tally another number on the stack of likes, how about you leave me a snack?
+
+Like Kudos, there's an interaction model that feels *fun* but carries over to mobile.
 
 Like Medium, you can leave as few or as many snacks as you feel, however each number of snacks is represented by a different delicious emoji.
+
+Overall, I'm quite pleased with the result. Building this new personal site and this new feedback mechanism was a delicious mental snack. I freely admit it was a distraction from valuable nutritious work, but sometimes you just need a snack.
+
+So why don't you leave me one?
