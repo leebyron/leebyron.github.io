@@ -902,3 +902,5 @@ async function postFeedback(
   }
   throw new Error(await response.text())
 }
+
+const setImmediate = global.setImmediate || global.setTimeout;
