@@ -121,6 +121,9 @@ export function Feedback({ article }: { article: string }) {
         r3.current.style.transform = 'rotate(90deg)'
         r4.current.style.transform = 'rotate(360deg)'
       }
+      try {
+        window.navigator.vibrate && window.navigator.vibrate(10)
+      } catch (_) {}
       updateCount(s => s + 1)
     })
   }
