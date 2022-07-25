@@ -11,8 +11,8 @@ const headshot = require('../assets/me.jpg')
 
 const bio =
   'Lee is the co-creator of GraphQL and Executive Director of the GraphQL ' +
-  'Foundation. He works at Robinhood as an Engineering Manager and ' +
-  'previously worked at Facebook. Lee has had a hand in open source ' +
+  'Foundation. He leads Product Engineering at Watershed and ' +
+  'previously worked at Robinhood & Facebook. Lee has had a hand in open source ' +
   'libraries used by millions of developers worldwide including GraphQL, ' +
   'React, Immutable.js, Flow, Relay, Dataloader, and more.'
 
