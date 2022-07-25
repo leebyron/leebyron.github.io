@@ -371,7 +371,9 @@ function AuthorInfo() {
       <p>
         Co-creator of GraphQL, Executive Director of the GraphQL Foundation, and
         Product Engineering Lead
-        at <Link href="https://watershed.com"><a>Watershed</a></Link>.
+        at <Link href="https://watershed.com" passHref>
+          <a target="_blank" rel="noopener noreferrer">Watershed</a>
+        </Link>.
         Opinions are my own. I like snacks.
       </p>
     </div>
