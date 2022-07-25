@@ -370,7 +370,9 @@ function AuthorInfo() {
       </h3>
       <p>
         Co-creator of GraphQL, Executive Director of the GraphQL Foundation, and
-        Engineering Manager at Robinhood. Opinions are my own. I like snacks.
+        Product Engineering Lead at 
+        <Link href="https://watershed.com"><a>Watershed</a></Link>.
+        Opinions are my own. I like snacks.
       </p>
     </div>
   )
