@@ -14,7 +14,7 @@ const bio =
   'Foundation. He leads Product Engineering at Watershed and ' +
   'previously worked at Robinhood & Facebook. Lee has had a hand in open source ' +
   'libraries used by millions of developers worldwide including GraphQL, ' +
-  'React, Immutable.js, Flow, Relay, Dataloader, and more.'
+  'React, Dataloader, Immutable.js, Relay, Flow, and more.'
 
 export default function Index() {
   return (
@@ -65,9 +65,22 @@ export default function Index() {
         `}</style>
         <img className="logo" src={require('../assets/logo.svg')} width="200" />
         <p>{bio}</p>
+        <h2>Writing</h2>
+        <div>
+          I write actively on my blog, <a href="/til/">Things I've Learned</a>.
+          Entries are short, visual, and casual covering everything from Mac
+          config to Philosophy. Select entries:
+          <ul>
+            <li><a href="/til/four-thousand-weeks/">til/four thousand weeks</a></li>
+            <li><a href="/til/contrails/">til/contrails</a></li>
+            <li><a href="/til/time-impact-of-kids/">til/time impact of kids</a></li>
+            <li><a href="/til/ikigai/">til/ikigai</a></li>
+            <li><a href="/til/leap/">til/leap®</a></li>
+          </ul>
+        </div>
         <h2>Speaking</h2>
         <Talks />
-        <h2>Articles & Essays</h2>
+        <h2>Historical Articles & Essays</h2>
         <AllArticlesList />
       </Page>
     </Body>
