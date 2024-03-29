@@ -86,7 +86,7 @@ export default function Index() {
         <ul>
           <li><a rel="me" target="_blank" href="https://threads.net/@leebyron">Threads</a></li>
           <li><a rel="me" target="_blank" href="https://instagram.com/leebyron">Instagram</a></li>
-          <li><a rel="me" href="https://mastodon.social/@leeb">Mastodon</a></li>
+          <li><a rel="me" target="_blank" href="https://mastodon.social/@leeb">Mastodon</a></li>
         </ul>
       </Page>
     </Body>
