@@ -82,6 +82,10 @@ export default function Index() {
         <Talks />
         <h2>Historical Articles & Essays</h2>
         <AllArticlesList />
+        <h2>Socials</h2>
+        <a rel="me" href="https://threads.net/@leebyron">Threads</a>
+        <a rel="me" href="https://instagram.com/leebyron">Instagram</a>
+        <a rel="me" href="https://mastodon.social/@leeb">Mastodon</a>
       </Page>
     </Body>
   )
