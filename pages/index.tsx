@@ -83,9 +83,11 @@ export default function Index() {
         <h2>Historical Articles & Essays</h2>
         <AllArticlesList />
         <h2>Socials</h2>
-        <a rel="me" href="https://threads.net/@leebyron">Threads</a>
-        <a rel="me" href="https://instagram.com/leebyron">Instagram</a>
-        <a rel="me" href="https://mastodon.social/@leeb">Mastodon</a>
+        <ul>
+          <li><a rel="me" target="_blank" href="https://threads.net/@leebyron">Threads</a></li>
+          <li><a rel="me" target="_blank" href="https://instagram.com/leebyron">Instagram</a></li>
+          <li><a rel="me" target="_blank" href="https://mastodon.social/@leeb">Mastodon</a></li>
+        </ul>
       </Page>
     </Body>
   )
